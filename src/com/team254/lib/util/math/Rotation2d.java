@@ -1,10 +1,9 @@
 package com.team254.lib.util.math;
 
-import static com.team254.lib.util.Util.epsilonEquals;
-
-import com.team254.lib.util.Interpolable;
-
 import java.text.DecimalFormat;
+
+import com.team1323.lib.util.Interpolable;
+import com.team1323.lib.util.Util;
 
 /**
  * A rotation in a 2d coordinate frame represented a point on the unit circle (cosine and sine).
@@ -120,7 +119,7 @@ public class Rotation2d implements Interpolable<Rotation2d> {
     }
 
     public boolean isParallel(Rotation2d other) {
-        return epsilonEquals(Translation2d.cross(toTranslation(), other.toTranslation()), 0.0, kEpsilon);
+        return Util.epsilonEquals(Translation2d.cross(toTranslation(), other.toTranslation()), 0.0, kEpsilon);
     }
 
     public Translation2d toTranslation() {

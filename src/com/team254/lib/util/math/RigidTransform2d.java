@@ -1,8 +1,7 @@
 package com.team254.lib.util.math;
 
-import static com.team254.lib.util.Util.epsilonEquals;
-
-import com.team254.lib.util.Interpolable;
+import com.team1323.lib.util.Interpolable;
+import com.team1323.lib.util.Util;
 
 /**
  * Represents a 2d pose (rigid transform) containing translational and rotational elements.
@@ -148,7 +147,7 @@ public class RigidTransform2d implements Interpolable<RigidTransform2d> {
      */
     public boolean isColinear(RigidTransform2d other) {
         final Twist2d twist = log(inverse().transformBy(other));
-        return (epsilonEquals(twist.dy, 0.0, kEpsilon) && epsilonEquals(twist.dtheta, 0.0, kEpsilon));
+        return (Util.epsilonEquals(twist.dy, 0.0, kEpsilon) && Util.epsilonEquals(twist.dtheta, 0.0, kEpsilon));
     }
 
     private static Translation2d intersectionInternal(RigidTransform2d a, RigidTransform2d b) {

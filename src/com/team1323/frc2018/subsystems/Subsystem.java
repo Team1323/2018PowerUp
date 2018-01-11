@@ -1,6 +1,6 @@
 package com.team1323.frc2018.subsystems;
 
-import com.team254.frc2017.loops.Looper;
+import com.team1323.frc2018.loops.Looper;
 
 /**
  * The Subsystem abstract class, which serves as a basic framework for all robot subsystems. Each subsystem outputs

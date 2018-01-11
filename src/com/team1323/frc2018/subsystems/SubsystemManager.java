@@ -1,9 +1,8 @@
 package com.team1323.frc2018.subsystems;
 
-import com.team254.frc2017.loops.Looper;
-import com.team254.frc2017.subsystems.Subsystem;
-
 import java.util.List;
+
+import com.team1323.frc2018.loops.Looper;
 
 /**
  * Used to reset, start, stop, and update all subsystems at once

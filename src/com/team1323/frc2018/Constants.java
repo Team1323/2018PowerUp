@@ -1,5 +1,5 @@
 package com.team1323.frc2018;
 
 public class Constants {
-	public static double kLooperDt = 0.005;
+	public static double kLooperDt = 0.01;
 }
