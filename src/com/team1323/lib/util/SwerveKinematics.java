@@ -18,10 +18,10 @@ public class SwerveKinematics {
 	public double[] wheelSpeeds = new double[4];
 	
 	public void calculate(double x, double y, double rotate){
-		double A = x - rotate * (Constants.WHEELBASE_LENGTH / Constants.SWERVE_R);
-	    double B = x + rotate * (Constants.WHEELBASE_LENGTH / Constants.SWERVE_R);
-	    double C = y - rotate * (Constants.WHEELBASE_WIDTH / Constants.SWERVE_R);
-	    double D = y + rotate * (Constants.WHEELBASE_WIDTH / Constants.SWERVE_R);
+		double A = x - rotate * (Constants.WHEELBASE_LENGTH / Constants.SWERVE_DIAGONAL);
+	    double B = x + rotate * (Constants.WHEELBASE_LENGTH / Constants.SWERVE_DIAGONAL);
+	    double C = y - rotate * (Constants.WHEELBASE_WIDTH / Constants.SWERVE_DIAGONAL);
+	    double D = y + rotate * (Constants.WHEELBASE_WIDTH / Constants.SWERVE_DIAGONAL);
 	    
 	    frontRightWheelSpeed = Math.sqrt((B * B) + (C * C));
 	    frontLeftWheelSpeed  = Math.sqrt((B * B) + (D * D));

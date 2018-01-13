@@ -5,11 +5,15 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatusFrame;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.team1323.frc2018.loops.Looper;
 import com.team1323.lib.util.Util;
 
-public class SwerveDriveModule {
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+public class SwerveDriveModule extends Subsystem{
 	TalonSRX rotationMotor, driveMotor;
 	int moduleID;
+	String name = "Module ";
 	double rotationalOffset;
 	double rotationSetpoint = 0;
 	
@@ -18,6 +22,7 @@ public class SwerveDriveModule {
 		driveMotor = new TalonSRX(driveSlot);
 		configureMotors();
 		this.moduleID = moduleID;
+		name += (moduleID + " ");
 		this.rotationalOffset = rotationalOffset;
 	}
 	
@@ -107,9 +112,28 @@ public class SwerveDriveModule {
 		return encUnits/1024.0*360.0;
 	}
 	
+	@Override
 	public synchronized void stop(){
 		setRotationOpenLoop(0.0);
 		setDriveOpenLoop(0.0);
+	}
+
+	@Override
+	public void zeroSensors() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void registerEnabledLoops(Looper enabledLooper) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void outputToSmartDashboard() {
+		SmartDashboard.putNumber(name + "Angle", getModuleAngle());
+		SmartDashboard.putNumber(name + "Drive Voltage", driveMotor.getMotorOutputVoltage());
 	}
 	
 	

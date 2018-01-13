@@ -7,9 +7,19 @@
 
 package com.team1323.frc2018;
 
+import java.util.Arrays;
+
+import com.team1323.frc2018.loops.Looper;
+import com.team1323.frc2018.subsystems.Elevator;
+import com.team1323.frc2018.subsystems.Intake;
+import com.team1323.frc2018.subsystems.SubsystemManager;
+import com.team1323.frc2018.subsystems.Superstructure;
+import com.team1323.frc2018.subsystems.Swerve;
+import com.team1323.frc2018.subsystems.Wrist;
+import com.team1323.io.Xbox;
+import com.team1323.lib.util.CrashTracker;
+
 import edu.wpi.first.wpilibj.IterativeRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -19,10 +29,17 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * project.
  */
 public class Robot extends IterativeRobot {
-	private static final String kDefaultAuto = "Default";
-	private static final String kCustomAuto = "My Auto";
-	private String m_autoSelected;
-	private SendableChooser<String> m_chooser = new SendableChooser<>();
+	private Swerve swerve = Swerve.getInstance();
+	private Superstructure superstructure = Superstructure.getInstance();
+	
+	private SubsystemManager subsystems = new SubsystemManager(
+			Arrays.asList(Swerve.getInstance(), Intake.getInstance(), 
+					Elevator.getInstance(), Wrist.getInstance()));
+	
+	private Looper enabledLooper, disabledLooper = new Looper();
+	
+	private Xbox driver, coDriver;
+	
 
 	/**
 	 * This function is run when the robot is first started up and should be
@@ -30,9 +47,15 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
-		m_chooser.addDefault("Default Auto", kDefaultAuto);
-		m_chooser.addObject("My Auto", kCustomAuto);
-		SmartDashboard.putData("Auto choices", m_chooser);
+		driver = new Xbox(0);
+		coDriver = new Xbox(1);
+		
+		subsystems.registerEnabledLoops(enabledLooper);
+	}
+	
+	public void allPeriodic(){
+		subsystems.outputToSmartDashboard();
+		enabledLooper.outputToSmartDashboard();
 	}
 
 	/**
@@ -48,10 +71,12 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousInit() {
-		m_autoSelected = m_chooser.getSelected();
-		// autoSelected = SmartDashboard.getString("Auto Selector",
-		// defaultAuto);
-		System.out.println("Auto selected: " + m_autoSelected);
+		try{
+			
+		}catch(Throwable t){
+			CrashTracker.logThrowableCrash(t);
+			throw t;
+		}
 	}
 
 	/**
@@ -59,14 +84,16 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void autonomousPeriodic() {
-		switch (m_autoSelected) {
-			case kCustomAuto:
-				// Put custom auto code here
-				break;
-			case kDefaultAuto:
-			default:
-				// Put default auto code here
-				break;
+		allPeriodic();
+	}
+	
+	@Override
+	public void teleopInit(){
+		try{
+			
+		}catch(Throwable t){
+			CrashTracker.logThrowableCrash(t);
+			throw t;
 		}
 	}
 
@@ -75,6 +102,32 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void teleopPeriodic() {
+		try{
+			allPeriodic();
+		}catch(Throwable t){
+			CrashTracker.logThrowableCrash(t);
+			throw t;
+		}
+	}
+	
+	@Override
+	public void disabledInit(){
+		try{
+			
+		}catch(Throwable t){
+			CrashTracker.logThrowableCrash(t);
+			throw t;
+		}
+	}
+	
+	@Override
+	public void disabledPeriodic(){
+		try{
+			allPeriodic();
+		}catch(Throwable t){
+			CrashTracker.logThrowableCrash(t);
+			throw t;
+		}
 	}
 
 	/**

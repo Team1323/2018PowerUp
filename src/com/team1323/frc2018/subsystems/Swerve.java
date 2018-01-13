@@ -5,8 +5,12 @@ import java.util.List;
 
 import com.team1323.frc2018.Constants;
 import com.team1323.frc2018.Ports;
+import com.team1323.frc2018.loops.Loop;
+import com.team1323.frc2018.loops.Looper;
+import com.team1323.lib.util.SwerveKinematics;
+import com.team1323.lib.util.Util;
 
-public class Swerve {
+public class Swerve extends Subsystem{
 	private static Swerve instance = null;
 	public static Swerve getInstance(){
 		if(instance == null)
@@ -30,7 +34,104 @@ public class Swerve {
 		modules = Arrays.asList(frontRight, frontLeft, rearLeft, rearRight);
 	}
 	
+	private double xInput = 0;
+	private double yInput = 0;
+	private double rotationalInput = 0;
+	
+	private SwerveKinematics kinematics = new SwerveKinematics();
+	
 	public enum ControlState{
 		NEUTRAL, MANUAL
+	}
+	private ControlState currentState = ControlState.NEUTRAL;
+	public ControlState getState(){
+		return currentState;
+	}
+	public void setState(ControlState newState){
+		currentState = newState;
+	}
+	
+	public void sendInput(double x, double y, double rotate, boolean robotCentric, boolean lowPower){
+		double angle = 0;
+		if(robotCentric){
+			xInput = x;
+			yInput = y;
+		}
+		else{
+			double tmp = (y* Math.cos(angle)) + (x * Math.sin(angle));
+			xInput = (-y * Math.sin(angle)) + (x * Math.cos(angle));
+			yInput = tmp;			
+		}
+		
+		if((x != 0 || y != 0) && currentState != ControlState.MANUAL){
+			setState(ControlState.MANUAL);
+		}
+	}
+	
+	private final Loop loop = new Loop(){
+
+		@Override
+		public void onStart(double timestamp) {
+			xInput = 0;
+			yInput = 0;
+			rotationalInput = 0;
+			stop();
+		}
+
+		@Override
+		public void onLoop(double timestamp) {
+			update();
+		}
+
+		@Override
+		public void onStop(double timestamp) {
+			xInput = 0;
+			yInput = 0;
+			rotationalInput = 0;
+			stop();
+		}
+		
+	};
+	
+	@Override
+	public void registerEnabledLoops(Looper enabledLooper) {
+		enabledLooper.register(loop);
+	}
+	
+	public void update(){
+		switch(currentState){
+		case MANUAL:
+			kinematics.calculate(xInput, yInput, rotationalInput);
+			for(int i=0; i<modules.size(); i++){
+	    		if(Util.shouldReverse(kinematics.wheelAngles[i], modules.get(i).getModuleAngle())){
+	    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i] + 180);
+	    			modules.get(i).setDriveOpenLoop(-kinematics.wheelSpeeds[i]);
+	    		}else{
+	    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i]);
+	    			modules.get(i).setDriveOpenLoop(kinematics.wheelSpeeds[i]);
+	    		}
+	    	}
+			break;
+		case NEUTRAL:
+			stop();
+			break;
+		}
+	}
+
+	@Override
+	public void stop() {
+		// TODO Auto-generated method stub
+		modules.forEach((m) -> m.stop());
+	}
+
+	@Override
+	public void zeroSensors() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void outputToSmartDashboard() {
+		modules.forEach((m) -> m.outputToSmartDashboard());
 	}
 }
