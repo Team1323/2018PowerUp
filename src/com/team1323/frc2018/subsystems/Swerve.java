@@ -41,7 +41,7 @@ public class Swerve extends Subsystem{
 	private SwerveKinematics kinematics = new SwerveKinematics();
 	
 	public enum ControlState{
-		NEUTRAL, MANUAL
+		NEUTRAL, MANUAL, POSITION
 	}
 	private ControlState currentState = ControlState.NEUTRAL;
 	public ControlState getState(){
@@ -65,6 +65,39 @@ public class Swerve extends Subsystem{
 		
 		if((x != 0 || y != 0) && currentState != ControlState.MANUAL){
 			setState(ControlState.MANUAL);
+		}
+	}
+	
+	public void setPositionTarget(double directionDegrees, double magnitudeInches){
+		setState(ControlState.POSITION);
+		modules.forEach((m) -> m.setModuleAngle(directionDegrees));
+		modules.forEach((m) -> m.setDrivePositionTarget(magnitudeInches));
+	}
+	
+	public void update(){
+		switch(currentState){
+		case MANUAL:
+			kinematics.calculate(xInput, yInput, rotationalInput);
+			if(xInput == 0 && yInput == 0 && rotationalInput == 0){
+				stop();
+			}else{
+				for(int i=0; i<modules.size(); i++){
+		    		if(Util.shouldReverse(kinematics.wheelAngles[i], modules.get(i).getModuleAngle())){
+		    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i] + 180);
+		    			modules.get(i).setDriveOpenLoop(-kinematics.wheelSpeeds[i]);
+		    		}else{
+		    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i]);
+		    			modules.get(i).setDriveOpenLoop(kinematics.wheelSpeeds[i]);
+		    		}
+		    	}
+			}
+			break;
+		case POSITION:
+			
+			break;
+		case NEUTRAL:
+			stop();
+			break;
 		}
 	}
 	
@@ -97,31 +130,11 @@ public class Swerve extends Subsystem{
 	public void registerEnabledLoops(Looper enabledLooper) {
 		enabledLooper.register(loop);
 	}
-	
-	public void update(){
-		switch(currentState){
-		case MANUAL:
-			kinematics.calculate(xInput, yInput, rotationalInput);
-			for(int i=0; i<modules.size(); i++){
-	    		if(Util.shouldReverse(kinematics.wheelAngles[i], modules.get(i).getModuleAngle())){
-	    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i] + 180);
-	    			modules.get(i).setDriveOpenLoop(-kinematics.wheelSpeeds[i]);
-	    		}else{
-	    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i]);
-	    			modules.get(i).setDriveOpenLoop(kinematics.wheelSpeeds[i]);
-	    		}
-	    	}
-			break;
-		case NEUTRAL:
-			stop();
-			break;
-		}
-	}
 
 	@Override
-	public void stop() {
-		// TODO Auto-generated method stub
+	public synchronized void stop() {
 		modules.forEach((m) -> m.stop());
+		setState(ControlState.NEUTRAL);
 	}
 
 	@Override

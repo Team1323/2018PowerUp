@@ -1,6 +1,6 @@
 package com.team1323.frc2018.auto;
 
-import com.team254.lib.util.CrashTrackingRunnable;
+import com.team1323.lib.util.CrashTrackingRunnable;
 
 /**
  * This class selects, runs, and stops (if necessary) a specified autonomous mode.

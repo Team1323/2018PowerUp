@@ -1,6 +1,7 @@
 package com.team1323.io;
 
-import Utilities.Util;
+import com.team1323.lib.util.Util;
+
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 

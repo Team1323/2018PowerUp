@@ -5,6 +5,7 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatusFrame;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.team1323.frc2018.Constants;
 import com.team1323.frc2018.loops.Looper;
 import com.team1323.lib.util.Util;
 
@@ -104,6 +105,23 @@ public class SwerveDriveModule extends Subsystem{
 		driveMotor.set(ControlMode.PercentOutput, power);
 	}
 	
+	public void setDrivePositionTarget(double deltaDistanceInches){
+		driveMotor.set(ControlMode.MotionMagic, driveMotor.getSelectedSensorPosition(0) +
+				inchesToEncUnits(deltaDistanceInches));
+	}
+	
+	public double getDriveDistanceInches(){
+		return encUnitsToInches(driveMotor.getSelectedSensorPosition(0));
+	}
+	
+	public double encUnitsToInches(int encUnits){
+		return encUnits/Constants.SWERVE_ENC_UNITS_PER_INCH;
+	}
+	
+	public int inchesToEncUnits(double inches){
+		return (int) (inches*Constants.SWERVE_ENC_UNITS_PER_INCH);
+	}
+	
 	public int degreesToEncUnits(double degrees){
 		return (int) (degrees/360.0*1024.0);
 	}
@@ -111,6 +129,7 @@ public class SwerveDriveModule extends Subsystem{
 	public double encUnitsToDegrees(int encUnits){
 		return encUnits/1024.0*360.0;
 	}
+	
 	
 	@Override
 	public synchronized void stop(){

@@ -103,6 +103,11 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopPeriodic() {
 		try{
+			driver.update();
+			coDriver.update();
+			
+			
+			
 			allPeriodic();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);

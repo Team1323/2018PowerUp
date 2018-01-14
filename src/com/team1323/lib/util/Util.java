@@ -98,4 +98,8 @@ public class Util {
     	reversedAngleDifference = (reversedAngleDifference > 180) ? 360-reversedAngleDifference : reversedAngleDifference;
     	return reversedAngleDifference < angleDifference;
     }
+    
+    public static double deadBand(double val, double deadband){
+        return (Math.abs(val) > Math.abs(deadband)) ? val : 0.0;
+    }
 }

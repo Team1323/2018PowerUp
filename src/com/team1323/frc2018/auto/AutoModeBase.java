@@ -1,6 +1,6 @@
 package com.team1323.frc2018.auto;
 
-import com.team254.frc2017.auto.actions.Action;
+import com.team1323.frc2018.auto.actions.Action;
 
 /**
  * An abstract class that is the basis of the robot's autonomous routines. This is implemented in auto modes (which are
