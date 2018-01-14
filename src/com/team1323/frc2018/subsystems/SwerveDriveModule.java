@@ -8,6 +8,9 @@ import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.team1323.frc2018.Constants;
 import com.team1323.frc2018.loops.Looper;
 import com.team1323.lib.util.Util;
+import com.team254.lib.util.math.RigidTransform2d;
+import com.team254.lib.util.math.Rotation2d;
+import com.team254.lib.util.math.Translation2d;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -17,14 +20,24 @@ public class SwerveDriveModule extends Subsystem{
 	String name = "Module ";
 	double rotationalOffset;
 	double rotationSetpoint = 0;
+	Pigeon pigeon;
 	
-	public SwerveDriveModule(int rotationSlot, int driveSlot, int moduleID, double rotationalOffset){
+	private RigidTransform2d pose;
+	private RigidTransform2d previousPose;
+	private RigidTransform2d startingPose;
+	
+	public SwerveDriveModule(int rotationSlot, int driveSlot, int moduleID, 
+			double rotationalOffset, RigidTransform2d startingPose){
 		rotationMotor = new TalonSRX(rotationSlot);
 		driveMotor = new TalonSRX(driveSlot);
 		configureMotors();
 		this.moduleID = moduleID;
 		name += (moduleID + " ");
 		this.rotationalOffset = rotationalOffset;
+		pigeon = Pigeon.getInstance();
+		pose = startingPose;
+		previousPose = startingPose;
+		this.startingPose = startingPose;
 	}
 	
 	public void invertDriveMotor(boolean invert){
@@ -130,6 +143,17 @@ public class SwerveDriveModule extends Subsystem{
 		return encUnits/1024.0*360.0;
 	}
 	
+	public void resetPose(double robotHeading){
+		RigidTransform2d robotPose = new RigidTransform2d(new Translation2d(), Rotation2d.fromDegrees(robotHeading));
+		RigidTransform2d modulePose = robotPose.transformBy(startingPose);
+		pose = modulePose;
+		previousPose = modulePose;
+	}
+	
+	public void resetPose(){
+		pose = startingPose;
+		previousPose = startingPose;
+	}
 	
 	@Override
 	public synchronized void stop(){

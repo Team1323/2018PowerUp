@@ -21,6 +21,8 @@ public class Swerve extends Subsystem{
 	SwerveDriveModule frontRight, frontLeft, rearLeft, rearRight;
 	List<SwerveDriveModule> modules;
 	
+	Pigeon pigeon;
+	
 	public Swerve(){
 		frontRight = new SwerveDriveModule(Ports.FRONT_RIGHT_ROTATION, Ports.FRONT_RIGHT_DRIVE,
 				1, Constants.FRONT_RIGHT_TURN_OFFSET);
@@ -32,6 +34,8 @@ public class Swerve extends Subsystem{
 				4, Constants.REAR_RIGHT_TURN_OFFSET);
 		
 		modules = Arrays.asList(frontRight, frontLeft, rearLeft, rearRight);
+		
+		pigeon = Pigeon.getInstance();
 	}
 	
 	private double xInput = 0;
@@ -133,8 +137,8 @@ public class Swerve extends Subsystem{
 
 	@Override
 	public synchronized void stop() {
-		modules.forEach((m) -> m.stop());
 		setState(ControlState.NEUTRAL);
+		modules.forEach((m) -> m.stop());
 	}
 
 	@Override
