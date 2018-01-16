@@ -25,13 +25,13 @@ public class Swerve extends Subsystem{
 	
 	public Swerve(){
 		frontRight = new SwerveDriveModule(Ports.FRONT_RIGHT_ROTATION, Ports.FRONT_RIGHT_DRIVE,
-				1, Constants.FRONT_RIGHT_TURN_OFFSET);
+				1, Constants.FRONT_RIGHT_TURN_OFFSET, Constants.kVehicleToModuleOne);
 		frontLeft = new SwerveDriveModule(Ports.FRONT_LEFT_ROTATION, Ports.FRONT_LEFT_DRIVE,
-				2, Constants.FRONT_LEFT_TURN_OFFSET);
+				2, Constants.FRONT_LEFT_TURN_OFFSET, Constants.kVehicleToModuleTwo);
 		rearLeft = new SwerveDriveModule(Ports.REAR_LEFT_ROTATION, Ports.REAR_LEFT_DRIVE,
-				3, Constants.REAR_LEFT_TURN_OFFSET);
+				3, Constants.REAR_LEFT_TURN_OFFSET, Constants.kVehicleToModuleThree);
 		rearRight = new SwerveDriveModule(Ports.REAR_RIGHT_ROTATION, Ports.REAR_RIGHT_DRIVE,
-				4, Constants.REAR_RIGHT_TURN_OFFSET);
+				4, Constants.REAR_RIGHT_TURN_OFFSET, Constants.kVehicleToModuleFour);
 		
 		modules = Arrays.asList(frontRight, frontLeft, rearLeft, rearRight);
 		
@@ -45,7 +45,7 @@ public class Swerve extends Subsystem{
 	private SwerveKinematics kinematics = new SwerveKinematics();
 	
 	public enum ControlState{
-		NEUTRAL, MANUAL, POSITION
+		NEUTRAL, MANUAL, POSITION, PATH_FOLLOWING
 	}
 	private ControlState currentState = ControlState.NEUTRAL;
 	public ControlState getState(){
@@ -97,6 +97,9 @@ public class Swerve extends Subsystem{
 			}
 			break;
 		case POSITION:
+			
+			break;
+		case PATH_FOLLOWING:
 			
 			break;
 		case NEUTRAL:

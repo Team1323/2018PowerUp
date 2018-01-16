@@ -5,8 +5,8 @@ import jaci.pathfinder.Trajectory;
 import jaci.pathfinder.Waypoint;
 
 public class PathfinderPath {
-	protected double maxSpeed = 12.0;
-	protected double maxAccel = 10.0;
+	protected double maxSpeed = 10.0;
+	protected double maxAccel = 6.0;
 	protected double maxJerk = 84.0;
 	protected double dt = 0.02;
 	protected int samples = Trajectory.Config.SAMPLES_LOW;

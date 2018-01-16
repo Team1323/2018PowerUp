@@ -22,6 +22,7 @@ public class SwerveDriveModule extends Subsystem{
 	double rotationSetpoint = 0;
 	Pigeon pigeon;
 	
+	private double previousEncDistance = 0;
 	private RigidTransform2d pose;
 	private RigidTransform2d previousPose;
 	private RigidTransform2d startingPose;
@@ -35,6 +36,7 @@ public class SwerveDriveModule extends Subsystem{
 		name += (moduleID + " ");
 		this.rotationalOffset = rotationalOffset;
 		pigeon = Pigeon.getInstance();
+		previousEncDistance = 0;
 		pose = startingPose;
 		previousPose = startingPose;
 		this.startingPose = startingPose;
@@ -75,7 +77,7 @@ public class SwerveDriveModule extends Subsystem{
     	rotationMotor.config_kD(0, 160.0, 10);
     	rotationMotor.config_kF(0, 1.705, 10);
     	rotationMotor.set(ControlMode.MotionMagic, rotationMotor.getSelectedSensorPosition(0));
-    	driveMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 10);
+    	driveMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
     	driveMotor.setSelectedSensorPosition(0, 0, 10);
     	driveMotor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 10, 10);
     	driveMotor.configNominalOutputForward(0.0, 10);
@@ -101,6 +103,10 @@ public class SwerveDriveModule extends Subsystem{
 	
 	public double getModuleAngle(){
 		return Util.boundAngle0to360Degrees(getRawAngle() - rotationalOffset);
+	}
+	
+	public Rotation2d getFieldCentricAngle(){
+		return Rotation2d.fromDegrees(getModuleAngle() + pigeon.getAngle());
 	}
 	
 	public void setModuleAngle(double goalAngle){
@@ -143,16 +149,29 @@ public class SwerveDriveModule extends Subsystem{
 		return encUnits/1024.0*360.0;
 	}
 	
+	public RigidTransform2d getPose(){
+		return pose;
+	}
+	
+	public void updatePose(){
+		double currentEncDistance = getDriveDistanceInches();
+		double deltaEncDistance = currentEncDistance - previousEncDistance;
+		Rotation2d angle = getFieldCentricAngle();
+		RigidTransform2d deltaPose = new RigidTransform2d(new Translation2d(angle.cos()*deltaEncDistance, 
+				angle.sin()*deltaEncDistance), new Rotation2d());
+		RigidTransform2d updatedPose = pose.transformBy(deltaPose);
+		pose = updatedPose;
+		previousEncDistance = currentEncDistance;
+	}
+	
 	public void resetPose(double robotHeading){
 		RigidTransform2d robotPose = new RigidTransform2d(new Translation2d(), Rotation2d.fromDegrees(robotHeading));
 		RigidTransform2d modulePose = robotPose.transformBy(startingPose);
 		pose = modulePose;
-		previousPose = modulePose;
 	}
 	
 	public void resetPose(){
 		pose = startingPose;
-		previousPose = startingPose;
 	}
 	
 	@Override
@@ -163,13 +182,12 @@ public class SwerveDriveModule extends Subsystem{
 
 	@Override
 	public void zeroSensors() {
-		// TODO Auto-generated method stub
-		
+		driveMotor.setSelectedSensorPosition(0, 0, 0);
+		resetPose();
 	}
 
 	@Override
 	public void registerEnabledLoops(Looper enabledLooper) {
-		// TODO Auto-generated method stub
 		
 	}
 
