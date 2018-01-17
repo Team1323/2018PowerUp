@@ -7,8 +7,16 @@ import com.team1323.frc2018.Constants;
 import com.team1323.frc2018.Ports;
 import com.team1323.frc2018.loops.Loop;
 import com.team1323.frc2018.loops.Looper;
+import com.team1323.frc2018.pathfinder.PathfinderPath;
 import com.team1323.lib.util.SwerveKinematics;
 import com.team1323.lib.util.Util;
+import com.team254.lib.util.math.RigidTransform2d;
+import com.team254.lib.util.math.Rotation2d;
+import com.team254.lib.util.math.Translation2d;
+
+import jaci.pathfinder.Trajectory;
+import jaci.pathfinder.Trajectory.Segment;
+import jaci.pathfinder.followers.DistanceFollower;
 
 public class Swerve extends Subsystem{
 	private static Swerve instance = null;
@@ -23,19 +31,30 @@ public class Swerve extends Subsystem{
 	
 	Pigeon pigeon;
 	
+	RigidTransform2d pose;
+	double distanceTraveled;
+	
+	DistanceFollower pathFollower;
+	PathfinderPath currentPath;
+	Trajectory currentPathTrajectory;
+	int currentPathSegment = 0;
+	
 	public Swerve(){
 		frontRight = new SwerveDriveModule(Ports.FRONT_RIGHT_ROTATION, Ports.FRONT_RIGHT_DRIVE,
-				1, Constants.FRONT_RIGHT_TURN_OFFSET, Constants.kVehicleToModuleOne);
+				0, Constants.FRONT_RIGHT_TURN_OFFSET, Constants.kVehicleToModuleOne);
 		frontLeft = new SwerveDriveModule(Ports.FRONT_LEFT_ROTATION, Ports.FRONT_LEFT_DRIVE,
-				2, Constants.FRONT_LEFT_TURN_OFFSET, Constants.kVehicleToModuleTwo);
+				1, Constants.FRONT_LEFT_TURN_OFFSET, Constants.kVehicleToModuleTwo);
 		rearLeft = new SwerveDriveModule(Ports.REAR_LEFT_ROTATION, Ports.REAR_LEFT_DRIVE,
-				3, Constants.REAR_LEFT_TURN_OFFSET, Constants.kVehicleToModuleThree);
+				2, Constants.REAR_LEFT_TURN_OFFSET, Constants.kVehicleToModuleThree);
 		rearRight = new SwerveDriveModule(Ports.REAR_RIGHT_ROTATION, Ports.REAR_RIGHT_DRIVE,
-				4, Constants.REAR_RIGHT_TURN_OFFSET, Constants.kVehicleToModuleFour);
+				3, Constants.REAR_RIGHT_TURN_OFFSET, Constants.kVehicleToModuleFour);
 		
 		modules = Arrays.asList(frontRight, frontLeft, rearLeft, rearRight);
 		
 		pigeon = Pigeon.getInstance();
+		
+		pose = new RigidTransform2d();
+		distanceTraveled = 0;
 	}
 	
 	private double xInput = 0;
@@ -78,7 +97,18 @@ public class Swerve extends Subsystem{
 		modules.forEach((m) -> m.setDrivePositionTarget(magnitudeInches));
 	}
 	
-	public void update(){
+	public void followPath(PathfinderPath path, double goalHeading){
+		zeroSensors();
+		currentPathSegment = 0;
+		currentPath = path;
+		pathFollower = path.getFollower();
+		currentPathTrajectory = path.getTrajectory();
+		
+		setState(ControlState.PATH_FOLLOWING);
+	}
+	
+	public synchronized void updateControlCycle(){
+		
 		switch(currentState){
 		case MANUAL:
 			kinematics.calculate(xInput, yInput, rotationalInput);
@@ -86,7 +116,7 @@ public class Swerve extends Subsystem{
 				stop();
 			}else{
 				for(int i=0; i<modules.size(); i++){
-		    		if(Util.shouldReverse(kinematics.wheelAngles[i], modules.get(i).getModuleAngle())){
+		    		if(Util.shouldReverse(kinematics.wheelAngles[i], modules.get(i).getModuleAngle().getDegrees())){
 		    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i] + 180);
 		    			modules.get(i).setDriveOpenLoop(-kinematics.wheelSpeeds[i]);
 		    		}else{
@@ -100,12 +130,47 @@ public class Swerve extends Subsystem{
 			
 			break;
 		case PATH_FOLLOWING:
+			int lookaheadPointIndex = currentPathSegment + currentPath.getLookaheadPoints();
+			if(lookaheadPointIndex >= currentPathTrajectory.length()){
+				lookaheadPointIndex = currentPathTrajectory.length() - 1;
+			}
+			Segment lookaheadPoint = currentPathTrajectory.get(lookaheadPointIndex);
+			Translation2d lookaheadPosition = new Translation2d(lookaheadPoint.x, lookaheadPoint.y);
+			Rotation2d angleToLookahead = lookaheadPosition.translateBy(pose.getTranslation().inverse()).direction();
+			double x = angleToLookahead.sin();
+		    double y = angleToLookahead.cos();
+		    double tmp = (y * pose.getRotation().cos()) + (x * pose.getRotation().sin());
+			xInput = (-y * pose.getRotation().sin()) + (x * pose.getRotation().cos());
+			yInput = tmp;	
+		    kinematics.calculate(xInput, yInput, 0);
+			double motorOutput = pathFollower.calculate(distanceTraveled);
+			modules.forEach((m) -> m.setModuleAngle(kinematics.wheelAngles[m.moduleID]));
+			modules.forEach((m) -> m.setDriveOpenLoop(motorOutput));
 			
+			if(pathFollower.isFinished())
+				setState(ControlState.NEUTRAL);
+			
+			currentPathSegment++;
 			break;
 		case NEUTRAL:
 			stop();
 			break;
 		}
+	}
+	
+	public synchronized void updatePose(){
+		double x = 0;
+		double y = 0;
+		Rotation2d heading = pigeon.getAngle();
+		
+		for(SwerveDriveModule m : modules){
+			m.updatePose(heading);
+			x += m.getEstimatedRobotPose().getTranslation().x();
+			y += m.getEstimatedRobotPose().getTranslation().y();
+		}
+		RigidTransform2d updatedPose = new RigidTransform2d(new Translation2d(x / modules.size(), y / modules.size()), heading);
+		distanceTraveled += updatedPose.getTranslation().translateBy(pose.getTranslation().inverse()).norm();
+		pose = updatedPose;
 	}
 	
 	private final Loop loop = new Loop(){
@@ -120,7 +185,8 @@ public class Swerve extends Subsystem{
 
 		@Override
 		public void onLoop(double timestamp) {
-			update();
+			updatePose();
+			updateControlCycle();
 		}
 
 		@Override
@@ -145,9 +211,10 @@ public class Swerve extends Subsystem{
 	}
 
 	@Override
-	public void zeroSensors() {
-		// TODO Auto-generated method stub
-		
+	public synchronized void zeroSensors() {
+		modules.forEach((m) -> m.zeroSensors());
+		pose = new RigidTransform2d();
+		distanceTraveled = 0;
 	}
 
 	@Override

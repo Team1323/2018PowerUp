@@ -18,28 +18,25 @@ public class SwerveDriveModule extends Subsystem{
 	TalonSRX rotationMotor, driveMotor;
 	int moduleID;
 	String name = "Module ";
-	double rotationalOffset;
+	Rotation2d rotationalOffset;
 	double rotationSetpoint = 0;
-	Pigeon pigeon;
 	
 	private double previousEncDistance = 0;
-	private RigidTransform2d pose;
-	private RigidTransform2d previousPose;
-	private RigidTransform2d startingPose;
+	private Translation2d position;
+	private Translation2d startingPosition;
+	private RigidTransform2d estimatedRobotPose = new RigidTransform2d();
 	
 	public SwerveDriveModule(int rotationSlot, int driveSlot, int moduleID, 
-			double rotationalOffset, RigidTransform2d startingPose){
+			Rotation2d rotationalOffset, Translation2d startingPose){
 		rotationMotor = new TalonSRX(rotationSlot);
 		driveMotor = new TalonSRX(driveSlot);
 		configureMotors();
 		this.moduleID = moduleID;
 		name += (moduleID + " ");
 		this.rotationalOffset = rotationalOffset;
-		pigeon = Pigeon.getInstance();
 		previousEncDistance = 0;
-		pose = startingPose;
-		previousPose = startingPose;
-		this.startingPose = startingPose;
+		position = startingPose;
+		this.startingPosition = startingPose;
 	}
 	
 	public void invertDriveMotor(boolean invert){
@@ -97,20 +94,20 @@ public class SwerveDriveModule extends Subsystem{
     	driveMotor.configMotionAcceleration(4500, 10);
 	}
 	
-	public double getRawAngle(){
-		return encUnitsToDegrees(rotationMotor.getSelectedSensorPosition(0));
+	public Rotation2d getRawAngle(){
+		return Rotation2d.fromDegrees(encUnitsToDegrees(rotationMotor.getSelectedSensorPosition(0)));
 	}
 	
-	public double getModuleAngle(){
-		return Util.boundAngle0to360Degrees(getRawAngle() - rotationalOffset);
+	public Rotation2d getModuleAngle(){
+		return getRawAngle().rotateBy(rotationalOffset.inverse());
 	}
 	
-	public Rotation2d getFieldCentricAngle(){
-		return Rotation2d.fromDegrees(getModuleAngle() + pigeon.getAngle());
+	public Rotation2d getFieldCentricAngle(Rotation2d robotHeading){
+		return getModuleAngle().rotateBy(robotHeading);
 	}
 	
 	public void setModuleAngle(double goalAngle){
-		double newAngle = Util.placeInAppropriate0To360Scope(getRawAngle(), goalAngle + rotationalOffset);
+		double newAngle = Util.placeInAppropriate0To360Scope(getRawAngle().getDegrees(), goalAngle + rotationalOffset.getDegrees());
 		rotationMotor.set(ControlMode.MotionMagic, degreesToEncUnits(newAngle));
 		rotationSetpoint = degreesToEncUnits(newAngle);
 	}
@@ -149,29 +146,37 @@ public class SwerveDriveModule extends Subsystem{
 		return encUnits/1024.0*360.0;
 	}
 	
-	public RigidTransform2d getPose(){
-		return pose;
+	public Translation2d getPosition(){
+		return position;
 	}
 	
-	public void updatePose(){
+	public RigidTransform2d getEstimatedRobotPose(){
+		return  estimatedRobotPose;
+	}
+	
+	public synchronized void updatePose(Rotation2d robotHeading){
 		double currentEncDistance = getDriveDistanceInches();
 		double deltaEncDistance = currentEncDistance - previousEncDistance;
-		Rotation2d angle = getFieldCentricAngle();
-		RigidTransform2d deltaPose = new RigidTransform2d(new Translation2d(angle.cos()*deltaEncDistance, 
-				angle.sin()*deltaEncDistance), new Rotation2d());
-		RigidTransform2d updatedPose = pose.transformBy(deltaPose);
-		pose = updatedPose;
+		Rotation2d angle = getFieldCentricAngle(robotHeading);
+		Translation2d deltaPosition = new Translation2d(angle.cos()*deltaEncDistance, 
+				angle.sin()*deltaEncDistance);
+		Translation2d updatedPosition = position.translateBy(deltaPosition);
+		RigidTransform2d staticWheelPose = new RigidTransform2d(updatedPosition, robotHeading);
+		RigidTransform2d robotPose = staticWheelPose.transformBy(RigidTransform2d.fromTranslation(startingPosition).inverse());
+		position = updatedPosition;
+		estimatedRobotPose =  robotPose;
 		previousEncDistance = currentEncDistance;
 	}
 	
-	public void resetPose(double robotHeading){
-		RigidTransform2d robotPose = new RigidTransform2d(new Translation2d(), Rotation2d.fromDegrees(robotHeading));
-		RigidTransform2d modulePose = robotPose.transformBy(startingPose);
-		pose = modulePose;
+	public synchronized void resetPose(Rotation2d robotHeading){
+		RigidTransform2d robotPose = RigidTransform2d.fromRotation(robotHeading);
+		Translation2d modulePosition = robotPose.transformBy(new RigidTransform2d(startingPosition, 
+				new Rotation2d())).getTranslation();
+		position = modulePosition;
 	}
 	
-	public void resetPose(){
-		pose = startingPose;
+	public synchronized void resetPose(){
+		position = startingPosition;
 	}
 	
 	@Override
@@ -181,9 +186,11 @@ public class SwerveDriveModule extends Subsystem{
 	}
 
 	@Override
-	public void zeroSensors() {
+	public synchronized void zeroSensors() {
 		driveMotor.setSelectedSensorPosition(0, 0, 0);
 		resetPose();
+		estimatedRobotPose = new RigidTransform2d();
+		previousEncDistance = 0;
 	}
 
 	@Override
@@ -193,9 +200,8 @@ public class SwerveDriveModule extends Subsystem{
 
 	@Override
 	public void outputToSmartDashboard() {
-		SmartDashboard.putNumber(name + "Angle", getModuleAngle());
+		SmartDashboard.putNumber(name + "Angle", getModuleAngle().getDegrees());
 		SmartDashboard.putNumber(name + "Drive Voltage", driveMotor.getMotorOutputVoltage());
 	}
-	
 	
 }

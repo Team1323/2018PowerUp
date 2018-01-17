@@ -3,7 +3,7 @@ package com.team1323.frc2018.subsystems;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import com.ctre.phoenix.sensors.PigeonIMU.PigeonState;
-import com.ctre.phoenix.sensors.PigeonIMU_StatusFrame;
+import com.team254.lib.util.math.Rotation2d;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -31,8 +31,8 @@ public class Pigeon {
 		return (pigeon.getState() == PigeonState.Ready) ? true : false;
 	}
 	
-	public double getAngle(){
-		return -pigeon.getFusedHeading(fusionStatus);
+	public Rotation2d getAngle(){
+		return Rotation2d.fromDegrees(-pigeon.getFusedHeading(fusionStatus));
 	}
 	
 	public void setAngle(double angle){
@@ -41,7 +41,7 @@ public class Pigeon {
 	}
 	
 	public void outputToSmartDashboard(){
-		SmartDashboard.putNumber("Heading Angle", getAngle());
+		SmartDashboard.putNumber("Heading Angle", getAngle().getDegrees());
 		SmartDashboard.putBoolean("Pigeon Good", isGood());
 		SmartDashboard.putNumber("Pigeon Temp", pigeon.getTemp());
 		SmartDashboard.putNumber("Pigeon Compass", pigeon.getAbsoluteCompassHeading());
