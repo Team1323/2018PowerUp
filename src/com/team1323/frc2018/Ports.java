@@ -21,4 +21,12 @@ public class Ports {
     public static final int INTAKE_SLIDER = 0;
     
     public static final int WRIST = 0;
+    
+    //Solenoids
+    public static final int INTAKE_PINCHERS = 0;
+    public static final int INTAKE_CLAMPERS = 1;
+    
+    //Digital Inputs
+    public static final int INTAKE_LEFT_BANNER = 1;
+    public static final int INTAKE_RIGHT_BANNER = 2;
 }

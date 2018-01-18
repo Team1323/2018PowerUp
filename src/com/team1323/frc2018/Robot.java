@@ -10,6 +10,7 @@ package com.team1323.frc2018;
 import java.util.Arrays;
 
 import com.team1323.frc2018.loops.Looper;
+import com.team1323.frc2018.pathfinder.PathManager;
 import com.team1323.frc2018.subsystems.Elevator;
 import com.team1323.frc2018.subsystems.Intake;
 import com.team1323.frc2018.subsystems.SubsystemManager;
@@ -51,6 +52,8 @@ public class Robot extends IterativeRobot {
 		coDriver = new Xbox(1);
 		
 		subsystems.registerEnabledLoops(enabledLooper);
+		
+		PathManager.buildAllPaths();
 	}
 	
 	public void allPeriodic(){

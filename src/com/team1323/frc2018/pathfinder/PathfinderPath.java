@@ -13,7 +13,7 @@ public class PathfinderPath {
 	protected int samples = Trajectory.Config.SAMPLES_LOW;
 	protected double p = 1.0;
 	protected double d = 0.0;
-	protected double v = 1/maxSpeed;
+	protected double v = 1.0/13.89;
 	protected double a = 0.0;
 	protected int lookaheadPoints = 6;
 	
