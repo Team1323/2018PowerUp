@@ -18,6 +18,8 @@ public class Intake extends Subsystem{
 		return instance;
 	}
 	
+	boolean hasCube = false;
+	
 	TalonSRX leftIntake, rightIntake, slider;
 	Solenoid pinchers, clampers;
 	DigitalInput leftBanner, rightBanner;
@@ -87,6 +89,9 @@ public class Intake extends Subsystem{
 				forward();
 				firePinchers(true);
 				fireClampers(false);
+				if(leftBanner.get() && rightBanner.get())
+					hasCube = true;
+					setState(State.CLAMPING);
 				break;
 			case CLAMPING:
 				stopRollers();
@@ -97,6 +102,7 @@ public class Intake extends Subsystem{
 				reverse();
 				firePinchers(false);
 				fireClampers(false);
+				hasCube = false;
 				break;
 			}
 		}

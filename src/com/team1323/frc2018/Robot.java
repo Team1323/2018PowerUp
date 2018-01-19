@@ -9,10 +9,16 @@ package com.team1323.frc2018;
 
 import java.util.Arrays;
 
+import com.team1323.frc2018.auto.AutoModeExecuter;
+import com.team1323.frc2018.auto.modes.LeftSwitchLeftScaleMode;
+import com.team1323.frc2018.auto.modes.LeftSwitchRightScaleMode;
+import com.team1323.frc2018.auto.modes.RightSwitchLeftScaleMode;
+import com.team1323.frc2018.auto.modes.RightSwitchRightScaleMode;
 import com.team1323.frc2018.loops.Looper;
 import com.team1323.frc2018.pathfinder.PathManager;
 import com.team1323.frc2018.subsystems.Elevator;
 import com.team1323.frc2018.subsystems.Intake;
+import com.team1323.frc2018.subsystems.Pigeon;
 import com.team1323.frc2018.subsystems.SubsystemManager;
 import com.team1323.frc2018.subsystems.Superstructure;
 import com.team1323.frc2018.subsystems.Swerve;
@@ -20,6 +26,8 @@ import com.team1323.frc2018.subsystems.Wrist;
 import com.team1323.io.Xbox;
 import com.team1323.lib.util.CrashTracker;
 
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.IterativeRobot;
 
 /**
@@ -32,10 +40,11 @@ import edu.wpi.first.wpilibj.IterativeRobot;
 public class Robot extends IterativeRobot {
 	private Swerve swerve = Swerve.getInstance();
 	private Superstructure superstructure = Superstructure.getInstance();
-	
 	private SubsystemManager subsystems = new SubsystemManager(
 			Arrays.asList(Swerve.getInstance(), Intake.getInstance(), 
 					Elevator.getInstance(), Wrist.getInstance()));
+	
+	private AutoModeExecuter autoModeExecuter = null;
 	
 	private Looper enabledLooper, disabledLooper = new Looper();
 	
@@ -75,7 +84,28 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void autonomousInit() {
 		try{
+			if(autoModeExecuter != null)
+				autoModeExecuter.stop();
 			
+			subsystems.zeroSensors();
+			
+			autoModeExecuter = new AutoModeExecuter();
+			String gameData = DriverStation.getInstance().getGameSpecificMessage().substring(0, 2);
+			switch(gameData){
+			case "RR":
+				autoModeExecuter.setAutoMode(new RightSwitchRightScaleMode());
+				break;
+			case "RL":
+				autoModeExecuter.setAutoMode(new RightSwitchLeftScaleMode());
+				break;
+			case "LR":
+				autoModeExecuter.setAutoMode(new LeftSwitchRightScaleMode());
+				break;
+			case "LL":
+				autoModeExecuter.setAutoMode(new LeftSwitchLeftScaleMode());
+				break;
+			}
+			autoModeExecuter.start();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw t;
@@ -93,7 +123,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopInit(){
 		try{
-			
+			enabledLooper.start();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw t;
@@ -109,7 +139,19 @@ public class Robot extends IterativeRobot {
 			driver.update();
 			coDriver.update();
 			
-			
+			swerve.sendInput(driver.getX(Hand.kLeft), -driver.getY(Hand.kLeft), driver.getX(Hand.kRight), false, false);
+			if(driver.yButton.wasPressed())
+				swerve.rotate(0);
+			else if(driver.bButton.wasPressed())
+				swerve.rotate(90);
+			else if(driver.aButton.wasPressed())
+				swerve.rotate(180);
+			else if(driver.xButton.wasPressed())
+				swerve.rotate(270);
+			if(driver.backButton.isBeingPressed()){
+				swerve.temporarilyDisableHeadingController();
+				Pigeon.getInstance().setAngle(0);
+			}
 			
 			allPeriodic();
 		}catch(Throwable t){
@@ -121,7 +163,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void disabledInit(){
 		try{
-			
+			enabledLooper.stop();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw t;

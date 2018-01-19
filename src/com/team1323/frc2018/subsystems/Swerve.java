@@ -15,6 +15,7 @@ import com.team254.lib.util.math.RigidTransform2d;
 import com.team254.lib.util.math.Rotation2d;
 import com.team254.lib.util.math.Translation2d;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import jaci.pathfinder.Trajectory;
 import jaci.pathfinder.Trajectory.Segment;
 import jaci.pathfinder.followers.DistanceFollower;
@@ -32,14 +33,23 @@ public class Swerve extends Subsystem{
 	
 	Pigeon pigeon;
 	SwerveHeadingController headingController = new SwerveHeadingController();
+	public void temporarilyDisableHeadingController(){
+		headingController.temporarilyDisable();
+	}
 	
 	RigidTransform2d pose;
 	double distanceTraveled;
+	public RigidTransform2d getPose(){
+		return pose;
+	}
 	
 	DistanceFollower pathFollower;
 	PathfinderPath currentPath;
 	Trajectory currentPathTrajectory;
 	int currentPathSegment = 0;
+	public boolean hasFinishedPath(){
+		return pathFollower.isFinished();
+	}
 	
 	public Swerve(){
 		frontRight = new SwerveDriveModule(Ports.FRONT_RIGHT_ROTATION, Ports.FRONT_RIGHT_DRIVE,
@@ -100,7 +110,24 @@ public class Swerve extends Subsystem{
 	}
 	
 	public void rotate(double goalHeading){
-		headingController.setSnapTarget(Util.placeInAppropriate0To360Scope(pose.getRotation().getDegrees(), goalHeading));
+		if(xInput == 0 && yInput == 0)
+			rotateInPlace(Rotation2d.fromDegrees(goalHeading));
+		else
+			headingController.setSnapTarget(
+					Util.placeInAppropriate0To360Scope(pose.getRotation().getDegrees(), goalHeading));
+	}
+	
+	public void rotateInPlace(Rotation2d goalHeading){
+		setState(ControlState.POSITION);
+		kinematics.calculate(0, 0, 1);
+		modules.forEach((m) -> m.setModuleAngle(kinematics.wheelAngles[m.moduleID]));
+		Rotation2d deltaAngle = goalHeading.rotateBy(pose.getRotation().inverse());
+		modules.forEach((m) -> m.setDrivePositionTarget(deltaAngle.getRadians()*Constants.SWERVE_DIAGONAL/2));
+	}
+	
+	public void setPathHeading(double goalHeading){
+		headingController.setStabilizationTarget(
+				Util.placeInAppropriate0To360Scope(pose.getRotation().getDegrees(), goalHeading));
 	}
 	
 	public void setPositionTarget(double directionDegrees, double magnitudeInches){
@@ -233,5 +260,9 @@ public class Swerve extends Subsystem{
 	@Override
 	public void outputToSmartDashboard() {
 		modules.forEach((m) -> m.outputToSmartDashboard());
+		SmartDashboard.putNumber("Robot X", pose.getTranslation().x());
+		SmartDashboard.putNumber("Robot Y", pose.getTranslation().y());
+		SmartDashboard.putNumber("Robot Heading", pose.getRotation().getDegrees());
+		SmartDashboard.putNumber("Distance Traveled", distanceTraveled);
 	}
 }

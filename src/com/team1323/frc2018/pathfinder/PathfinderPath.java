@@ -17,7 +17,7 @@ public class PathfinderPath {
 	protected double a = 0.0;
 	protected int lookaheadPoints = 6;
 	
-	private Waypoint[] points = null;
+	protected Waypoint[] points = null;
 	private Trajectory trajectory;
 	private DistanceFollower follower; 
 	

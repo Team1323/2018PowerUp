@@ -15,6 +15,11 @@ public interface Action {
      * @return boolean
      */
     public abstract boolean isFinished();
+    
+    /**
+     * Run code once when the action is started, for set up
+     */
+    public abstract void start();
 
     /**
      * Called by runAction in AutoModeBase iteratively until isFinished returns true. Iterative logic lives in this
@@ -26,9 +31,4 @@ public interface Action {
      * Run code once when the action finishes, usually for clean up
      */
     public abstract void done();
-
-    /**
-     * Run code once when the action is started, for set up
-     */
-    public abstract void start();
 }

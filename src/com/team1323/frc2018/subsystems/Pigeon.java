@@ -41,7 +41,6 @@ public class Pigeon {
 	}
 	
 	public void outputToSmartDashboard(){
-		SmartDashboard.putNumber("Heading Angle", getAngle().getDegrees());
 		SmartDashboard.putBoolean("Pigeon Good", isGood());
 		SmartDashboard.putNumber("Pigeon Temp", pigeon.getTemp());
 		SmartDashboard.putNumber("Pigeon Compass", pigeon.getAbsoluteCompassHeading());

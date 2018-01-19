@@ -1,6 +1,7 @@
 package com.team1323.frc2018.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.team1323.frc2018.Ports;
 import com.team1323.frc2018.loops.Looper;
@@ -22,6 +23,13 @@ public class Elevator extends Subsystem{
 		motor2 = new TalonSRX(Ports.ELEVATOR_2);
 		motor3 = new TalonSRX(Ports.ELEVATOR_3);
 		motor4 = new TalonSRX(Ports.ELEVATOR_4);
+		
+		master.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
+		master.selectProfileSlot(0, 0);
+		master.config_kP(0, 0.0, 10);
+		master.config_kI(0, 0.0, 10);
+		master.config_kD(0, 0.0, 10);
+		master.config_kF(0, 0.0, 10);
 		
 		master.set(ControlMode.PercentOutput, 0.0);
 		motor2.set(ControlMode.Follower, Ports.ELEVATOR_1);
