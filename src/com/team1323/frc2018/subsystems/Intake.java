@@ -8,6 +8,7 @@ import com.team1323.frc2018.loops.Looper;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Solenoid;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Intake extends Subsystem{
@@ -24,14 +25,27 @@ public class Intake extends Subsystem{
 	Solenoid pinchers, clampers;
 	DigitalInput leftBanner, rightBanner;
 	
+	public TalonSRX getPigeonTalon(){
+		return slider;
+	}
+	
 	public Intake(){
 		leftIntake = new TalonSRX(Ports.INTAKE_LEFT);
 		rightIntake = new TalonSRX(Ports.INTAKE_RIGHT);
 		slider = new TalonSRX(Ports.INTAKE_SLIDER);
-		pinchers = new Solenoid(Ports.INTAKE_PINCHERS);
-		clampers = new Solenoid(Ports.INTAKE_CLAMPERS);
+		//pinchers = new Solenoid(Ports.INTAKE_PINCHERS);
+		//clampers = new Solenoid(Ports.INTAKE_CLAMPERS);
 		leftBanner = new DigitalInput(Ports.INTAKE_LEFT_BANNER);
 		rightBanner = new DigitalInput(Ports.INTAKE_RIGHT_BANNER);
+		
+		leftIntake.configContinuousCurrentLimit(25, 10);
+		leftIntake.configPeakCurrentLimit(30, 10);
+		leftIntake.configPeakCurrentDuration(100, 10);
+		leftIntake.enableCurrentLimit(true);
+		rightIntake.configContinuousCurrentLimit(25, 10);
+		rightIntake.configPeakCurrentLimit(30, 10);
+		rightIntake.configPeakCurrentDuration(100, 10);
+		rightIntake.enableCurrentLimit(true);
 	}
 	
 	public enum State{
@@ -41,16 +55,18 @@ public class Intake extends Subsystem{
 	public State getState(){
 		return currentState;
 	}
-	public void setState(State newState){
+	public synchronized void setState(State newState){
 		currentState = newState;
+		stateEnteredTimestamp = Timer.getFPGATimestamp();
 	}
+	private double stateEnteredTimestamp = 0;
 	
 	public void firePinchers(boolean fire){
-		pinchers.set(fire);
+		//pinchers.set(fire);
 	}
 	
 	public void fireClampers(boolean fire){
-		clampers.set(fire);
+		//clampers.set(fire);
 	}
 	
 	public void forward(){
@@ -91,7 +107,7 @@ public class Intake extends Subsystem{
 				fireClampers(false);
 				if(leftBanner.get() && rightBanner.get())
 					hasCube = true;
-					setState(State.CLAMPING);
+					//setState(State.CLAMPING);
 				break;
 			case CLAMPING:
 				stopRollers();
@@ -103,6 +119,8 @@ public class Intake extends Subsystem{
 				firePinchers(false);
 				fireClampers(false);
 				hasCube = false;
+				if(timestamp - stateEnteredTimestamp > 1.0)
+					setState(State.OFF);
 				break;
 			}
 		}
@@ -114,6 +132,14 @@ public class Intake extends Subsystem{
 		}
 		
 	};
+	
+	public void intake(){
+		setState(State.INTAKING);
+	}
+	
+	public void eject(){
+		setState(State.EJECTING);
+	}
 	
 	@Override
 	public synchronized void stop(){
@@ -139,5 +165,6 @@ public class Intake extends Subsystem{
 		SmartDashboard.putNumber("Left Intake Current", leftIntake.getOutputCurrent());
 		SmartDashboard.putNumber("Right Intake Current", rightIntake.getOutputCurrent());
 		SmartDashboard.putNumber("Intake Slider Current", slider.getOutputCurrent());
+		SmartDashboard.putString("Intake State", currentState.toString());
 	}
 }

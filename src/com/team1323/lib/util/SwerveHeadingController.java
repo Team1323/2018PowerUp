@@ -1,6 +1,7 @@
 package com.team1323.lib.util;
 
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class SwerveHeadingController {
 	private double targetHeading;
@@ -16,7 +17,7 @@ public class SwerveHeadingController {
 	public State getState(){
 		return currentState;
 	}
-	public void setState(State newState){
+	private void setState(State newState){
 		currentState = newState;
 	}
 	
@@ -44,10 +45,14 @@ public class SwerveHeadingController {
 		disabledTimestamp = Timer.getFPGATimestamp();
 	}
 	
+	public double getTargetHeading(){
+		return targetHeading;
+	}
+	
 	public double updateRotationCorrection(double heading){
 		double correction = 0;
 		double now = Timer.getFPGATimestamp();
-		double error = targetHeading - heading;
+		double error = heading - targetHeading;
 		double dt = now - lastUpdateTimestamp;
 		
 		switch(currentState){

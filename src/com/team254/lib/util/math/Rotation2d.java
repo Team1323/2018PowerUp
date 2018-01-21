@@ -21,6 +21,8 @@ public class Rotation2d implements Interpolable<Rotation2d> {
 
     protected double cos_angle_;
     protected double sin_angle_;
+    protected double theta_degrees;
+    protected double theta_radians;
 
     public Rotation2d() {
         this(1, 0, false);
@@ -32,6 +34,12 @@ public class Rotation2d implements Interpolable<Rotation2d> {
         if (normalize) {
             normalize();
         }
+    }
+    
+    public Rotation2d(double theta_degrees){
+    	cos_angle_ = Math.cos(Math.toRadians(theta_degrees));
+    	sin_angle_ = Math.sin(Math.toRadians(theta_degrees));
+    	this.theta_degrees = theta_degrees;
     }
 
     public Rotation2d(Rotation2d other) {
@@ -48,7 +56,7 @@ public class Rotation2d implements Interpolable<Rotation2d> {
     }
 
     public static Rotation2d fromDegrees(double angle_degrees) {
-        return fromRadians(Math.toRadians(angle_degrees));
+        return new Rotation2d(angle_degrees);
     }
 
     /**
@@ -91,6 +99,10 @@ public class Rotation2d implements Interpolable<Rotation2d> {
 
     public double getDegrees() {
         return Math.toDegrees(getRadians());
+    }
+    
+    public double getUnboundedDegrees(){
+    	return theta_degrees;
     }
 
     /**

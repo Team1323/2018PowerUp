@@ -1,25 +1,12 @@
 package com.team1323.frc2018.auto.actions;
 
-public class EjectCubeAction implements Action{
+import com.team1323.frc2018.subsystems.Superstructure;
+
+public class EjectCubeAction extends RunOnceAction{
 
 	@Override
-	public boolean isFinished() {
-		return false;
-	}
-
-	@Override
-	public void start() {
-		
-	}
-
-	@Override
-	public void update() {
-		
-	}
-
-	@Override
-	public void done() {
-		
+	public void runOnce() {
+		Superstructure.getInstance().intake.eject();
 	}
 
 }

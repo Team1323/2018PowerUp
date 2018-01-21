@@ -16,19 +16,24 @@ import com.team1323.frc2018.auto.modes.RightSwitchLeftScaleMode;
 import com.team1323.frc2018.auto.modes.RightSwitchRightScaleMode;
 import com.team1323.frc2018.loops.Looper;
 import com.team1323.frc2018.pathfinder.PathManager;
+import com.team1323.frc2018.pathfinder.PathfinderPath;
 import com.team1323.frc2018.subsystems.Elevator;
 import com.team1323.frc2018.subsystems.Intake;
-import com.team1323.frc2018.subsystems.Pigeon;
 import com.team1323.frc2018.subsystems.SubsystemManager;
 import com.team1323.frc2018.subsystems.Superstructure;
 import com.team1323.frc2018.subsystems.Swerve;
 import com.team1323.frc2018.subsystems.Wrist;
 import com.team1323.io.Xbox;
 import com.team1323.lib.util.CrashTracker;
+import com.team1323.lib.util.Logger;
+import com.team254.lib.util.math.RigidTransform2d;
+import com.team254.lib.util.math.Rotation2d;
+import com.team254.lib.util.math.Translation2d;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import jaci.pathfinder.Trajectory;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -46,7 +51,7 @@ public class Robot extends IterativeRobot {
 	
 	private AutoModeExecuter autoModeExecuter = null;
 	
-	private Looper enabledLooper, disabledLooper = new Looper();
+	private Looper enabledLooper = new Looper();
 	
 	private Xbox driver, coDriver;
 	
@@ -63,6 +68,16 @@ public class Robot extends IterativeRobot {
 		subsystems.registerEnabledLoops(enabledLooper);
 		
 		PathManager.buildAllPaths();
+		
+		PathfinderPath path = PathManager.mRightSwitchDropoff;
+		
+		for (int i = 0; i < path.getTrajectory().length(); i++) {
+		    Trajectory.Segment seg = path.getTrajectory().get(i);
+		    String coordinates = "(" + Double.toString(seg.y) + ", " + Double.toString(seg.x) + ")";
+		    if(i != (path.getTrajectory().length() - 1))
+		    	coordinates += ", ";
+		    Logger.log(coordinates);
+		}
 	}
 	
 	public void allPeriodic(){
@@ -88,6 +103,8 @@ public class Robot extends IterativeRobot {
 				autoModeExecuter.stop();
 			
 			subsystems.zeroSensors();
+			
+			enabledLooper.start();
 			
 			autoModeExecuter = new AutoModeExecuter();
 			String gameData = DriverStation.getInstance().getGameSpecificMessage().substring(0, 2);
@@ -137,7 +154,11 @@ public class Robot extends IterativeRobot {
 	public void teleopPeriodic() {
 		try{
 			driver.update();
-			coDriver.update();
+			//coDriver.update();
+			
+			if(driver.startButton.isBeingPressed()){
+				superstructure.intake.stop();
+			}
 			
 			swerve.sendInput(driver.getX(Hand.kLeft), -driver.getY(Hand.kLeft), driver.getX(Hand.kRight), false, false);
 			if(driver.yButton.wasPressed())
@@ -150,8 +171,17 @@ public class Robot extends IterativeRobot {
 				swerve.rotate(270);
 			if(driver.backButton.isBeingPressed()){
 				swerve.temporarilyDisableHeadingController();
-				Pigeon.getInstance().setAngle(0);
+				swerve.zeroSensors(new RigidTransform2d(new Translation2d(11.75/12.0, 13.75), Rotation2d.fromDegrees(-90)));
 			}
+			
+			if(driver.POV180.wasPressed()){
+				swerve.followPath(PathManager.mRightSwitchDropoff, 180);
+			}
+			
+			if(driver.rightBumper.wasPressed())
+				superstructure.intake.intake();
+			else if(driver.leftBumper.wasPressed())
+				superstructure.intake.eject();
 			
 			allPeriodic();
 		}catch(Throwable t){

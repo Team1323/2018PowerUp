@@ -1,6 +1,5 @@
 package com.team1323.frc2018.subsystems;
 
-import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import com.ctre.phoenix.sensors.PigeonIMU.PigeonState;
 import com.team254.lib.util.math.Rotation2d;
@@ -21,7 +20,7 @@ public class Pigeon {
     
 	public Pigeon(){
 		try{
-			pigeon = new PigeonIMU(new TalonSRX(0));
+			pigeon = new PigeonIMU(Intake.getInstance().getPigeonTalon());
 		}catch(Exception e){
 			System.out.println(e);
 		}
@@ -36,8 +35,8 @@ public class Pigeon {
 	}
 	
 	public void setAngle(double angle){
-		pigeon.setFusedHeading(-angle, 10);
-		pigeon.setYaw(-angle, 10);
+		pigeon.setFusedHeading(-angle*64, 10);
+		pigeon.setYaw(-angle*64, 10);
 	}
 	
 	public void outputToSmartDashboard(){

@@ -1,7 +1,12 @@
 package com.team1323.frc2018.pathfinder;
 
+import com.team254.lib.util.math.RigidTransform2d;
+import com.team254.lib.util.math.Rotation2d;
+import com.team254.lib.util.math.Translation2d;
+
 import jaci.pathfinder.Pathfinder;
 import jaci.pathfinder.Trajectory;
+import jaci.pathfinder.Trajectory.Segment;
 import jaci.pathfinder.Waypoint;
 import jaci.pathfinder.followers.DistanceFollower;
 
@@ -16,6 +21,8 @@ public class PathfinderPath {
 	protected double v = 1.0/13.89;
 	protected double a = 0.0;
 	protected int lookaheadPoints = 6;
+	private Segment lastSegment;
+	private RigidTransform2d desiredFinalPose;
 	
 	protected Waypoint[] points = null;
 	private Trajectory trajectory;
@@ -24,8 +31,10 @@ public class PathfinderPath {
 	public void buildPath(){
 		Trajectory.Config config = new Trajectory.Config(Trajectory.FitMethod.HERMITE_CUBIC, samples, dt, maxSpeed, maxAccel, maxJerk);
 		trajectory = Pathfinder.generate(points, config);
-		follower = new DistanceFollower(trajectory);
-		follower.configurePIDVA(p, 0.0, d, v, a);
+		lastSegment = trajectory.get(trajectory.length() - 1);
+		desiredFinalPose = new RigidTransform2d(new Translation2d(lastSegment.x, lastSegment.y),
+				new Rotation2d());
+		resetFollower();
 	}
 	
 	public int getLookaheadPoints(){
@@ -40,7 +49,17 @@ public class PathfinderPath {
 		return trajectory;
 	}
 	
-	public DistanceFollower getFollower(){
+	public DistanceFollower resetFollower(){
+		follower = new DistanceFollower(trajectory);
+		follower.configurePIDVA(p, 0.0, d, v, a);
 		return follower;
+	}
+	
+	public RigidTransform2d getFinalPose(){
+		return desiredFinalPose;
+	}
+	
+	public double runPID(double error){
+		return error * p + v * lastSegment.velocity;
 	}
 }

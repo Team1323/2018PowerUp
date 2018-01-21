@@ -7,6 +7,8 @@ public class PathManager {
 	public static RightSwitchDropoffPath mRightSwitchDropoff = new RightSwitchDropoffPath();
 	public static LeftSwitchDropoffPath mLeftSwitchDropoff = new LeftSwitchDropoffPath();
 	
+	//public static TestPath mTestPath = new TestPath();
+	
 	public static List<PathfinderPath> paths = Arrays.asList(mRightSwitchDropoff, mLeftSwitchDropoff);
 	
 	public static void buildAllPaths(){

@@ -21,6 +21,7 @@ public class WaitToPassXCoordinateAction implements Action{
 	@Override
 	public void start() {
 		startingXCoordinate = swerve.getPose().getTranslation().x();
+		System.out.println(startingXCoordinate);
 	}
 
 	@Override

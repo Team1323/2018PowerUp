@@ -16,9 +16,9 @@ public class Ports {
     public static final int ELEVATOR_3 = 0;
     public static final int ELEVATOR_4 = 0;
     
-    public static final int INTAKE_LEFT = 0;
-    public static final int INTAKE_RIGHT = 0;
-    public static final int INTAKE_SLIDER = 0;
+    public static final int INTAKE_LEFT = 7;
+    public static final int INTAKE_RIGHT = 7;
+    public static final int INTAKE_SLIDER = 15;
     
     public static final int WRIST = 0;
     

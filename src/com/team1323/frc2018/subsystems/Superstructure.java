@@ -10,7 +10,7 @@ public class Superstructure {
 		return instance;
 	}
 	
-	private Intake intake;
+	public Intake intake;
 	private Wrist wrist;
 	private Elevator elevator;
 	
@@ -23,7 +23,7 @@ public class Superstructure {
 		wrist = Wrist.getInstance();
 		elevator = Elevator.getInstance();
 		swerve = Swerve.getInstance();
-		compressor = new Compressor(0);
+		//compressor = new Compressor(0);
 	}
 	
 	public enum SystemState{
