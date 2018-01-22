@@ -4,7 +4,7 @@ import com.team254.lib.util.math.Rotation2d;
 import com.team254.lib.util.math.Translation2d;
 
 public class Constants {
-	public static double kLooperDt = 0.01;
+	public static double kLooperDt = 0.005;
 	
 	public static final double kEpsilon = 0.0001;
 	

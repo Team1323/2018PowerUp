@@ -33,6 +33,7 @@ import com.team254.lib.util.math.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import jaci.pathfinder.Trajectory;
 
 /**
@@ -69,7 +70,7 @@ public class Robot extends IterativeRobot {
 		
 		PathManager.buildAllPaths();
 		
-		PathfinderPath path = PathManager.mRightSwitchDropoff;
+		PathfinderPath path = PathManager.mRightCubeToRightScalePath;
 		
 		for (int i = 0; i < path.getTrajectory().length(); i++) {
 		    Trajectory.Segment seg = path.getTrajectory().get(i);
@@ -106,6 +107,8 @@ public class Robot extends IterativeRobot {
 			
 			enabledLooper.start();
 			
+			SmartDashboard.putBoolean("Auto", true);
+			
 			autoModeExecuter = new AutoModeExecuter();
 			String gameData = DriverStation.getInstance().getGameSpecificMessage().substring(0, 2);
 			switch(gameData){
@@ -141,6 +144,7 @@ public class Robot extends IterativeRobot {
 	public void teleopInit(){
 		try{
 			enabledLooper.start();
+			SmartDashboard.putBoolean("Auto", false);
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw t;
@@ -171,11 +175,11 @@ public class Robot extends IterativeRobot {
 				swerve.rotate(270);
 			if(driver.backButton.isBeingPressed()){
 				swerve.temporarilyDisableHeadingController();
-				swerve.zeroSensors(new RigidTransform2d(new Translation2d(11.75/12.0, 13.75), Rotation2d.fromDegrees(-90)));
+				swerve.zeroSensors(new RigidTransform2d(new Translation2d(18.393, 19.354), Rotation2d.fromDegrees(-270)));
 			}
 			
 			if(driver.POV180.wasPressed()){
-				swerve.followPath(PathManager.mRightSwitchDropoff, 180);
+				swerve.followPath(PathManager.mRightCubeToRightScalePath, -450);
 			}
 			
 			if(driver.rightBumper.wasPressed())

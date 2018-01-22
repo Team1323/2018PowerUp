@@ -31,6 +31,7 @@ public class Rotation2d implements Interpolable<Rotation2d> {
     public Rotation2d(double x, double y, boolean normalize) {
         cos_angle_ = x;
         sin_angle_ = y;
+        theta_degrees = Math.toDegrees(Math.atan2(y, x));
         if (normalize) {
             normalize();
         }

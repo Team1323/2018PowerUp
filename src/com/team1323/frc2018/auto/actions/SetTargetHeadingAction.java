@@ -13,7 +13,7 @@ public class SetTargetHeadingAction extends RunOnceAction{
 	
 	@Override
 	public void runOnce() {
-		swerve.setPathHeading(targetHeading);
+		swerve.setAbsolutePathHeading(targetHeading);
 	}
 
 }

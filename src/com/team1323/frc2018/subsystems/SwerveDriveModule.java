@@ -76,7 +76,7 @@ public class SwerveDriveModule extends Subsystem{
     	rotationMotor.set(ControlMode.MotionMagic, rotationMotor.getSelectedSensorPosition(0));
     	driveMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 10);
     	driveMotor.setSelectedSensorPosition(0, 0, 10);
-    	driveMotor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 10, 10);
+    	driveMotor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 5, 10);
     	driveMotor.configNominalOutputForward(0.0, 10);
     	driveMotor.configNominalOutputReverse(0.0, 10);
     	driveMotor.enableVoltageCompensation(true);

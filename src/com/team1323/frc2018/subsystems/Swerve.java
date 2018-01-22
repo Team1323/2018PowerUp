@@ -39,6 +39,8 @@ public class Swerve extends Subsystem{
 	
 	RigidTransform2d pose;
 	double distanceTraveled;
+	double currentVelocity = 0;
+	double lastUpdateTimestamp = 0;
 	public RigidTransform2d getPose(){
 		return pose;
 	}
@@ -48,6 +50,7 @@ public class Swerve extends Subsystem{
 	Trajectory currentPathTrajectory;
 	int currentPathSegment = 0;
 	double pathMotorOutput = 0;
+	Rotation2d lastSteeringDirection;
 	boolean hasFinishedPath = false;
 	public boolean hasFinishedPath(){
 		return hasFinishedPath;
@@ -141,24 +144,27 @@ public class Swerve extends Subsystem{
 						pose.getRotation().getUnboundedDegrees(), goalHeading));
 	}
 	
+	public void setAbsolutePathHeading(double absoluteHeading){
+		headingController.setStabilizationTarget(absoluteHeading);
+	}
+	
 	public void setPositionTarget(double directionDegrees, double magnitudeInches){
 		setState(ControlState.POSITION);
 		modules.forEach((m) -> m.setModuleAngle(directionDegrees));
 		modules.forEach((m) -> m.setDrivePositionTarget(magnitudeInches));
 	}
 	
-	public void followPath(PathfinderPath path, double goalHeading){
+	public synchronized void followPath(PathfinderPath path, double goalHeading){
 		hasFinishedPath = false;
 		currentPathSegment = 0;
 		currentPath = path;
 		pathFollower = path.resetFollower();
 		currentPathTrajectory = path.getTrajectory();
-		headingController.setStabilizationTarget(Util.placeInAppropriate0To360Scope(
-				pose.getRotation().getUnboundedDegrees(), goalHeading));
+		headingController.setStabilizationTarget(goalHeading);
 		setState(ControlState.PATH_FOLLOWING);
 	}
 	
-	public synchronized void updatePose(){
+	public synchronized void updatePose(double timestamp){
 		double x = 0;
 		double y = 0;
 		Rotation2d heading = pigeon.getAngle();
@@ -169,13 +175,14 @@ public class Swerve extends Subsystem{
 			y += m.getEstimatedRobotPose().getTranslation().y();
 		}
 		RigidTransform2d updatedPose = new RigidTransform2d(new Translation2d(x / modules.size(), y / modules.size()), heading);
-		distanceTraveled += updatedPose.getTranslation().translateBy(pose.getTranslation().inverse()).norm();
+		double deltaPos = updatedPose.getTranslation().translateBy(pose.getTranslation().inverse()).norm();
+		distanceTraveled += deltaPos;
+		currentVelocity = deltaPos / (timestamp - lastUpdateTimestamp);
 		pose = updatedPose;
 	}
 	
-	public synchronized void updateControlCycle(){
-		double rotationCorrection = headingController.updateRotationCorrection(pose.getRotation().getUnboundedDegrees());
-		SmartDashboard.putString("Heading Controller", headingController.getState().toString());
+	public synchronized void updateControlCycle(double timestamp){
+		double rotationCorrection = headingController.updateRotationCorrection(pose.getRotation().getUnboundedDegrees(), timestamp);
 		switch(currentState){
 		case MANUAL:
 			if(xInput == 0 && yInput == 0 && rotationalInput == 0){
@@ -197,9 +204,20 @@ public class Swerve extends Subsystem{
 			
 			break;
 		case PATH_FOLLOWING:
+			int lookaheadPointIndex = currentPathSegment + currentPath.getLookaheadPoints();
+			if(lookaheadPointIndex >= currentPathTrajectory.length())
+				lookaheadPointIndex = currentPathTrajectory.length() - 1;
+			Segment lookaheadPoint = currentPathTrajectory.get(lookaheadPointIndex);
+			Translation2d lookaheadPosition = new Translation2d(lookaheadPoint.x, lookaheadPoint.y);
+			Rotation2d angleToLookahead = lookaheadPosition.translateBy(pose.getTranslation().inverse()).direction();
+			//angleToLookahead = Rotation2d.fromRadians(pathFollower.getHeading());
+			
 			if(pathFollower.isFinished()){
-				double error = currentPath.getFinalPose().transformBy(pose.inverse()).getTranslation().norm();
-				if(error < 1.0){
+				double error = currentPath.getFinalPosition().translateBy(pose.getTranslation().inverse()).norm();
+				System.out.println(error);
+				//if(Math.abs(angleToLookahead.rotateBy(lastSteeringDirection.inverse()).getDegrees()) > 90.0){
+				if(error <= (1.0/12.0)){
+					hasFinishedPath = true;
 					setState(ControlState.NEUTRAL);
 					return;
 				}
@@ -207,14 +225,6 @@ public class Swerve extends Subsystem{
 			}else{
 				pathMotorOutput = pathFollower.calculate(distanceTraveled);
 			}
-			int lookaheadPointIndex = currentPathSegment + currentPath.getLookaheadPoints();
-			if(lookaheadPointIndex >= currentPathTrajectory.length())
-				lookaheadPointIndex = currentPathTrajectory.length() - 1;
-			Segment lookaheadPoint = currentPathTrajectory.get(lookaheadPointIndex);
-			Translation2d lookaheadPosition = new Translation2d(lookaheadPoint.x, lookaheadPoint.y);
-			Rotation2d angleToLookahead = lookaheadPosition.translateBy(pose.getTranslation().inverse()).direction();
-			
-			//angleToLookahead = Rotation2d.fromRadians(pathFollower.getHeading());
 			
 			double x = angleToLookahead.sin();
 		    double y = angleToLookahead.cos();
@@ -224,6 +234,7 @@ public class Swerve extends Subsystem{
 		    kinematics.calculate(xInput, yInput, rotationCorrection);
 			modules.forEach((m) -> m.setModuleAngle(kinematics.wheelAngles[m.moduleID]));
 			modules.forEach((m) -> m.setDriveOpenLoop(pathMotorOutput));
+			lastSteeringDirection = angleToLookahead;
 			currentPathSegment++;
 			break;
 		case NEUTRAL:
@@ -241,12 +252,14 @@ public class Swerve extends Subsystem{
 			rotationalInput = 0;
 			headingController.temporarilyDisable();
 			stop();
+			lastUpdateTimestamp = timestamp;
 		}
 
 		@Override
 		public void onLoop(double timestamp) {
-			updatePose();
-			updateControlCycle();
+			updatePose(timestamp);
+			updateControlCycle(timestamp);
+			lastUpdateTimestamp = timestamp;
 		}
 
 		@Override
@@ -276,7 +289,7 @@ public class Swerve extends Subsystem{
 	}
 	
 	public synchronized void zeroSensors(RigidTransform2d startingPose){
-		pigeon.setAngle(startingPose.getRotation().getDegrees());
+		pigeon.setAngle(startingPose.getRotation().getUnboundedDegrees());
 		modules.forEach((m) -> m.zeroSensors(startingPose));
 		pose = startingPose;
 		distanceTraveled = 0;
@@ -288,7 +301,9 @@ public class Swerve extends Subsystem{
 		SmartDashboard.putNumber("Robot X", pose.getTranslation().x());
 		SmartDashboard.putNumber("Robot Y", pose.getTranslation().y());
 		SmartDashboard.putNumber("Robot Heading", pose.getRotation().getUnboundedDegrees());
-		SmartDashboard.putNumber("Distance Traveled", distanceTraveled);
+		SmartDashboard.putString("Heading Controller", headingController.getState().toString());
 		SmartDashboard.putNumber("Target Heading", headingController.getTargetHeading());
+		SmartDashboard.putNumber("Distance Traveled", distanceTraveled);
+		SmartDashboard.putNumber("Robot Velocity", currentVelocity);
 	}
 }

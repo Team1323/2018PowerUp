@@ -20,6 +20,9 @@ public class Intake extends Subsystem{
 	}
 	
 	boolean hasCube = false;
+	public boolean hasCube(){
+		return hasCube;
+	}
 	
 	TalonSRX leftIntake, rightIntake, slider;
 	Solenoid pinchers, clampers;
@@ -33,8 +36,8 @@ public class Intake extends Subsystem{
 		leftIntake = new TalonSRX(Ports.INTAKE_LEFT);
 		rightIntake = new TalonSRX(Ports.INTAKE_RIGHT);
 		slider = new TalonSRX(Ports.INTAKE_SLIDER);
-		//pinchers = new Solenoid(Ports.INTAKE_PINCHERS);
-		//clampers = new Solenoid(Ports.INTAKE_CLAMPERS);
+		pinchers = new Solenoid(20, Ports.INTAKE_PINCHERS);
+		clampers = new Solenoid(20, 2);
 		leftBanner = new DigitalInput(Ports.INTAKE_LEFT_BANNER);
 		rightBanner = new DigitalInput(Ports.INTAKE_RIGHT_BANNER);
 		
@@ -62,11 +65,11 @@ public class Intake extends Subsystem{
 	private double stateEnteredTimestamp = 0;
 	
 	public void firePinchers(boolean fire){
-		//pinchers.set(fire);
+		pinchers.set(!fire);
 	}
 	
 	public void fireClampers(boolean fire){
-		//clampers.set(fire);
+		clampers.set(!fire);
 	}
 	
 	public void forward(){
@@ -100,14 +103,17 @@ public class Intake extends Subsystem{
 			switch(currentState){
 			case OFF:
 				stop();
+				firePinchers(true);
+				fireClampers(false);
 				break;
 			case INTAKING:
 				forward();
 				firePinchers(true);
 				fireClampers(false);
-				if(leftBanner.get() && rightBanner.get())
+				if(leftBanner.get()){
 					hasCube = true;
-					//setState(State.CLAMPING);
+					setState(State.CLAMPING);
+				}
 				break;
 			case CLAMPING:
 				stopRollers();

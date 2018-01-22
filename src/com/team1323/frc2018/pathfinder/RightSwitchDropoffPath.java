@@ -13,7 +13,7 @@ public class RightSwitchDropoffPath extends PathfinderPath{
 				new Waypoint(19.726, 19.354, Pathfinder.d2r(-45)),
 				new Waypoint(18.393, 19.354, Pathfinder.d2r(180))
 		};
-		super.maxAccel = 2.0;
+		super.maxAccel = 10.0;
 	}
 	
 }

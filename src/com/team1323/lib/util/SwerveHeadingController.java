@@ -8,7 +8,7 @@ public class SwerveHeadingController {
 	private double disabledTimestamp;
 	private double lastUpdateTimestamp;
 	private final double disableTimeLength = 0.3;
-	private SynchronousPIDF headingPID = new SynchronousPIDF(0.006, 0.0, 0.0, 0.0);
+	private SynchronousPIDF headingPID = new SynchronousPIDF(0.01, 0.0, 0.0, 0.0);
 	
 	public enum State{
 		Off, Stabilize, Snap, TemporaryDisable
@@ -49,11 +49,10 @@ public class SwerveHeadingController {
 		return targetHeading;
 	}
 	
-	public double updateRotationCorrection(double heading){
+	public double updateRotationCorrection(double heading, double timestamp){
 		double correction = 0;
-		double now = Timer.getFPGATimestamp();
 		double error = heading - targetHeading;
-		double dt = now - lastUpdateTimestamp;
+		double dt = timestamp - lastUpdateTimestamp;
 		
 		switch(currentState){
 		case Off:
@@ -61,7 +60,7 @@ public class SwerveHeadingController {
 			break;
 		case TemporaryDisable:
 			targetHeading = heading;
-			if(now - disabledTimestamp >= disableTimeLength)
+			if(timestamp - disabledTimestamp >= disableTimeLength)
 				setState(State.Stabilize);
 			break;
 		case Stabilize:
@@ -72,7 +71,7 @@ public class SwerveHeadingController {
 			break;
 		}
 		
-		lastUpdateTimestamp = now;
+		lastUpdateTimestamp = timestamp;
 		return correction;
 	}
 	
