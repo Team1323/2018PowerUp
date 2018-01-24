@@ -56,7 +56,7 @@ public class Swerve extends Subsystem{
 		return hasFinishedPath;
 	}
 	
-	public Swerve(){
+	private Swerve(){
 		frontRight = new SwerveDriveModule(Ports.FRONT_RIGHT_ROTATION, Ports.FRONT_RIGHT_DRIVE,
 				0, Constants.FRONT_RIGHT_TURN_OFFSET, Constants.kVehicleToModuleOne);
 		frontLeft = new SwerveDriveModule(Ports.FRONT_LEFT_ROTATION, Ports.FRONT_LEFT_DRIVE,
@@ -156,6 +156,7 @@ public class Swerve extends Subsystem{
 	
 	public synchronized void followPath(PathfinderPath path, double goalHeading){
 		hasFinishedPath = false;
+		distanceTraveled = 0;
 		currentPathSegment = 0;
 		currentPath = path;
 		pathFollower = path.resetFollower();

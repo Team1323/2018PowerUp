@@ -6,12 +6,15 @@ import java.util.List;
 public class PathManager {
 	public static RightSwitchDropoffPath mRightSwitchDropoff = new RightSwitchDropoffPath();
 	public static LeftSwitchDropoffPath mLeftSwitchDropoff = new LeftSwitchDropoffPath();
-	public static RightCubeToRightScalePath mRightCubeToRightScalePath = new RightCubeToRightScalePath();
+	public static RightCubeToRightScalePath mRightCubeToRightScale = new RightCubeToRightScalePath();
+	public static RightScaleToFirstCubePath mRightScaleToFirstCube = new RightScaleToFirstCubePath();
+	public static RightScaleToSecondCubePath mRightScaleToSecondCube = new RightScaleToSecondCubePath();
+	public static RightCubeToLeftScalePath mRightCubeToLeftScale = new RightCubeToLeftScalePath();
 	
 	//public static TestPath mTestPath = new TestPath();
 	
 	public static List<PathfinderPath> paths = Arrays.asList(mRightSwitchDropoff, mLeftSwitchDropoff, 
-			mRightCubeToRightScalePath);
+			mRightCubeToRightScale, mRightScaleToFirstCube, mRightScaleToSecondCube, mRightCubeToLeftScale);
 	
 	public static void buildAllPaths(){
 		paths.forEach((p) -> p.buildPath());

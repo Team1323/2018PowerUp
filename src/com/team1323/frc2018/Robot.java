@@ -66,11 +66,13 @@ public class Robot extends IterativeRobot {
 		driver = new Xbox(0);
 		coDriver = new Xbox(1);
 		
+		Logger.clearLog();
+		
 		subsystems.registerEnabledLoops(enabledLooper);
 		
 		PathManager.buildAllPaths();
 		
-		PathfinderPath path = PathManager.mRightCubeToRightScalePath;
+		PathfinderPath path = PathManager.mRightSwitchDropoff;
 		
 		for (int i = 0; i < path.getTrajectory().length(); i++) {
 		    Trajectory.Segment seg = path.getTrajectory().get(i);
@@ -179,7 +181,7 @@ public class Robot extends IterativeRobot {
 			}
 			
 			if(driver.POV180.wasPressed()){
-				swerve.followPath(PathManager.mRightCubeToRightScalePath, -450);
+				swerve.followPath(PathManager.mRightCubeToLeftScale, -450);
 			}
 			
 			if(driver.rightBumper.wasPressed())

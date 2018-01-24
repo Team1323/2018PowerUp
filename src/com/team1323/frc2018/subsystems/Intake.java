@@ -32,7 +32,7 @@ public class Intake extends Subsystem{
 		return slider;
 	}
 	
-	public Intake(){
+	private Intake(){
 		leftIntake = new TalonSRX(Ports.INTAKE_LEFT);
 		rightIntake = new TalonSRX(Ports.INTAKE_RIGHT);
 		slider = new TalonSRX(Ports.INTAKE_SLIDER);

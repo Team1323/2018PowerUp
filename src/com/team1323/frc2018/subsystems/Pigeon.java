@@ -18,7 +18,7 @@ public class Pigeon {
 	private PigeonIMU pigeon;
 	PigeonIMU.FusionStatus fusionStatus = new PigeonIMU.FusionStatus();
     
-	public Pigeon(){
+	private Pigeon(){
 		try{
 			pigeon = new PigeonIMU(Intake.getInstance().getPigeonTalon());
 		}catch(Exception e){

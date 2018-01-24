@@ -18,7 +18,7 @@ public class Superstructure {
 	
 	private Compressor compressor;
 	
-	public Superstructure(){
+	private Superstructure(){
 		intake = Intake.getInstance();
 		wrist = Wrist.getInstance();
 		elevator = Elevator.getInstance();

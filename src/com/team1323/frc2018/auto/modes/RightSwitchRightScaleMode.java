@@ -27,7 +27,9 @@ public class RightSwitchRightScaleMode extends AutoModeBase{
 		runAction(new SetTargetHeadingAction(-270.0));
 		//runAction(new WaitToIntakeCubeAction());
 		runAction(new WaitToFinishPathAction());
-		runAction(new FollowPathAction(PathManager.mRightCubeToRightScalePath, -450.0));
+		runAction(new FollowPathAction(PathManager.mRightCubeToRightScale, -450.0));
+		runAction(new WaitToFinishPathAction());
+		runAction(new FollowPathAction(PathManager.mRightScaleToSecondCube, -270.0));
 		runAction(new WaitToFinishPathAction());
 	}
 
