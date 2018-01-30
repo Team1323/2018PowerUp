@@ -39,26 +39,38 @@ public class Elevator extends Subsystem{
 		master.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
 		master.setSensorPhase(true);
 		resetToAbsolutePosition();
-		master.config_kP(1, 8.0, 10);
-		master.config_kI(1, 0.0, 10);
-		master.config_kD(1, 160.0, 10);
-		master.config_kF(1, 1023.0/Constants.ELEVATOR_MAX_SPEED_LOW_GEAR, 10);
-		//master.configMotionCruiseVelocity((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR*0.75), 10);
-		//master.configMotionAcceleration((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR), 10);
-		
+		master.setNeutralMode(NeutralMode.Brake);
+		configForLifting();
+		master.set(ControlMode.PercentOutput, 0.0);
+		motor2.set(ControlMode.Follower, Ports.ELEVATOR_1);
+		motor3.set(ControlMode.Follower, Ports.ELEVATOR_1);
+		motor4.set(ControlMode.Follower, Ports.ELEVATOR_1);
+	}
+	
+	private void configForLifting(){
 		master.selectProfileSlot(0, 0);
 		master.config_kP(0, 2.5, 10);
 		master.config_kI(0, 0.0, 10);
 		master.config_kD(0, 80.0, 10);
 		master.config_kF(0, 1023.0/Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR, 10);
+		
+		master.config_kP(1, 2.5, 10);
+		master.config_kI(1, 0.0, 10);
+		master.config_kD(1, 80.0, 10);
+		master.config_kF(1, 1023.0/Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR, 10);
+		
 		master.configMotionCruiseVelocity((int)(Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR*0.8), 10);
 		master.configMotionAcceleration((int)(Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR*2.0), 10);
-		master.setNeutralMode(NeutralMode.Brake);
-		
-		master.set(ControlMode.PercentOutput, 0.0);
-		motor2.set(ControlMode.Follower, Ports.ELEVATOR_1);
-		motor3.set(ControlMode.Follower, Ports.ELEVATOR_1);
-		motor4.set(ControlMode.Follower, Ports.ELEVATOR_1);
+	}
+	
+	private void configForHanging(){
+		master.selectProfileSlot(1, 0);
+		master.config_kP(1, 8.0, 10);
+		master.config_kI(1, 0.0, 10);
+		master.config_kD(1, 160.0, 10);
+		master.config_kF(1, 1023.0/Constants.ELEVATOR_MAX_SPEED_LOW_GEAR, 10);
+		master.configMotionCruiseVelocity((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR*0.75), 10);
+		master.configMotionAcceleration((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR), 10);
 	}
 	
 	public void setOpenLoop(double output){
@@ -66,18 +78,26 @@ public class Elevator extends Subsystem{
 	}
 	
 	public void setTargetHeight(double heightFeet){
-		if(isSensorConnected())
+		if(isSensorConnected()){
+			if(heightFeet > getHeight())
+				master.selectProfileSlot(0, 0);
+			else
+				master.selectProfileSlot(1, 0);
 			master.set(ControlMode.MotionMagic, feetToEncUnits(heightFeet));
-		else{
+		}else{
 			DriverStation.reportError("Elevator encoder not detected!", false);
 			stop();
 		}
 	}
 	
 	public void changeHeight(double deltaHeightFeet){
-		if(isSensorConnected())
+		if(isSensorConnected()){
+			if(deltaHeightFeet > 0)
+				master.selectProfileSlot(0, 0);
+			else
+				master.selectProfileSlot(1, 0);
 			master.set(ControlMode.MotionMagic, master.getSelectedSensorPosition(0) + feetToEncUnits(deltaHeightFeet));
-		else{
+		}else{
 			DriverStation.reportError("Elevator encoder not detected!", false);
 			stop();
 		}

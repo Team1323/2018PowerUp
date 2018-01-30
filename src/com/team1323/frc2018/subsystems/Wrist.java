@@ -33,6 +33,10 @@ public class Wrist extends Subsystem{
 		wrist.config_kI(0, 0.0, 10);
 		wrist.config_kD(0, 120.0, 10);
 		wrist.config_kF(0, 1023.0/Constants.WRIST_MAX_SPEED, 10);
+		wrist.config_kP(1, 3.0, 10);
+		wrist.config_kI(1, 0.0, 10);
+		wrist.config_kD(1, 240.0, 10);
+		wrist.config_kF(1, 1023.0/Constants.WRIST_MAX_SPEED, 10);
 		wrist.configMotionCruiseVelocity((int)(Constants.WRIST_MAX_SPEED*0.9), 10);
 		wrist.configMotionAcceleration((int)(Constants.WRIST_MAX_SPEED*3.0), 10);
 	}
@@ -42,9 +46,13 @@ public class Wrist extends Subsystem{
 	}
 	
 	public void setAngle(double angle){
-		if(isSensorConnected())
+		if(isSensorConnected()){
+			if(angle > getAngle())
+				wrist.selectProfileSlot(1, 0);
+			else
+				wrist.selectProfileSlot(0, 0);
 			wrist.set(ControlMode.MotionMagic, degreesToEncUnits(angle));
-		else{
+		}else{
 			DriverStation.reportError("Wrist encoder not detected!", false);
 			stop();
 		}
