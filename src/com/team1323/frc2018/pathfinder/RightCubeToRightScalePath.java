@@ -10,7 +10,7 @@ public class RightCubeToRightScalePath extends PathfinderPath{
 			new Waypoint(18.393, 19.354, Pathfinder.d2r(30)),
 			new Waypoint(23.99, 20.3125, Pathfinder.d2r(0))
 		};
-		super.maxAccel = 4.0;
+		super.maxAccel = 6.0;
 	}
 	
 }

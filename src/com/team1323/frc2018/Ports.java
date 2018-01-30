@@ -2,25 +2,25 @@ package com.team1323.frc2018;
 
 public class Ports {
 	//Talons 
-	public static final int FRONT_RIGHT_ROTATION= 10; 
-    public static final int FRONT_RIGHT_DRIVE   = 12; 
-    public static final int FRONT_LEFT_ROTATION = 5;
-    public static final int FRONT_LEFT_DRIVE    = 3; 
-    public static final int REAR_LEFT_ROTATION  = 4;
-    public static final int REAR_LEFT_DRIVE     = 2;
-    public static final int REAR_RIGHT_ROTATION = 11;
-    public static final int REAR_RIGHT_DRIVE    = 13;
+	public static final int FRONT_RIGHT_ROTATION= 7; 
+    public static final int FRONT_RIGHT_DRIVE   = 3; 
+    public static final int FRONT_LEFT_ROTATION = 8;
+    public static final int FRONT_LEFT_DRIVE    = 12; 
+    public static final int REAR_LEFT_ROTATION  = 11;
+    public static final int REAR_LEFT_DRIVE     = 15;
+    public static final int REAR_RIGHT_ROTATION = 4;
+    public static final int REAR_RIGHT_DRIVE    = 0;
     
-    public static final int ELEVATOR_1 = 0;
-    public static final int ELEVATOR_2 = 0;
-    public static final int ELEVATOR_3 = 0;
-    public static final int ELEVATOR_4 = 0;
+    public static final int ELEVATOR_1 = 2;
+    public static final int ELEVATOR_2 = 1;
+    public static final int ELEVATOR_3 = 13;
+    public static final int ELEVATOR_4 = 14;
     
-    public static final int INTAKE_LEFT = 7;
-    public static final int INTAKE_RIGHT = 7;
-    public static final int INTAKE_SLIDER = 15;
+    public static final int INTAKE_LEFT = 5;
+    public static final int INTAKE_RIGHT = 6;
+    public static final int INTAKE_SLIDER = 9;
     
-    public static final int WRIST = 0;
+    public static final int WRIST = 10;
     
     //Solenoids
     public static final int INTAKE_PINCHERS = 0;

@@ -33,6 +33,7 @@ import com.team254.lib.util.math.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import jaci.pathfinder.Trajectory;
 
@@ -70,7 +71,7 @@ public class Robot extends IterativeRobot {
 		
 		subsystems.registerEnabledLoops(enabledLooper);
 		
-		PathManager.buildAllPaths();
+		/*PathManager.buildAllPaths();
 		
 		PathfinderPath path = PathManager.mRightSwitchDropoff;
 		
@@ -80,7 +81,7 @@ public class Robot extends IterativeRobot {
 		    if(i != (path.getTrajectory().length() - 1))
 		    	coordinates += ", ";
 		    Logger.log(coordinates);
-		}
+		}*/
 	}
 	
 	public void allPeriodic(){
@@ -146,6 +147,7 @@ public class Robot extends IterativeRobot {
 	public void teleopInit(){
 		try{
 			enabledLooper.start();
+			subsystems.zeroSensors();
 			SmartDashboard.putBoolean("Auto", false);
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
@@ -159,14 +161,14 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopPeriodic() {
 		try{
-			driver.update();
-			//coDriver.update();
+			//driver.update();
+			coDriver.update();
 			
-			if(driver.startButton.isBeingPressed()){
+			if(coDriver.backButton.isBeingPressed()){
 				superstructure.intake.stop();
 			}
 			
-			swerve.sendInput(driver.getX(Hand.kLeft), -driver.getY(Hand.kLeft), driver.getX(Hand.kRight), false, false);
+			/*swerve.sendInput(driver.getX(Hand.kLeft), -driver.getY(Hand.kLeft), driver.getX(Hand.kRight), false, false);
 			if(driver.yButton.wasPressed())
 				swerve.rotate(0);
 			else if(driver.bButton.wasPressed())
@@ -182,12 +184,32 @@ public class Robot extends IterativeRobot {
 			
 			if(driver.POV180.wasPressed()){
 				swerve.followPath(PathManager.mRightCubeToLeftScale, -450);
+			}*/
+			
+			if(coDriver.rightBumper.wasPressed())
+				if(superstructure.intake.getState() == Intake.State.INTAKING)
+					superstructure.intake.clamp();
+				else
+					superstructure.intake.intake();
+			else if(coDriver.leftBumper.wasPressed())
+				superstructure.intake.eject();
+			else if(coDriver.rightTrigger.wasPressed()){
+				superstructure.intake.spin();
 			}
 			
-			if(driver.rightBumper.wasPressed())
-				superstructure.intake.intake();
-			else if(driver.leftBumper.wasPressed())
-				superstructure.intake.eject();
+			//superstructure.wrist.setOpenLoop(-coDriver.getY(Hand.kRight)*0.25);
+			
+			/*if(coDriver.aButton.wasPressed()){
+				superstructure.elevator.changeHeight(-1.5);
+			}else if(coDriver.yButton.wasPressed()){
+				superstructure.elevator.changeHeight(2.0);
+			}*/
+			
+			if(coDriver.aButton.wasPressed()){
+				superstructure.wrist.setAngle(0);
+			}else if(coDriver.yButton.wasPressed()){
+				superstructure.wrist.setAngle(90.0);
+			}
 			
 			allPeriodic();
 		}catch(Throwable t){
@@ -200,6 +222,8 @@ public class Robot extends IterativeRobot {
 	public void disabledInit(){
 		try{
 			enabledLooper.stop();
+			subsystems.zeroSensors();
+			subsystems.stop();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw t;
@@ -215,10 +239,20 @@ public class Robot extends IterativeRobot {
 			throw t;
 		}
 	}
-
-	/**
-	 * This function is called periodically during test mode.
-	 */
+	
+	@Override
+	public void testInit(){
+		Timer.delay(2.0);
+		boolean passed = true;
+		//passed &= Intake.getInstance().checkSystem();
+		//passed &= Wrist.getInstance().checkSystem();
+		passed &= Elevator.getInstance().checkSystem();
+		if(passed)
+			System.out.println("All systems passed");
+		else
+			System.out.println("Some systems failed, check above output for details");
+	}
+	
 	@Override
 	public void testPeriodic() {
 	}

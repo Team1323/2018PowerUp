@@ -11,8 +11,8 @@ public class Superstructure {
 	}
 	
 	public Intake intake;
-	private Wrist wrist;
-	private Elevator elevator;
+	public Wrist wrist;
+	public Elevator elevator;
 	
 	private Swerve swerve;
 	

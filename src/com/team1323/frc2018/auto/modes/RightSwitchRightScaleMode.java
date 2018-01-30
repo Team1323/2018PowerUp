@@ -19,7 +19,7 @@ public class RightSwitchRightScaleMode extends AutoModeBase{
 	@Override
 	protected void routine() throws AutoModeEndedException {
 		runAction(new ResetPoseAction(new RigidTransform2d(new Translation2d(11.75/12.0, 13.75), Rotation2d.fromDegrees(-90))));
-		Intake.getInstance().setState(Intake.State.CLAMPING);
+		Intake.getInstance().clamp();
 		runAction(new FollowPathAction(PathManager.mRightSwitchDropoff, -180.0));
 		runAction(new WaitToPassXCoordinateAction(11.667));
 		runAction(new EjectCubeAction());

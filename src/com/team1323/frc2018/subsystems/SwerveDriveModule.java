@@ -74,11 +74,11 @@ public class SwerveDriveModule extends Subsystem{
     	rotationMotor.config_kD(0, 160.0, 10);
     	rotationMotor.config_kF(0, 1.705, 10);
     	rotationMotor.set(ControlMode.MotionMagic, rotationMotor.getSelectedSensorPosition(0));
-    	driveMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, 0, 10);
+    	driveMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
     	driveMotor.setSelectedSensorPosition(0, 0, 10);
     	driveMotor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 5, 10);
-    	driveMotor.configNominalOutputForward(0.0, 10);
-    	driveMotor.configNominalOutputReverse(0.0, 10);
+    	driveMotor.configNominalOutputForward(2.5/12.0, 10);
+    	driveMotor.configNominalOutputReverse(-2.5/12.0, 10);
     	driveMotor.enableVoltageCompensation(true);
     	driveMotor.configOpenloopRamp(0, 10);
     	driveMotor.configAllowableClosedloopError(0, 0, 10);
@@ -143,11 +143,11 @@ public class SwerveDriveModule extends Subsystem{
 	}
 	
 	public int degreesToEncUnits(double degrees){
-		return (int) (degrees/360.0*1024.0);
+		return (int) (degrees/360.0*Constants.DRIVE_ENCODER_RESOLUTION);
 	}
 	
 	public double encUnitsToDegrees(int encUnits){
-		return encUnits/1024.0*360.0;
+		return encUnits/Constants.DRIVE_ENCODER_RESOLUTION*360.0;
 	}
 	
 	public Translation2d getPosition(){
@@ -155,7 +155,7 @@ public class SwerveDriveModule extends Subsystem{
 	}
 	
 	public RigidTransform2d getEstimatedRobotPose(){
-		return  estimatedRobotPose;
+		return estimatedRobotPose;
 	}
 	
 	public synchronized void updatePose(Rotation2d robotHeading){
@@ -173,8 +173,7 @@ public class SwerveDriveModule extends Subsystem{
 	}
 	
 	public synchronized void resetPose(RigidTransform2d robotPose){
-		Translation2d modulePosition = robotPose.transformBy(new RigidTransform2d(startingPosition, 
-				new Rotation2d())).getTranslation();
+		Translation2d modulePosition = robotPose.transformBy(RigidTransform2d.fromTranslation(startingPosition)).getTranslation();
 		position = modulePosition;
 	}
 	

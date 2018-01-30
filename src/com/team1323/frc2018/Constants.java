@@ -26,9 +26,20 @@ public class Constants {
 	public static final Translation2d kVehicleToModuleFour = new Translation2d(-WHEELBASE_LENGTH/2, WHEELBASE_WIDTH/2);
 	
 	//Swerve Odometry Constants
-	public static final double SWERVE_WHEEL_DIAMETER = 2.8;//4.0;
-	public static final double DRIVE_ENCODER_RESOLUTION = 1440.0;//4096.0;
-	public static final double SWERVE_ENCODER_TO_WHEEL_RATIO = 4.307692308;//10.0/9.0;
+	public static final double SWERVE_WHEEL_DIAMETER = 4.0;
+	public static final double DRIVE_ENCODER_RESOLUTION = 4096.0;
+	public static final double SWERVE_ENCODER_TO_WHEEL_RATIO = 10.0/9.0;
 	public static final double SWERVE_ENC_UNITS_PER_WHEEL_REV = DRIVE_ENCODER_RESOLUTION * SWERVE_ENCODER_TO_WHEEL_RATIO;
 	public static final double SWERVE_ENC_UNITS_PER_INCH = SWERVE_ENC_UNITS_PER_WHEEL_REV / (Math.PI * SWERVE_WHEEL_DIAMETER);
+	
+	//Elevator Constants
+	public static final double ELEVATOR_MAX_SPEED_HIGH_GEAR = 363.388 * 4096.0 / 600.0;
+	public static final double ELEVATOR_MAX_SPEED_LOW_GEAR = 148.0 * 4096.0 / 600.0;
+	public static final int ELEVATOR_ENCODER_STARTING_POSITION = 1750;
+	public static final double ELEVATOR_TICKS_PER_FOOT = 11983.0 / 2.5989583;
+	
+	//Wrist Constants
+	public static final double WRIST_MAX_SPEED = 41.58 * 4096.0 / 600.0;
+	public static final int WRIST_LEVEL_ENCODER_POSITION = -392;
+	public static final double WRIST_ENCODER_TO_OUTPUT_RATIO = 41.58 / 19.19;
 }

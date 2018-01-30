@@ -24,41 +24,43 @@ public class Intake extends Subsystem{
 		return hasCube;
 	}
 	
-	TalonSRX leftIntake, rightIntake, slider;
+	TalonSRX leftIntake, rightIntake;
 	Solenoid pinchers, clampers;
 	DigitalInput leftBanner, rightBanner;
 	
 	public TalonSRX getPigeonTalon(){
-		return slider;
+		return leftIntake;
 	}
 	
 	private Intake(){
 		leftIntake = new TalonSRX(Ports.INTAKE_LEFT);
 		rightIntake = new TalonSRX(Ports.INTAKE_RIGHT);
-		slider = new TalonSRX(Ports.INTAKE_SLIDER);
 		pinchers = new Solenoid(20, Ports.INTAKE_PINCHERS);
 		clampers = new Solenoid(20, 2);
 		leftBanner = new DigitalInput(Ports.INTAKE_LEFT_BANNER);
 		rightBanner = new DigitalInput(Ports.INTAKE_RIGHT_BANNER);
 		
+		leftIntake.setInverted(true);
+		rightIntake.setInverted(true);
+		
 		leftIntake.configContinuousCurrentLimit(25, 10);
 		leftIntake.configPeakCurrentLimit(30, 10);
 		leftIntake.configPeakCurrentDuration(100, 10);
-		leftIntake.enableCurrentLimit(true);
+		leftIntake.enableCurrentLimit(false);
 		rightIntake.configContinuousCurrentLimit(25, 10);
 		rightIntake.configPeakCurrentLimit(30, 10);
 		rightIntake.configPeakCurrentDuration(100, 10);
-		rightIntake.enableCurrentLimit(true);
+		rightIntake.enableCurrentLimit(false);
 	}
 	
 	public enum State{
-		OFF, INTAKING, CLAMPING, EJECTING
+		OFF, INTAKING, CLAMPING, EJECTING, SPINNING
 	}
 	private State currentState = State.OFF;
 	public State getState(){
 		return currentState;
 	}
-	public synchronized void setState(State newState){
+	private synchronized void setState(State newState){
 		currentState = newState;
 		stateEnteredTimestamp = Timer.getFPGATimestamp();
 	}
@@ -72,22 +74,24 @@ public class Intake extends Subsystem{
 		clampers.set(!fire);
 	}
 	
-	public void forward(){
-		leftIntake.set(ControlMode.PercentOutput, 1.0);
-		rightIntake.set(ControlMode.PercentOutput, 1.0);
-		slider.set(ControlMode.PercentOutput, 1.0);
+	private void forwardRollers(){
+		leftIntake.set(ControlMode.PercentOutput, 0.8);
+		rightIntake.set(ControlMode.PercentOutput, 0.8);
 	}
 	
-	public void reverse(){
+	private void reverseRollers(){
 		leftIntake.set(ControlMode.PercentOutput, -1.0);
 		rightIntake.set(ControlMode.PercentOutput, -1.0);
-		slider.set(ControlMode.PercentOutput, 0.0);
 	}
 	
-	public void stopRollers(){
+	private void spinRollers(){
+		leftIntake.set(ControlMode.PercentOutput, 0.8);
+		rightIntake.set(ControlMode.PercentOutput, -0.33);
+	}
+	
+	private void stopRollers(){
 		leftIntake.set(ControlMode.PercentOutput, 0.0);
 		rightIntake.set(ControlMode.PercentOutput, 0.0);
-		slider.set(ControlMode.PercentOutput, 0.0);
 	}
 	
 	private final Loop loop = new Loop(){
@@ -102,31 +106,24 @@ public class Intake extends Subsystem{
 		public void onLoop(double timestamp) {
 			switch(currentState){
 			case OFF:
-				stop();
-				firePinchers(true);
-				fireClampers(false);
+				
 				break;
 			case INTAKING:
-				forward();
-				firePinchers(true);
-				fireClampers(false);
-				if(leftBanner.get()){
+				if(leftBanner.get() && rightBanner.get()){
 					hasCube = true;
-					setState(State.CLAMPING);
+					//clamp();
 				}
 				break;
+			case SPINNING:
+				if(timestamp - stateEnteredTimestamp > 0.25)
+					intake();
+				break;
 			case CLAMPING:
-				stopRollers();
-				firePinchers(true);
-				fireClampers(true);
+				
 				break;
 			case EJECTING:
-				reverse();
-				firePinchers(false);
-				fireClampers(false);
-				hasCube = false;
 				if(timestamp - stateEnteredTimestamp > 1.0)
-					setState(State.OFF);
+					stop();
 				break;
 			}
 		}
@@ -141,10 +138,29 @@ public class Intake extends Subsystem{
 	
 	public void intake(){
 		setState(State.INTAKING);
+		forwardRollers();
+		firePinchers(true);
+		fireClampers(false);
+	}
+	
+	public void spin(){
+		setState(State.SPINNING);
+		spinRollers();
+	}
+	
+	public void clamp(){
+		setState(State.CLAMPING);
+		stopRollers();
+		firePinchers(true);
+		fireClampers(true);
 	}
 	
 	public void eject(){
 		setState(State.EJECTING);
+		reverseRollers();
+		firePinchers(false);
+		fireClampers(false);
+		hasCube = false;
 	}
 	
 	@Override
@@ -153,7 +169,8 @@ public class Intake extends Subsystem{
 			setState(State.OFF);
 		leftIntake.set(ControlMode.PercentOutput, 0);
 		rightIntake.set(ControlMode.PercentOutput, 0);
-		slider.set(ControlMode.PercentOutput, 0);
+		firePinchers(true);
+		fireClampers(false);
 	}
 
 	@Override
@@ -170,7 +187,41 @@ public class Intake extends Subsystem{
 	public void outputToSmartDashboard() {
 		SmartDashboard.putNumber("Left Intake Current", leftIntake.getOutputCurrent());
 		SmartDashboard.putNumber("Right Intake Current", rightIntake.getOutputCurrent());
-		SmartDashboard.putNumber("Intake Slider Current", slider.getOutputCurrent());
+		SmartDashboard.putNumber("Left Intake Voltage", leftIntake.getMotorOutputVoltage());
+		SmartDashboard.putNumber("Right Intake Voltage", rightIntake.getMotorOutputVoltage());
 		SmartDashboard.putString("Intake State", currentState.toString());
+	}
+	
+	public boolean checkSystem(){
+		double currentMinimum = 3.0;
+		double currentMaximum = 20.0;
+		
+		boolean passed = true;
+		
+		leftIntake.set(ControlMode.PercentOutput, 1.0);
+		Timer.delay(2.0);
+		double current = leftIntake.getOutputCurrent();
+		leftIntake.set(ControlMode.PercentOutput, 0.0);
+		if(current < currentMinimum){
+			System.out.println("Left intake motor current too low: " + current);
+			passed = false;
+		}else if(current > currentMaximum){
+			System.out.println("Left intake current too high: " + current);
+			passed = false;
+		}
+		
+		rightIntake.set(ControlMode.PercentOutput, 1.0);
+		Timer.delay(2.0);
+		current = rightIntake.getOutputCurrent();
+		rightIntake.set(ControlMode.PercentOutput, 0.0);
+		if(current < currentMinimum){
+			System.out.println("Right intake current too low: " + current);
+			passed = false;
+		}else if(current > currentMaximum){
+			System.out.println("Right intake current too high: " + current);
+			passed = false;
+		}
+		
+		return passed;
 	}
 }
