@@ -23,6 +23,17 @@ public class Elevator extends Subsystem{
 	TalonSRX master, motor2, motor3, motor4;
 	int encoderOffset = 0;
 	
+	public enum ControlState{
+		Neutral, Position, OpenLoop
+	}
+	private ControlState state = ControlState.Neutral;
+	public ControlState getState(){
+		return state;
+	}
+	public void setState(ControlState newState){
+		state = newState;
+	}
+	
 	private Elevator(){
 		master = new TalonSRX(Ports.ELEVATOR_1);
 		motor2 = new TalonSRX(Ports.ELEVATOR_2);
@@ -49,18 +60,18 @@ public class Elevator extends Subsystem{
 	
 	private void configForLifting(){
 		master.selectProfileSlot(0, 0);
-		master.config_kP(0, 2.5, 10);
+		master.config_kP(0, 3.0, 10);
 		master.config_kI(0, 0.0, 10);
-		master.config_kD(0, 80.0, 10);
+		master.config_kD(0, 160.0, 10);
 		master.config_kF(0, 1023.0/Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR, 10);
 		
-		master.config_kP(1, 2.5, 10);
+		master.config_kP(1, 1.5, 10);
 		master.config_kI(1, 0.0, 10);
-		master.config_kD(1, 80.0, 10);
+		master.config_kD(1, 70.0, 10);
 		master.config_kF(1, 1023.0/Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR, 10);
 		
-		master.configMotionCruiseVelocity((int)(Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR*0.8), 10);
-		master.configMotionAcceleration((int)(Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR*2.0), 10);
+		master.configMotionCruiseVelocity((int)(Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR*0.9), 10);
+		master.configMotionAcceleration((int)(Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR*3.0), 10);
 	}
 	
 	private void configForHanging(){
@@ -74,16 +85,18 @@ public class Elevator extends Subsystem{
 	}
 	
 	public void setOpenLoop(double output){
+		setState(ControlState.OpenLoop);
 		master.set(ControlMode.PercentOutput, output);
 	}
 	
 	public void setTargetHeight(double heightFeet){
+		setState(ControlState.Position);
 		if(isSensorConnected()){
 			if(heightFeet > getHeight())
 				master.selectProfileSlot(0, 0);
 			else
 				master.selectProfileSlot(1, 0);
-			master.set(ControlMode.MotionMagic, feetToEncUnits(heightFeet));
+			master.set(ControlMode.MotionMagic, Constants.ELEVATOR_ENCODER_STARTING_POSITION + feetToEncUnits(heightFeet));
 		}else{
 			DriverStation.reportError("Elevator encoder not detected!", false);
 			stop();
@@ -91,6 +104,7 @@ public class Elevator extends Subsystem{
 	}
 	
 	public void changeHeight(double deltaHeightFeet){
+		setState(ControlState.Position);
 		if(isSensorConnected()){
 			if(deltaHeightFeet > 0)
 				master.selectProfileSlot(0, 0);
@@ -103,8 +117,18 @@ public class Elevator extends Subsystem{
 		}
 	}
 	
+	public void lockHeight(){
+		setState(ControlState.Position);
+		if(isSensorConnected()){
+			master.set(ControlMode.MotionMagic, master.getSelectedSensorPosition(0));
+		}else{
+			DriverStation.reportError("Elevator encoder not detected!", false);
+			stop();
+		}
+	}
+	
 	public double getHeight(){
-		return encUnitsToFeet(master.getSelectedSensorPosition(0) - encoderOffset);
+		return encUnitsToFeet(master.getSelectedSensorPosition(0) - Constants.ELEVATOR_ENCODER_STARTING_POSITION);
 	}
 	
 	public int feetToEncUnits(double feet){
@@ -150,8 +174,10 @@ public class Elevator extends Subsystem{
 		SmartDashboard.putNumber("Elevator 2 Current", motor2.getOutputCurrent());
 		SmartDashboard.putNumber("Elevator 3 Current", motor3.getOutputCurrent());
 		SmartDashboard.putNumber("Elevator 4 Current", motor4.getOutputCurrent());
-		SmartDashboard.putNumber("Elevator Height", getHeight());
-		SmartDashboard.putNumber("Elevator Height Graph", master.getSelectedSensorPosition(0));
+		SmartDashboard.putNumber("Elevator Voltage", master.getMotorOutputVoltage());
+		SmartDashboard.putNumber("Elevator Height", Math.round(getHeight()*1000.0)/1000.0);
+		SmartDashboard.putNumber("Elevator Height Graph", getHeight());
+		SmartDashboard.putNumber("Elevator Pulse Width Position", master.getSensorCollection().getPulseWidthPosition());
 		SmartDashboard.putNumber("Elevator Encoder", master.getSelectedSensorPosition(0));
 		SmartDashboard.putNumber("Elevator Velocity", master.getSelectedSensorVelocity(0));
 		SmartDashboard.putNumber("Elevator Error", master.getClosedLoopError(0));

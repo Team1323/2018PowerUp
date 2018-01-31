@@ -197,19 +197,21 @@ public class Robot extends IterativeRobot {
 				superstructure.intake.spin();
 			}
 			
-			//superstructure.wrist.setOpenLoop(-coDriver.getY(Hand.kRight)*0.25);
+			if(coDriver.getY(Hand.kRight) != 0)
+				superstructure.elevator.setOpenLoop(-coDriver.getY(Hand.kRight)*0.25);
+			else if(coDriver.aButton.wasPressed()){
+				superstructure.elevator.setTargetHeight(0.25);
+			}else if(coDriver.yButton.wasPressed()){
+				superstructure.elevator.setTargetHeight(4.0);
+			}else if(superstructure.elevator.getState() == Elevator.ControlState.OpenLoop){
+				superstructure.elevator.lockHeight();
+			}
 			
 			/*if(coDriver.aButton.wasPressed()){
-				superstructure.elevator.changeHeight(-1.5);
-			}else if(coDriver.yButton.wasPressed()){
-				superstructure.elevator.changeHeight(2.0);
-			}*/
-			
-			if(coDriver.aButton.wasPressed()){
 				superstructure.wrist.setAngle(0);
 			}else if(coDriver.yButton.wasPressed()){
 				superstructure.wrist.setAngle(90.0);
-			}
+			}*/
 			
 			allPeriodic();
 		}catch(Throwable t){

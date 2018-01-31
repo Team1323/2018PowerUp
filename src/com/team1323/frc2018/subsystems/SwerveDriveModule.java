@@ -61,10 +61,10 @@ public class SwerveDriveModule extends Subsystem{
     	rotationMotor.setSelectedSensorPosition(absolutePosition, 0, 10);
     	rotationMotor.setSensorPhase(true);
     	rotationMotor.setInverted(true);
+    	rotationMotor.enableVoltageCompensation(true);
+    	rotationMotor.configVoltageCompSaturation(7.0, 10);
     	rotationMotor.configNominalOutputForward(0.0, 10);
     	rotationMotor.configNominalOutputReverse(0.0, 10);
-    	rotationMotor.configPeakOutputForward(7.0/12.0, 10);
-    	rotationMotor.configPeakOutputReverse(-7.0/12.0, 10);
     	rotationMotor.configAllowableClosedloopError(0, 0, 10);
     	rotationMotor.configMotionAcceleration(63070*10, 10);
     	rotationMotor.configMotionCruiseVelocity(63070, 10);
@@ -77,8 +77,8 @@ public class SwerveDriveModule extends Subsystem{
     	driveMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
     	driveMotor.setSelectedSensorPosition(0, 0, 10);
     	driveMotor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 5, 10);
-    	driveMotor.configNominalOutputForward(2.5/12.0, 10);
-    	driveMotor.configNominalOutputReverse(-2.5/12.0, 10);
+    	driveMotor.configNominalOutputForward(0.0/12.0, 10);
+    	driveMotor.configNominalOutputReverse(0.0/12.0, 10);
     	driveMotor.enableVoltageCompensation(true);
     	driveMotor.configOpenloopRamp(0, 10);
     	driveMotor.configAllowableClosedloopError(0, 0, 10);
