@@ -13,11 +13,19 @@ public class Constants {
     public static final double WHEELBASE_WIDTH  = 23.5 / 12.0; //feet
     public static final double SWERVE_DIAGONAL = Math.hypot(WHEELBASE_LENGTH, WHEELBASE_WIDTH);
     
+    //Swerve Speed Constants
+    public static final double SWERVE_ROTATION_MAX_SPEED = 1250.0;
+    
     //Swerve Module Wheel Offsets
- 	public static final Rotation2d FRONT_RIGHT_TURN_OFFSET = Rotation2d.fromDegrees(0.0);
-	public static final Rotation2d FRONT_LEFT_TURN_OFFSET  = Rotation2d.fromDegrees(0.0);
-	public static final Rotation2d REAR_LEFT_TURN_OFFSET   = Rotation2d.fromDegrees(0.0);
-	public static final Rotation2d REAR_RIGHT_TURN_OFFSET  = Rotation2d.fromDegrees(0.0);
+ 	public static final Rotation2d FRONT_RIGHT_TURN_OFFSET = Rotation2d.fromDegrees(13.10);
+	public static final Rotation2d FRONT_LEFT_TURN_OFFSET  = Rotation2d.fromDegrees(19.95);
+	public static final Rotation2d REAR_LEFT_TURN_OFFSET   = Rotation2d.fromDegrees(-95.71);
+	public static final Rotation2d REAR_RIGHT_TURN_OFFSET  = Rotation2d.fromDegrees(-127.70);
+	
+	public static final int FRONT_RIGHT_ENCODER_STARTING_POS = 131;
+	public static final int FRONT_LEFT_ENCODER_STARTING_POS = 0;
+	public static final int REAR_LEFT_ENCODER_STARTING_POS = 0;
+	public static final int REAR_RIGHT_ENCODER_STARTING_POS = 0;
 	
 	//Swerve Module Positions
 	public static final Translation2d kVehicleToModuleOne = new Translation2d(WHEELBASE_LENGTH/2, WHEELBASE_WIDTH/2);
@@ -43,7 +51,10 @@ public class Constants {
 	 */
 	public static final int ELEVATOR_ENCODER_STARTING_POSITION = 2298;
 	public static final double ELEVATOR_TICKS_PER_FOOT = 11983.0 / 2.5989583; //determined empirically
-	public static final double ELEVATOR_MINIMUM_HEIGHT = 0.25; //feet
+	public static final double ELEVATOR_HEIGHT_TOLERANCE = 0.1; //feet
+	public static final double ELEVATOR_INTAKING_HEIGHT = 0.25; //feet
+	public static final double ELEVATOR_SWITCH_HEIGHT = 2.0; //feet
+	public static final double ELEVATOR_SCALE_HEIGHT = 5.0; //feet
 	
 	//Wrist Constants
 	public static final double WRIST_MAX_SPEED = 41.58 * 4096.0 / 600.0; //encoder units per 100 ms
@@ -55,4 +66,5 @@ public class Constants {
 	 * The number of rotations the wrist encoder undergoes for every rotation of the wrist.
 	 */
 	public static final double WRIST_ENCODER_TO_OUTPUT_RATIO = 41.58 / 19.19;
+	public static final double WRIST_ANGLE_TOLERANCE = 1.0; //degrees
 }

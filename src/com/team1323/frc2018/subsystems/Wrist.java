@@ -51,7 +51,7 @@ public class Wrist extends Subsystem{
 				wrist.selectProfileSlot(1, 0);
 			else
 				wrist.selectProfileSlot(0, 0);
-			wrist.set(ControlMode.MotionMagic, degreesToEncUnits(angle));
+			wrist.set(ControlMode.MotionMagic, Constants.WRIST_LEVEL_ENCODER_POSITION + degreesToEncUnits(angle));
 		}else{
 			DriverStation.reportError("Wrist encoder not detected!", false);
 			stop();
@@ -62,12 +62,16 @@ public class Wrist extends Subsystem{
 		return encUnitsToDegrees(wrist.getSelectedSensorPosition(0));
 	}
 	
+	public boolean hasReachedTargetAngle(){
+		return encUnitsToDegrees(wrist.getClosedLoopError(0)) <= Constants.WRIST_ANGLE_TOLERANCE;
+	}
+	
 	public double encUnitsToDegrees(int encUnits){
-		return (encUnits - Constants.WRIST_LEVEL_ENCODER_POSITION) / 4096.0 / Constants.WRIST_ENCODER_TO_OUTPUT_RATIO * 360.0;
+		return encUnits / 4096.0 / Constants.WRIST_ENCODER_TO_OUTPUT_RATIO * 360.0;
 	}
 	
 	public int degreesToEncUnits(double degrees){
-		return (int) (Constants.WRIST_LEVEL_ENCODER_POSITION + (degrees / 360.0 * Constants.WRIST_ENCODER_TO_OUTPUT_RATIO * 4096.0));
+		return (int) (degrees / 360.0 * Constants.WRIST_ENCODER_TO_OUTPUT_RATIO * 4096.0);
 	}
 	
 	public boolean isSensorConnected(){

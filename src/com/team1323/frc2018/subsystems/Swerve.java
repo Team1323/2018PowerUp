@@ -28,7 +28,7 @@ public class Swerve extends Subsystem{
 		return instance;
 	}
 	
-	SwerveDriveModule frontRight, frontLeft, rearLeft, rearRight;
+	public SwerveDriveModule frontRight, frontLeft, rearLeft, rearRight;
 	List<SwerveDriveModule> modules;
 	
 	Pigeon pigeon;
@@ -66,12 +66,8 @@ public class Swerve extends Subsystem{
 		rearRight = new SwerveDriveModule(Ports.REAR_RIGHT_ROTATION, Ports.REAR_RIGHT_DRIVE,
 				3, Constants.REAR_RIGHT_TURN_OFFSET, Constants.kVehicleToModuleFour);
 		
-		frontLeft.invertDriveMotor(true);
 		rearLeft.invertDriveMotor(true);
-		
-		frontRight.reverseDriveSensor(true);
-		frontLeft.reverseDriveSensor(true);
-		rearLeft.reverseDriveSensor(true);
+		frontLeft.invertDriveMotor(true);
 		
 		modules = Arrays.asList(frontRight, frontLeft, rearLeft, rearRight);
 		
@@ -190,13 +186,13 @@ public class Swerve extends Subsystem{
 				stop();
 			}else{
 				kinematics.calculate(xInput, yInput, rotationalInput + rotationCorrection);
-				for(int i=0; i<modules.size(); i++){
+				for(int i=0; i<1/*i<modules.size()*/; i++){
 		    		if(Util.shouldReverse(kinematics.wheelAngles[i], modules.get(i).getModuleAngle().getDegrees())){
 		    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i] + 180);
-		    			modules.get(i).setDriveOpenLoop(-kinematics.wheelSpeeds[i]);
+		    			//modules.get(i).setDriveOpenLoop(-kinematics.wheelSpeeds[i]);
 		    		}else{
 		    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i]);
-		    			modules.get(i).setDriveOpenLoop(kinematics.wheelSpeeds[i]);
+		    			//modules.get(i).setDriveOpenLoop(kinematics.wheelSpeeds[i]);
 		    		}
 		    	}
 			}
@@ -248,27 +244,33 @@ public class Swerve extends Subsystem{
 
 		@Override
 		public void onStart(double timestamp) {
-			xInput = 0;
-			yInput = 0;
-			rotationalInput = 0;
-			headingController.temporarilyDisable();
-			stop();
-			lastUpdateTimestamp = timestamp;
+			synchronized(Swerve.this){
+				xInput = 0;
+				yInput = 0;
+				rotationalInput = 0;
+				headingController.temporarilyDisable();
+				stop();
+				lastUpdateTimestamp = timestamp;
+			}
 		}
 
 		@Override
 		public void onLoop(double timestamp) {
-			updatePose(timestamp);
-			updateControlCycle(timestamp);
-			lastUpdateTimestamp = timestamp;
+			synchronized(Swerve.this){
+				updatePose(timestamp);
+				updateControlCycle(timestamp);
+				lastUpdateTimestamp = timestamp;
+			}
 		}
 
 		@Override
 		public void onStop(double timestamp) {
-			xInput = 0;
-			yInput = 0;
-			rotationalInput = 0;
-			stop();
+			synchronized(Swerve.this){
+				xInput = 0;
+				yInput = 0;
+				rotationalInput = 0;
+				stop();
+			}
 		}
 		
 	};

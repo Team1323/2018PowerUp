@@ -39,40 +39,39 @@ public class SwerveDriveModule extends Subsystem{
 		this.startingPosition = startingPose;
 	}
 	
-	public void invertDriveMotor(boolean invert){
+	public synchronized void invertDriveMotor(boolean invert){
 		driveMotor.setInverted(invert);
 	}
 	
-	public void invertRotationMotor(boolean invert){
+	public synchronized void invertRotationMotor(boolean invert){
 		rotationMotor.setInverted(invert);
 	}
 	
-	public void reverseDriveSensor(boolean reverse){
+	public synchronized void reverseDriveSensor(boolean reverse){
 		driveMotor.setSensorPhase(reverse);
 	}
 	
-	public void reverseRotationSensor(boolean reverse){
+	public synchronized void reverseRotationSensor(boolean reverse){
 		rotationMotor.setSensorPhase(reverse);
 	}
 	
 	private void configureMotors(){
-    	rotationMotor.configSelectedFeedbackSensor(FeedbackDevice.Analog, 0, 10);
-    	int absolutePosition = rotationMotor.getSensorCollection().getAnalogInRaw();
-    	rotationMotor.setSelectedSensorPosition(absolutePosition, 0, 10);
+    	rotationMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
+    	resetRotationToAbsolute();
     	rotationMotor.setSensorPhase(true);
-    	rotationMotor.setInverted(true);
+    	rotationMotor.setInverted(false);
     	rotationMotor.enableVoltageCompensation(true);
     	rotationMotor.configVoltageCompSaturation(7.0, 10);
     	rotationMotor.configNominalOutputForward(0.0, 10);
     	rotationMotor.configNominalOutputReverse(0.0, 10);
     	rotationMotor.configAllowableClosedloopError(0, 0, 10);
-    	rotationMotor.configMotionAcceleration(63070*10, 10);
-    	rotationMotor.configMotionCruiseVelocity(63070, 10);
+    	rotationMotor.configMotionAcceleration((int)(Constants.SWERVE_ROTATION_MAX_SPEED*10), 10);
+    	rotationMotor.configMotionCruiseVelocity((int)(Constants.SWERVE_ROTATION_MAX_SPEED*0.8), 10);
     	rotationMotor.selectProfileSlot(0, 0);
-    	rotationMotor.config_kP(0, 5.0, 10);
+    	rotationMotor.config_kP(0, 4.0, 10);
     	rotationMotor.config_kI(0, 0.0, 10);
-    	rotationMotor.config_kD(0, 160.0, 10);
-    	rotationMotor.config_kF(0, 1.705, 10);
+    	rotationMotor.config_kD(0, 80.0, 10);
+    	rotationMotor.config_kF(0, 1023.0/Constants.SWERVE_ROTATION_MAX_SPEED, 10);
     	rotationMotor.set(ControlMode.MotionMagic, rotationMotor.getSelectedSensorPosition(0));
     	driveMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
     	driveMotor.setSelectedSensorPosition(0, 0, 10);
@@ -186,6 +185,10 @@ public class SwerveDriveModule extends Subsystem{
 		setRotationOpenLoop(0.0);
 		setDriveOpenLoop(0.0);
 	}
+	
+	public synchronized void resetRotationToAbsolute(){
+		rotationMotor.setSelectedSensorPosition(rotationMotor.getSensorCollection().getPulseWidthPosition(), 0, 10);
+	}
 
 	@Override
 	public synchronized void zeroSensors() {
@@ -194,6 +197,7 @@ public class SwerveDriveModule extends Subsystem{
 	
 	public synchronized void zeroSensors(RigidTransform2d robotPose) {
 		driveMotor.setSelectedSensorPosition(0, 0, 0);
+		resetRotationToAbsolute();
 		resetPose(robotPose);
 		estimatedRobotPose = robotPose;
 		previousEncDistance = 0;
@@ -207,8 +211,12 @@ public class SwerveDriveModule extends Subsystem{
 	@Override
 	public void outputToSmartDashboard() {
 		SmartDashboard.putNumber(name + "Angle", getModuleAngle().getDegrees());
+		SmartDashboard.putNumber(name + "Pulse Width", rotationMotor.getSensorCollection().getPulseWidthPosition());
 		SmartDashboard.putNumber(name + "Drive Voltage", driveMotor.getMotorOutputVoltage());
 		SmartDashboard.putNumber(name + "Inches Driven", getDriveDistanceInches());
+		SmartDashboard.putNumber(name + "Rotation Voltage", rotationMotor.getMotorOutputVoltage());
+		if(rotationMotor.getControlMode() == ControlMode.MotionMagic)
+			SmartDashboard.putNumber(name + "Error", rotationMotor.getClosedLoopError(0));
 	}
 	
 }

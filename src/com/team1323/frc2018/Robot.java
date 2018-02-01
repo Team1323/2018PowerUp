@@ -161,15 +161,15 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopPeriodic() {
 		try{
-			//driver.update();
-			coDriver.update();
+			driver.update();
+			//coDriver.update();
 			
 			if(coDriver.backButton.isBeingPressed()){
 				superstructure.intake.stop();
 			}
 			
-			/*swerve.sendInput(driver.getX(Hand.kLeft), -driver.getY(Hand.kLeft), driver.getX(Hand.kRight), false, false);
-			if(driver.yButton.wasPressed())
+			swerve.sendInput(driver.getX(Hand.kLeft), -driver.getY(Hand.kLeft), driver.getX(Hand.kRight), false, false);
+			/*if(driver.yButton.wasPressed())
 				swerve.rotate(0);
 			else if(driver.bButton.wasPressed())
 				swerve.rotate(90);
@@ -197,7 +197,7 @@ public class Robot extends IterativeRobot {
 				superstructure.intake.spin();
 			}
 			
-			if(coDriver.getY(Hand.kRight) != 0)
+			/*if(coDriver.getY(Hand.kRight) != 0)
 				superstructure.elevator.setOpenLoop(-coDriver.getY(Hand.kRight)*0.25);
 			else if(coDriver.aButton.wasPressed()){
 				superstructure.elevator.setTargetHeight(0.25);
@@ -205,12 +205,36 @@ public class Robot extends IterativeRobot {
 				superstructure.elevator.setTargetHeight(4.0);
 			}else if(superstructure.elevator.getState() == Elevator.ControlState.OpenLoop){
 				superstructure.elevator.lockHeight();
-			}
+			}*/
 			
 			/*if(coDriver.aButton.wasPressed()){
 				superstructure.wrist.setAngle(0);
 			}else if(coDriver.yButton.wasPressed()){
 				superstructure.wrist.setAngle(90.0);
+			}*/
+			
+			/*if(coDriver.aButton.isBeingPressed()){
+				swerve.frontLeft.setDriveOpenLoop(0.25);
+			}else{
+				swerve.frontLeft.setDriveOpenLoop(0.0);
+			}
+			
+			if(coDriver.bButton.isBeingPressed()){
+				swerve.frontRight.setDriveOpenLoop(0.25);
+			}else{
+				swerve.frontRight.setDriveOpenLoop(0.0);
+			}
+			
+			if(coDriver.xButton.isBeingPressed()){
+				swerve.rearLeft.setDriveOpenLoop(0.25);
+			}else{
+				swerve.rearLeft.setDriveOpenLoop(0.0);
+			}
+			
+			if(coDriver.yButton.isBeingPressed()){
+				swerve.rearRight.setDriveOpenLoop(0.25);
+			}else{
+				swerve.rearRight.setDriveOpenLoop(0.0);
 			}*/
 			
 			allPeriodic();

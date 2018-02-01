@@ -11,8 +11,8 @@ public class Ports {
     public static final int REAR_RIGHT_ROTATION = 4;
     public static final int REAR_RIGHT_DRIVE    = 0;
     
-    public static final int ELEVATOR_1 = 2;
-    public static final int ELEVATOR_2 = 1;
+    public static final int ELEVATOR_1 = 1;
+    public static final int ELEVATOR_2 = 2;
     public static final int ELEVATOR_3 = 13;
     public static final int ELEVATOR_4 = 14;
     

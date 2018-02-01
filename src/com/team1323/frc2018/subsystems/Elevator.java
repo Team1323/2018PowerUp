@@ -24,7 +24,7 @@ public class Elevator extends Subsystem{
 	int encoderOffset = 0;
 	
 	public enum ControlState{
-		Neutral, Position, OpenLoop
+		Neutral, Position, OpenLoop, Locked
 	}
 	private ControlState state = ControlState.Neutral;
 	public ControlState getState(){
@@ -89,7 +89,7 @@ public class Elevator extends Subsystem{
 		master.set(ControlMode.PercentOutput, output);
 	}
 	
-	public void setTargetHeight(double heightFeet){
+	public synchronized void setTargetHeight(double heightFeet){
 		setState(ControlState.Position);
 		if(isSensorConnected()){
 			if(heightFeet > getHeight())
@@ -103,7 +103,7 @@ public class Elevator extends Subsystem{
 		}
 	}
 	
-	public void changeHeight(double deltaHeightFeet){
+	public synchronized void changeHeight(double deltaHeightFeet){
 		setState(ControlState.Position);
 		if(isSensorConnected()){
 			if(deltaHeightFeet > 0)
@@ -118,7 +118,7 @@ public class Elevator extends Subsystem{
 	}
 	
 	public void lockHeight(){
-		setState(ControlState.Position);
+		setState(ControlState.Locked);
 		if(isSensorConnected()){
 			master.set(ControlMode.MotionMagic, master.getSelectedSensorPosition(0));
 		}else{
@@ -129,6 +129,28 @@ public class Elevator extends Subsystem{
 	
 	public double getHeight(){
 		return encUnitsToFeet(master.getSelectedSensorPosition(0) - Constants.ELEVATOR_ENCODER_STARTING_POSITION);
+	}
+	
+	public double getVelocityFeetPerSecond(){
+		return encUnitsToFeet(master.getSelectedSensorVelocity(0)) * 10.0;
+	}
+	
+	public boolean hasReachedTargetHeight(){
+		if(master.getControlMode() == ControlMode.MotionMagic)
+			return (encUnitsToFeet(master.getClosedLoopError(0)) <= Constants.ELEVATOR_HEIGHT_TOLERANCE);
+		return false;
+	}
+	
+	public void goToIntakingHeight(){
+		setTargetHeight(Constants.ELEVATOR_INTAKING_HEIGHT);
+	}
+	
+	public void goToSwitchHeight(){
+		setTargetHeight(Constants.ELEVATOR_SWITCH_HEIGHT);
+	}
+	
+	public void goToScaleHeight(){
+		setTargetHeight(Constants.ELEVATOR_SCALE_HEIGHT);
 	}
 	
 	public int feetToEncUnits(double feet){
