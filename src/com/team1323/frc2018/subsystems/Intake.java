@@ -40,7 +40,7 @@ public class Intake extends Subsystem{
 		leftBanner = new DigitalInput(Ports.INTAKE_LEFT_BANNER);
 		rightBanner = new DigitalInput(Ports.INTAKE_RIGHT_BANNER);
 		
-		leftIntake.setInverted(true);
+		leftIntake.setInverted(false);
 		rightIntake.setInverted(true);
 		
 		leftIntake.configContinuousCurrentLimit(25, 10);
@@ -87,6 +87,11 @@ public class Intake extends Subsystem{
 	private void spinRollers(){
 		leftIntake.set(ControlMode.PercentOutput, 0.8);
 		rightIntake.set(ControlMode.PercentOutput, -0.33);
+	}
+	
+	private void holdRollers(){
+		leftIntake.set(ControlMode.PercentOutput, 2.0/12.0);
+		rightIntake.set(ControlMode.PercentOutput, 2.0/12.0);
 	}
 	
 	private void stopRollers(){
@@ -150,7 +155,8 @@ public class Intake extends Subsystem{
 	
 	public void clamp(){
 		setState(State.CLAMPING);
-		stopRollers();
+		//topRollers();
+		holdRollers();
 		firePinchers(true);
 		fireClampers(true);
 	}

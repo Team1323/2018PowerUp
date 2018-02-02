@@ -1,5 +1,6 @@
 package com.team1323.frc2018.subsystems;
 
+import com.team1323.frc2018.Constants;
 import com.team1323.frc2018.loops.Loop;
 import com.team1323.frc2018.loops.Looper;
 
@@ -30,70 +31,40 @@ public class Superstructure extends Subsystem{
 		//compressor = new Compressor(0);
 	}
 	
-	public enum SystemState{
-		IDLE, INTAKING, SWITCH_HEIGHT, SWITCH_SCORING, SCALE_HEIGHT, SCALE_SCORING,
-		MANUAL_ELEVATOR, MANUAL_SCORING,
-		WAITING_FOR_ELEVATOR, WAITING_FOR_WRIST
+	public enum State{
+		IDLE, ASSUMING_CONFIG, CONFIGURED, MANUAL
 	}
-	SystemState systemState = SystemState.IDLE;
-	public SystemState getSystemState(){
-		return systemState;
+	private State currentState = State.IDLE;
+	public State getState(){
+		return currentState;
 	}
-	private void setSystemState(SystemState newState){
-		systemState = newState;
-	}
-	
-	public enum WantedState{
-		IDLE, INTAKING, SWITCH_HEIGHT, SCALE_HEIGHT, SCORING,
-		MANUAL_ELEVATOR
-	}
-	WantedState wantedState = WantedState.IDLE;
-	public WantedState getWantedState(){
-		return wantedState;
-	}
-	public void setWantedState(WantedState newState){
-		wantedState = newState;
+	private void setState(State newState){
+		currentState = newState;
 	}
 	
 	private final Loop loop = new Loop(){
 
 		@Override
 		public void onStart(double timestamp) {
-			synchronized(Superstructure.this){
-				
-			}
+			
 		}
 
 		@Override
 		public void onLoop(double timestamp) {
 			synchronized(Superstructure.this){
-				switch(systemState){
+				switch(currentState){
 				case IDLE:
-					handleIdle();
+					
 					break;
-				case WAITING_FOR_WRIST:
-					handleWaitingForWrist();
+				case ASSUMING_CONFIG:
+					if(wrist.hasReachedTargetAngle() && elevator.hasReachedTargetHeight())
+						setState(State.CONFIGURED);
 					break;
-				case WAITING_FOR_ELEVATOR:
-					handleWaitingForElevator();
+				case CONFIGURED:
+					
 					break;
-				case INTAKING:
-					handleIntaking();
-					break;
-				case SWITCH_HEIGHT:
-					handleSwitchHeight();
-					break;
-				case SWITCH_SCORING:
-					handleSwitchScoring();
-					break;
-				case SCALE_HEIGHT:
-					handleScaleHeight();
-					break;
-				case SCALE_SCORING:
-					handleScaleScoring();
-					break;
-				case MANUAL_SCORING:
-					handleManualScoring();
+				case MANUAL:
+					
 					break;
 				default:
 					break;
@@ -103,162 +74,70 @@ public class Superstructure extends Subsystem{
 
 		@Override
 		public void onStop(double timestamp) {
-			stop();
+			
 		}
 		
 	};
 	
-	private void handleIdle(){
-		switch(wantedState){
-		case INTAKING:
-			wrist.setAngle(0);
-			elevator.goToIntakingHeight();
-			setSystemState(SystemState.WAITING_FOR_WRIST);
-			break;
-		case SWITCH_HEIGHT:
-			wrist.setAngle(0);
-			elevator.goToSwitchHeight();
-			setSystemState(SystemState.WAITING_FOR_WRIST);
-			break;
-		case SCALE_HEIGHT:
-			wrist.setAngle(0);
-			elevator.goToScaleHeight();
-			setSystemState(SystemState.WAITING_FOR_WRIST);
-			break;
-		case SCORING:
-			wrist.setAngle(0);
-			setSystemState(SystemState.WAITING_FOR_WRIST);
-			break;
-		case MANUAL_ELEVATOR:
-			setSystemState(SystemState.MANUAL_ELEVATOR);
-			break;
-		default:
-			break;
-		}
+	public synchronized void requestConfig(double wristAngle, double elevatorHeight){
+		wrist.setAngle(wristAngle);
+		elevator.setTargetHeight(elevatorHeight);
+		setState(State.ASSUMING_CONFIG);
 	}
 	
-	private void handleWaitingForWrist(){
-		if(wrist.hasReachedTargetAngle() || !wrist.isSensorConnected()){
-			setSystemState(SystemState.WAITING_FOR_ELEVATOR);
-		}
+	public synchronized void requestIntakingConfig(){
+		requestConfig(0, Constants.ELEVATOR_INTAKING_HEIGHT);
 	}
 	
-	private void handleWaitingForElevator(){
-		if(elevator.hasReachedTargetHeight() || elevator.getState() == Elevator.ControlState.Locked ||
-				!elevator.isSensorConnected()){
-			switch(wantedState){
-			case INTAKING:
-				intake.intake();
-				setSystemState(SystemState.INTAKING);
-				break;
-			case SWITCH_HEIGHT:
-				setSystemState(SystemState.SWITCH_HEIGHT);
-				break;
-			case SCALE_HEIGHT:
-				setSystemState(SystemState.SCALE_HEIGHT);
-				break;
-			case SCORING:
-				intake.eject();
-				setSystemState(SystemState.MANUAL_SCORING);
-				break;
-			default:
-				setSystemState(SystemState.IDLE);
-				break;
-			}
-		}
+	public synchronized void requestSwitchConfig(){
+		requestConfig(0, Constants.ELEVATOR_SWITCH_HEIGHT);
 	}
 	
-	private void handleIntaking(){
-		switch(wantedState){
-		case INTAKING:
-			if(intake.getState() == Intake.State.CLAMPING)
-				setSystemState(SystemState.IDLE);
-			break;
-		default:
-			setSystemState(SystemState.IDLE);
-			break;
-		}
+	public synchronized void requestScaleConfig(){
+		requestConfig(0, Constants.ELEVATOR_SCALE_HEIGHT);
 	}
 	
-	private void handleSwitchHeight(){
-		switch(wantedState){
-		case SWITCH_HEIGHT:
-			
-			break;
-		case SCORING:
+	public synchronized void requestIntakeOn(){
+		if(getState() != State.ASSUMING_CONFIG)
+			intake.intake();
+	}
+	
+	public synchronized void requestIntakeScore(){
+		if(getState() != State.ASSUMING_CONFIG)
 			intake.eject();
-			setSystemState(SystemState.SWITCH_SCORING);
-			break;
-		default:
-			setSystemState(SystemState.IDLE);
-			break;
-		}
 	}
 	
-	private void handleSwitchScoring(){
-		if(intake.getState() == Intake.State.OFF){
-			setSystemState(SystemState.SWITCH_HEIGHT);
-		}
-	}
-	
-	private void handleScaleHeight(){
-		switch(wantedState){
-		case SCALE_HEIGHT:
-			
-			break;
-		case SCORING:
-			intake.eject();
-			setSystemState(SystemState.SCALE_SCORING);
-			break;
-		default:
-			setSystemState(SystemState.IDLE);
-			break;
-		}
-	}
-	
-	private void handleScaleScoring(){
-		if(intake.getState() == Intake.State.OFF){
-			setSystemState(SystemState.SCALE_HEIGHT);
-		}
-	}
-	
-	private void handleManualScoring(){
-		if(intake.getState() == Intake.State.OFF){
-			setSystemState(SystemState.IDLE);
-		}
-	}
-	
-	public synchronized void sendManualElevatorInput(double input){
+	public synchronized void requestElevatorOpenLoop(double input){
 		if(input != 0){
+			setState(State.MANUAL);
 			elevator.setOpenLoop(input);
-			setWantedState(WantedState.MANUAL_ELEVATOR);
-			setSystemState(SystemState.IDLE);
-		}else if(systemState == SystemState.MANUAL_ELEVATOR){
-			if(elevator.getVelocityFeetPerSecond() < 1.0){
+		}else if(getState() == State.MANUAL){
+			elevator.setOpenLoop(0);
+			if(elevator.getVelocityFeetPerSecond() <= 1.0){
+				setState(State.IDLE);
 				elevator.lockHeight();
-				setWantedState(WantedState.IDLE);
-				setSystemState(SystemState.IDLE);
 			}
 		}
 	}
 	
 	@Override
 	public synchronized void stop() {
-		setWantedState(WantedState.IDLE);
-		setSystemState(SystemState.IDLE);
+		setState(State.IDLE);
 	}
+	
 	@Override
 	public void zeroSensors() {
 		
 	}
+	
 	@Override
 	public void registerEnabledLoops(Looper enabledLooper) {
 		enabledLooper.register(loop);
 	}
+	
 	@Override
 	public void outputToSmartDashboard() {
-		SmartDashboard.putString("System State", systemState.toString());
-		SmartDashboard.putString("Wanted State", wantedState.toString());
+		SmartDashboard.putString("Superstructure State", getState().toString());
 	}
 	
 }

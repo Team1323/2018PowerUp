@@ -58,18 +58,20 @@ public class Swerve extends Subsystem{
 	
 	private Swerve(){
 		frontRight = new SwerveDriveModule(Ports.FRONT_RIGHT_ROTATION, Ports.FRONT_RIGHT_DRIVE,
-				0, Constants.FRONT_RIGHT_TURN_OFFSET, Constants.kVehicleToModuleOne);
+				0, Constants.FRONT_RIGHT_ENCODER_STARTING_POS, Constants.kVehicleToModuleOne);
 		frontLeft = new SwerveDriveModule(Ports.FRONT_LEFT_ROTATION, Ports.FRONT_LEFT_DRIVE,
-				1, Constants.FRONT_LEFT_TURN_OFFSET, Constants.kVehicleToModuleTwo);
+				1, Constants.FRONT_LEFT_ENCODER_STARTING_POS, Constants.kVehicleToModuleTwo);
 		rearLeft = new SwerveDriveModule(Ports.REAR_LEFT_ROTATION, Ports.REAR_LEFT_DRIVE,
-				2, Constants.REAR_LEFT_TURN_OFFSET, Constants.kVehicleToModuleThree);
+				2, Constants.REAR_LEFT_ENCODER_STARTING_POS, Constants.kVehicleToModuleThree);
 		rearRight = new SwerveDriveModule(Ports.REAR_RIGHT_ROTATION, Ports.REAR_RIGHT_DRIVE,
-				3, Constants.REAR_RIGHT_TURN_OFFSET, Constants.kVehicleToModuleFour);
+				3, Constants.REAR_RIGHT_ENCODER_STARTING_POS, Constants.kVehicleToModuleFour);
+		
+		modules = Arrays.asList(frontRight, frontLeft, rearLeft, rearRight);
 		
 		rearLeft.invertDriveMotor(true);
 		frontLeft.invertDriveMotor(true);
 		
-		modules = Arrays.asList(frontRight, frontLeft, rearLeft, rearRight);
+		modules.forEach((m) -> m.reverseRotationSensor(true));
 		
 		pigeon = Pigeon.getInstance();
 		
@@ -104,6 +106,11 @@ public class Swerve extends Subsystem{
 			double tmp = (y* angle.cos()) + (x * angle.sin());
 			xInput = (-y * angle.sin()) + (x * angle.cos());
 			yInput = tmp;			
+		}
+		
+		if(lowPower){
+			xInput *= 0.5;
+			yInput *= 0.5;
 		}
 		
 		if(rotate != 0 && rotationalInput == 0){
@@ -186,13 +193,13 @@ public class Swerve extends Subsystem{
 				stop();
 			}else{
 				kinematics.calculate(xInput, yInput, rotationalInput + rotationCorrection);
-				for(int i=0; i<1/*i<modules.size()*/; i++){
+				for(int i=0; i<modules.size(); i++){
 		    		if(Util.shouldReverse(kinematics.wheelAngles[i], modules.get(i).getModuleAngle().getDegrees())){
 		    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i] + 180);
-		    			//modules.get(i).setDriveOpenLoop(-kinematics.wheelSpeeds[i]);
+		    			modules.get(i).setDriveOpenLoop(-kinematics.wheelSpeeds[i]);
 		    		}else{
 		    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i]);
-		    			//modules.get(i).setDriveOpenLoop(kinematics.wheelSpeeds[i]);
+		    			modules.get(i).setDriveOpenLoop(kinematics.wheelSpeeds[i]);
 		    		}
 		    	}
 			}

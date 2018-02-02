@@ -16,11 +16,12 @@ public class Ports {
     public static final int ELEVATOR_3 = 13;
     public static final int ELEVATOR_4 = 14;
     
-    public static final int INTAKE_LEFT = 5;
-    public static final int INTAKE_RIGHT = 6;
-    public static final int INTAKE_SLIDER = 9;
+    public static final int INTAKE_LEFT = 10;
+    public static final int INTAKE_RIGHT = 9;
     
-    public static final int WRIST = 10;
+    public static final int WRIST = 5;
+    
+    public static final int PIGEON_TALON = 6;
     
     //Solenoids
     public static final int INTAKE_PINCHERS = 0;

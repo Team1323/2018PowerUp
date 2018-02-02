@@ -162,14 +162,14 @@ public class Robot extends IterativeRobot {
 	public void teleopPeriodic() {
 		try{
 			driver.update();
-			//coDriver.update();
+			coDriver.update();
 			
 			if(coDriver.backButton.isBeingPressed()){
 				superstructure.intake.stop();
 			}
 			
-			swerve.sendInput(driver.getX(Hand.kLeft), -driver.getY(Hand.kLeft), driver.getX(Hand.kRight), false, false);
-			/*if(driver.yButton.wasPressed())
+			swerve.sendInput(driver.getX(Hand.kLeft), -driver.getY(Hand.kLeft), driver.getX(Hand.kRight), false, driver.leftTrigger.isBeingPressed());
+			if(driver.yButton.wasPressed())
 				swerve.rotate(0);
 			else if(driver.bButton.wasPressed())
 				swerve.rotate(90);
@@ -179,21 +179,21 @@ public class Robot extends IterativeRobot {
 				swerve.rotate(270);
 			if(driver.backButton.isBeingPressed()){
 				swerve.temporarilyDisableHeadingController();
-				swerve.zeroSensors(new RigidTransform2d(new Translation2d(18.393, 19.354), Rotation2d.fromDegrees(-270)));
+				swerve.zeroSensors(new RigidTransform2d(new Translation2d(18.393, 19.354), Rotation2d.fromDegrees(0)));
 			}
 			
 			if(driver.POV180.wasPressed()){
 				swerve.followPath(PathManager.mRightCubeToLeftScale, -450);
-			}*/
+			}
 			
-			if(coDriver.rightBumper.wasPressed())
+			if(coDriver.rightBumper.wasPressed()){
 				if(superstructure.intake.getState() == Intake.State.INTAKING)
 					superstructure.intake.clamp();
 				else
 					superstructure.intake.intake();
-			else if(coDriver.leftBumper.wasPressed())
+			}else if(coDriver.leftBumper.wasPressed()){
 				superstructure.intake.eject();
-			else if(coDriver.rightTrigger.wasPressed()){
+			}else if(coDriver.rightTrigger.wasPressed()){
 				superstructure.intake.spin();
 			}
 			
@@ -205,36 +205,6 @@ public class Robot extends IterativeRobot {
 				superstructure.elevator.setTargetHeight(4.0);
 			}else if(superstructure.elevator.getState() == Elevator.ControlState.OpenLoop){
 				superstructure.elevator.lockHeight();
-			}*/
-			
-			/*if(coDriver.aButton.wasPressed()){
-				superstructure.wrist.setAngle(0);
-			}else if(coDriver.yButton.wasPressed()){
-				superstructure.wrist.setAngle(90.0);
-			}*/
-			
-			/*if(coDriver.aButton.isBeingPressed()){
-				swerve.frontLeft.setDriveOpenLoop(0.25);
-			}else{
-				swerve.frontLeft.setDriveOpenLoop(0.0);
-			}
-			
-			if(coDriver.bButton.isBeingPressed()){
-				swerve.frontRight.setDriveOpenLoop(0.25);
-			}else{
-				swerve.frontRight.setDriveOpenLoop(0.0);
-			}
-			
-			if(coDriver.xButton.isBeingPressed()){
-				swerve.rearLeft.setDriveOpenLoop(0.25);
-			}else{
-				swerve.rearLeft.setDriveOpenLoop(0.0);
-			}
-			
-			if(coDriver.yButton.isBeingPressed()){
-				swerve.rearRight.setDriveOpenLoop(0.25);
-			}else{
-				swerve.rearRight.setDriveOpenLoop(0.0);
 			}*/
 			
 			allPeriodic();

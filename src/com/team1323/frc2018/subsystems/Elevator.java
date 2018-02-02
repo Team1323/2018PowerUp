@@ -181,6 +181,7 @@ public class Elevator extends Subsystem{
 
 	@Override
 	public void zeroSensors() {
+		master.getSensorCollection().setPulseWidthPosition(0, 10);
 		resetToAbsolutePosition();
 	}
 
@@ -218,6 +219,10 @@ public class Elevator extends Subsystem{
 			System.out.println("Elevator sensor not connected, connect and retest");
 			return false;
 		}
+		
+		motor2.set(ControlMode.PercentOutput, 0.0);
+		motor3.set(ControlMode.PercentOutput, 0.0);
+		motor4.set(ControlMode.PercentOutput, 0.0);
 		
 		double startingEncPosition = master.getSelectedSensorPosition(0);
 		master.set(ControlMode.PercentOutput, 4.0/12.0);

@@ -1,6 +1,5 @@
 package com.team1323.frc2018;
 
-import com.team254.lib.util.math.Rotation2d;
 import com.team254.lib.util.math.Translation2d;
 
 public class Constants {
@@ -17,15 +16,10 @@ public class Constants {
     public static final double SWERVE_ROTATION_MAX_SPEED = 1250.0;
     
     //Swerve Module Wheel Offsets
- 	public static final Rotation2d FRONT_RIGHT_TURN_OFFSET = Rotation2d.fromDegrees(13.10);
-	public static final Rotation2d FRONT_LEFT_TURN_OFFSET  = Rotation2d.fromDegrees(19.95);
-	public static final Rotation2d REAR_LEFT_TURN_OFFSET   = Rotation2d.fromDegrees(-95.71);
-	public static final Rotation2d REAR_RIGHT_TURN_OFFSET  = Rotation2d.fromDegrees(-127.70);
-	
-	public static final int FRONT_RIGHT_ENCODER_STARTING_POS = 131;
-	public static final int FRONT_LEFT_ENCODER_STARTING_POS = 0;
-	public static final int REAR_LEFT_ENCODER_STARTING_POS = 0;
-	public static final int REAR_RIGHT_ENCODER_STARTING_POS = 0;
+	public static final int FRONT_RIGHT_ENCODER_STARTING_POS = 132;//done
+	public static final int FRONT_LEFT_ENCODER_STARTING_POS = 250;//done
+	public static final int REAR_LEFT_ENCODER_STARTING_POS = 2983;//done
+	public static final int REAR_RIGHT_ENCODER_STARTING_POS = 3480;//done
 	
 	//Swerve Module Positions
 	public static final Translation2d kVehicleToModuleOne = new Translation2d(WHEELBASE_LENGTH/2, WHEELBASE_WIDTH/2);

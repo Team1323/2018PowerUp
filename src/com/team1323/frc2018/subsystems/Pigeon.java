@@ -1,7 +1,9 @@
 package com.team1323.frc2018.subsystems;
 
+import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.ctre.phoenix.sensors.PigeonIMU;
 import com.ctre.phoenix.sensors.PigeonIMU.PigeonState;
+import com.team1323.frc2018.Ports;
 import com.team254.lib.util.math.Rotation2d;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -20,7 +22,7 @@ public class Pigeon {
     
 	private Pigeon(){
 		try{
-			pigeon = new PigeonIMU(Intake.getInstance().getPigeonTalon());
+			pigeon = new PigeonIMU(new TalonSRX(Ports.PIGEON_TALON));
 		}catch(Exception e){
 			System.out.println(e);
 		}

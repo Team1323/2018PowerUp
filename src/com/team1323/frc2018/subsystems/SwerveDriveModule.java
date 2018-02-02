@@ -18,22 +18,22 @@ public class SwerveDriveModule extends Subsystem{
 	TalonSRX rotationMotor, driveMotor;
 	int moduleID;
 	String name = "Module ";
-	Rotation2d rotationalOffset;
 	double rotationSetpoint = 0;
-	
+	int encoderOffset;
+	int encoderReverseFactor = 1;
 	private double previousEncDistance = 0;
 	private Translation2d position;
 	private Translation2d startingPosition;
 	private RigidTransform2d estimatedRobotPose = new RigidTransform2d();
 	
 	public SwerveDriveModule(int rotationSlot, int driveSlot, int moduleID, 
-			Rotation2d rotationalOffset, Translation2d startingPose){
+			int encoderOffset, Translation2d startingPose){
 		rotationMotor = new TalonSRX(rotationSlot);
 		driveMotor = new TalonSRX(driveSlot);
 		configureMotors();
 		this.moduleID = moduleID;
 		name += (moduleID + " ");
-		this.rotationalOffset = rotationalOffset;
+		this.encoderOffset = encoderOffset;
 		previousEncDistance = 0;
 		position = startingPose;
 		this.startingPosition = startingPose;
@@ -52,6 +52,7 @@ public class SwerveDriveModule extends Subsystem{
 	}
 	
 	public synchronized void reverseRotationSensor(boolean reverse){
+		encoderReverseFactor = reverse ? -1 : 1;
 		rotationMotor.setSensorPhase(reverse);
 	}
 	
@@ -68,9 +69,9 @@ public class SwerveDriveModule extends Subsystem{
     	rotationMotor.configMotionAcceleration((int)(Constants.SWERVE_ROTATION_MAX_SPEED*10), 10);
     	rotationMotor.configMotionCruiseVelocity((int)(Constants.SWERVE_ROTATION_MAX_SPEED*0.8), 10);
     	rotationMotor.selectProfileSlot(0, 0);
-    	rotationMotor.config_kP(0, 4.0, 10);
+    	rotationMotor.config_kP(0, 4.0, 10);//4
     	rotationMotor.config_kI(0, 0.0, 10);
-    	rotationMotor.config_kD(0, 80.0, 10);
+    	rotationMotor.config_kD(0, 120.0, 10);//80
     	rotationMotor.config_kF(0, 1023.0/Constants.SWERVE_ROTATION_MAX_SPEED, 10);
     	rotationMotor.set(ControlMode.MotionMagic, rotationMotor.getSelectedSensorPosition(0));
     	driveMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
@@ -98,7 +99,7 @@ public class SwerveDriveModule extends Subsystem{
 	}
 	
 	public Rotation2d getModuleAngle(){
-		return Rotation2d.fromDegrees(getRawAngle()).rotateBy(rotationalOffset.inverse());
+		return Rotation2d.fromDegrees(getRawAngle());
 	}
 	
 	public Rotation2d getFieldCentricAngle(Rotation2d robotHeading){
@@ -106,7 +107,7 @@ public class SwerveDriveModule extends Subsystem{
 	}
 	
 	public void setModuleAngle(double goalAngle){
-		double newAngle = Util.placeInAppropriate0To360Scope(getRawAngle(), goalAngle + rotationalOffset.getDegrees());
+		double newAngle = Util.placeInAppropriate0To360Scope(getRawAngle(), goalAngle);
 		rotationMotor.set(ControlMode.MotionMagic, degreesToEncUnits(newAngle));
 		rotationSetpoint = degreesToEncUnits(newAngle);
 	}
@@ -139,6 +140,10 @@ public class SwerveDriveModule extends Subsystem{
 	
 	public int inchesToEncUnits(double inches){
 		return (int) (inches*Constants.SWERVE_ENC_UNITS_PER_INCH);
+	}
+	
+	public double encUnitsPer100msToFeetPerSecond(int encUnitsPer100ms){
+		return encUnitsToInches(encUnitsPer100ms) / 12.0 * 10;
 	}
 	
 	public int degreesToEncUnits(double degrees){
@@ -187,7 +192,8 @@ public class SwerveDriveModule extends Subsystem{
 	}
 	
 	public synchronized void resetRotationToAbsolute(){
-		rotationMotor.setSelectedSensorPosition(rotationMotor.getSensorCollection().getPulseWidthPosition(), 0, 10);
+		rotationMotor.setSelectedSensorPosition(
+				encoderReverseFactor * (rotationMotor.getSensorCollection().getPulseWidthPosition() - encoderOffset), 0, 10);
 	}
 
 	@Override
