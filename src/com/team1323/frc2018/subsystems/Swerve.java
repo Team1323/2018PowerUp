@@ -111,6 +111,9 @@ public class Swerve extends Subsystem{
 		if(lowPower){
 			xInput *= 0.5;
 			yInput *= 0.5;
+			rotate *= 0.5;
+		}else{
+			rotate *= 0.8;
 		}
 		
 		if(rotate != 0 && rotationalInput == 0){

@@ -24,9 +24,9 @@ public class Intake extends Subsystem{
 		return hasCube;
 	}
 	
-	TalonSRX leftIntake, rightIntake;
-	Solenoid pinchers, clampers;
-	DigitalInput leftBanner, rightBanner;
+	private TalonSRX leftIntake, rightIntake;
+	private Solenoid pinchers, clampers;
+	private DigitalInput leftBanner, rightBanner;
 	
 	public TalonSRX getPigeonTalon(){
 		return leftIntake;
@@ -36,7 +36,7 @@ public class Intake extends Subsystem{
 		leftIntake = new TalonSRX(Ports.INTAKE_LEFT);
 		rightIntake = new TalonSRX(Ports.INTAKE_RIGHT);
 		pinchers = new Solenoid(20, Ports.INTAKE_PINCHERS);
-		clampers = new Solenoid(20, 2);
+		clampers = new Solenoid(20, Ports.INTAKE_CLAMPERS);
 		leftBanner = new DigitalInput(Ports.INTAKE_LEFT_BANNER);
 		rightBanner = new DigitalInput(Ports.INTAKE_RIGHT_BANNER);
 		
@@ -46,11 +46,11 @@ public class Intake extends Subsystem{
 		leftIntake.configContinuousCurrentLimit(25, 10);
 		leftIntake.configPeakCurrentLimit(30, 10);
 		leftIntake.configPeakCurrentDuration(100, 10);
-		leftIntake.enableCurrentLimit(false);
+		leftIntake.enableCurrentLimit(true);
 		rightIntake.configContinuousCurrentLimit(25, 10);
 		rightIntake.configPeakCurrentLimit(30, 10);
 		rightIntake.configPeakCurrentDuration(100, 10);
-		rightIntake.enableCurrentLimit(false);
+		rightIntake.enableCurrentLimit(true);
 	}
 	
 	public enum State{
@@ -65,6 +65,8 @@ public class Intake extends Subsystem{
 		stateEnteredTimestamp = Timer.getFPGATimestamp();
 	}
 	private double stateEnteredTimestamp = 0;
+	
+	private double highCurrentBeganTimestamp = Double.POSITIVE_INFINITY;
 	
 	public void firePinchers(boolean fire){
 		pinchers.set(!fire);
@@ -118,6 +120,17 @@ public class Intake extends Subsystem{
 					hasCube = true;
 					//clamp();
 				}
+				if(leftIntake.getOutputCurrent() > 20.0 && rightIntake.getOutputCurrent() > 20.0){
+					if(highCurrentBeganTimestamp == Double.POSITIVE_INFINITY){
+						highCurrentBeganTimestamp = timestamp;
+					}else{
+						if(timestamp - highCurrentBeganTimestamp > 0.25){
+							clamp();
+						}
+					}
+				}else if(highCurrentBeganTimestamp != Double.POSITIVE_INFINITY){
+					highCurrentBeganTimestamp = Double.POSITIVE_INFINITY;
+				}
 				break;
 			case SPINNING:
 				if(timestamp - stateEnteredTimestamp > 0.25)
@@ -155,7 +168,7 @@ public class Intake extends Subsystem{
 	
 	public void clamp(){
 		setState(State.CLAMPING);
-		//topRollers();
+		//stopRollers();
 		holdRollers();
 		firePinchers(true);
 		fireClampers(true);
@@ -164,7 +177,7 @@ public class Intake extends Subsystem{
 	public void eject(){
 		setState(State.EJECTING);
 		reverseRollers();
-		firePinchers(false);
+		firePinchers(true);
 		fireClampers(false);
 		hasCube = false;
 	}

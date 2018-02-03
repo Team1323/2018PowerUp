@@ -62,6 +62,7 @@ public class SwerveDriveModule extends Subsystem{
     	rotationMotor.setSensorPhase(true);
     	rotationMotor.setInverted(false);
     	rotationMotor.enableVoltageCompensation(true);
+    	rotationMotor.setNeutralMode(NeutralMode.Brake);
     	rotationMotor.configVoltageCompSaturation(7.0, 10);
     	rotationMotor.configNominalOutputForward(0.0, 10);
     	rotationMotor.configNominalOutputReverse(0.0, 10);
@@ -80,7 +81,7 @@ public class SwerveDriveModule extends Subsystem{
     	driveMotor.configNominalOutputForward(0.0/12.0, 10);
     	driveMotor.configNominalOutputReverse(0.0/12.0, 10);
     	driveMotor.enableVoltageCompensation(true);
-    	driveMotor.configOpenloopRamp(0, 10);
+    	driveMotor.configOpenloopRamp(0.25, 10);
     	driveMotor.configAllowableClosedloopError(0, 0, 10);
     	driveMotor.setInverted(false);
     	driveMotor.setSensorPhase(false);
@@ -187,7 +188,8 @@ public class SwerveDriveModule extends Subsystem{
 	
 	@Override
 	public synchronized void stop(){
-		setRotationOpenLoop(0.0);
+		//setRotationOpenLoop(0.0);
+		setModuleAngle(getModuleAngle().getDegrees());
 		setDriveOpenLoop(0.0);
 	}
 	
@@ -220,7 +222,7 @@ public class SwerveDriveModule extends Subsystem{
 		SmartDashboard.putNumber(name + "Pulse Width", rotationMotor.getSensorCollection().getPulseWidthPosition());
 		SmartDashboard.putNumber(name + "Drive Voltage", driveMotor.getMotorOutputVoltage());
 		SmartDashboard.putNumber(name + "Inches Driven", getDriveDistanceInches());
-		SmartDashboard.putNumber(name + "Rotation Voltage", rotationMotor.getMotorOutputVoltage());
+		//SmartDashboard.putNumber(name + "Rotation Voltage", rotationMotor.getMotorOutputVoltage());
 		if(rotationMotor.getControlMode() == ControlMode.MotionMagic)
 			SmartDashboard.putNumber(name + "Error", rotationMotor.getClosedLoopError(0));
 	}

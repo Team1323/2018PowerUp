@@ -43,22 +43,25 @@ public class Constants {
 	/**
 	 * Pulse width position of the elevator encoder when it has fully descended.
 	 */
-	public static final int ELEVATOR_ENCODER_STARTING_POSITION = 2298;
+	public static final int ELEVATOR_ENCODER_STARTING_POSITION = 0;
 	public static final double ELEVATOR_TICKS_PER_FOOT = 11983.0 / 2.5989583; //determined empirically
 	public static final double ELEVATOR_HEIGHT_TOLERANCE = 0.1; //feet
-	public static final double ELEVATOR_INTAKING_HEIGHT = 0.25; //feet
+	public static final double ELEVATOR_INTAKING_HEIGHT = 0.125; //feet
 	public static final double ELEVATOR_SWITCH_HEIGHT = 2.0; //feet
 	public static final double ELEVATOR_SCALE_HEIGHT = 5.0; //feet
+	public static final double ELEVATOR_MAX_CURRENT = 40.0;//amps
 	
 	//Wrist Constants
 	public static final double WRIST_MAX_SPEED = 41.58 * 4096.0 / 600.0; //encoder units per 100 ms
+	public static final double WRIST_STARTING_ANGLE = 90.0;
 	/**
-	 * Pulse width position of the wrist encoder when the wrist is level (at 0 degrees).
+	 * Pulse width position of the wrist encoder when the wrist is upright (at 90 degrees).
 	 */
-	public static final int WRIST_LEVEL_ENCODER_POSITION = -392;
+	public static final int WRIST_STARTING_ENCODER_POSITION = 2553;
 	/**
 	 * The number of rotations the wrist encoder undergoes for every rotation of the wrist.
 	 */
 	public static final double WRIST_ENCODER_TO_OUTPUT_RATIO = 41.58 / 19.19;
 	public static final double WRIST_ANGLE_TOLERANCE = 1.0; //degrees
+	public static final double WRIST_MAX_CURRENT = 20.0;//amps
 }

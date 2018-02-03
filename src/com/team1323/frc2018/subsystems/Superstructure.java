@@ -32,7 +32,7 @@ public class Superstructure extends Subsystem{
 	}
 	
 	public enum State{
-		IDLE, ASSUMING_CONFIG, CONFIGURED, MANUAL
+		IDLE, ASSUMING_CONFIG, CONFIGURED, ELEVATOR_MANUAL, WRIST_MANUAL, WAITING_FOR_WRIST, WAITING_FOR_ELEVATOR, INTAKING
 	}
 	private State currentState = State.IDLE;
 	public State getState(){
@@ -63,8 +63,14 @@ public class Superstructure extends Subsystem{
 				case CONFIGURED:
 					
 					break;
-				case MANUAL:
+				case ELEVATOR_MANUAL:
 					
+					break;
+				case INTAKING:
+					if(intake.getState() == Intake.State.CLAMPING){
+						requestConfig(90);
+						setState(State.IDLE);
+					}
 					break;
 				default:
 					break;
@@ -85,21 +91,38 @@ public class Superstructure extends Subsystem{
 		setState(State.ASSUMING_CONFIG);
 	}
 	
+	public synchronized void requestConfig(double wristAngle){
+		requestConfig(wristAngle, elevator.getHeight());
+	}
+	
 	public synchronized void requestIntakingConfig(){
+		intake.stop();
 		requestConfig(0, Constants.ELEVATOR_INTAKING_HEIGHT);
+		setState(State.INTAKING);
 	}
 	
 	public synchronized void requestSwitchConfig(){
+		requestIntakeHold();
 		requestConfig(0, Constants.ELEVATOR_SWITCH_HEIGHT);
 	}
 	
 	public synchronized void requestScaleConfig(){
+		requestIntakeHold();
 		requestConfig(0, Constants.ELEVATOR_SCALE_HEIGHT);
+	}
+	
+	public synchronized void requestWristRetract(){
+		requestIntakeHold();
+		requestConfig(90);
 	}
 	
 	public synchronized void requestIntakeOn(){
 		if(getState() != State.ASSUMING_CONFIG)
 			intake.intake();
+	}
+	
+	public synchronized void requestIntakeHold(){
+		intake.clamp();
 	}
 	
 	public synchronized void requestIntakeScore(){
@@ -108,15 +131,26 @@ public class Superstructure extends Subsystem{
 	}
 	
 	public synchronized void requestElevatorOpenLoop(double input){
-		if(input != 0){
-			setState(State.MANUAL);
-			elevator.setOpenLoop(input);
-		}else if(getState() == State.MANUAL){
+		if(input != 0 && getState() != State.WRIST_MANUAL){
+			setState(State.ELEVATOR_MANUAL);
+			elevator.setOpenLoop(input * 0.5);
+		}else if(getState() == State.ELEVATOR_MANUAL){
 			elevator.setOpenLoop(0);
 			if(elevator.getVelocityFeetPerSecond() <= 1.0){
 				setState(State.IDLE);
 				elevator.lockHeight();
 			}
+		}
+	}
+	
+	public synchronized void requestWristOpenLoop(double input){
+		if(input != 0 && getState() != State.ELEVATOR_MANUAL){
+			setState(State.WRIST_MANUAL);
+			wrist.setOpenLoop(input * 0.5);
+		}else if(getState() == State.WRIST_MANUAL){
+			wrist.setOpenLoop(0);
+			setState(State.IDLE);
+			wrist.lockAngle();
 		}
 	}
 	

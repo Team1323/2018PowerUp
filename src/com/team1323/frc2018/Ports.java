@@ -27,6 +27,10 @@ public class Ports {
     public static final int INTAKE_PINCHERS = 0;
     public static final int INTAKE_CLAMPERS = 1;
     
+    public static final int ELEVATOR_SHIFTER = 2;
+    public static final int ELEVATOR_RELEASE_PISTON = 3;
+    public static final int GAS_STRUTS = 4;
+    
     //Digital Inputs
     public static final int INTAKE_LEFT_BANNER = 1;
     public static final int INTAKE_RIGHT_BANNER = 2;

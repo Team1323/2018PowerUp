@@ -5,6 +5,7 @@ import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.team1323.frc2018.Constants;
 import com.team1323.frc2018.Ports;
+import com.team1323.frc2018.loops.Loop;
 import com.team1323.frc2018.loops.Looper;
 
 import edu.wpi.first.wpilibj.DriverStation;
@@ -51,15 +52,20 @@ public class Wrist extends Subsystem{
 				wrist.selectProfileSlot(1, 0);
 			else
 				wrist.selectProfileSlot(0, 0);
-			wrist.set(ControlMode.MotionMagic, Constants.WRIST_LEVEL_ENCODER_POSITION + degreesToEncUnits(angle));
+			wrist.set(ControlMode.MotionMagic, Constants.WRIST_STARTING_ENCODER_POSITION + 
+					degreesToEncUnits(angle-Constants.WRIST_STARTING_ANGLE));
 		}else{
 			DriverStation.reportError("Wrist encoder not detected!", false);
 			stop();
 		}
 	}
 	
+	public void lockAngle(){
+		setAngle(getAngle());
+	}
+	
 	public double getAngle(){
-		return encUnitsToDegrees(wrist.getSelectedSensorPosition(0));
+		return Constants.WRIST_STARTING_ANGLE + encUnitsToDegrees(wrist.getSelectedSensorPosition(0) - Constants.WRIST_STARTING_ENCODER_POSITION);
 	}
 	
 	public boolean hasReachedTargetAngle(){
@@ -82,6 +88,27 @@ public class Wrist extends Subsystem{
 	public void resetToAbsolutePosition(){
 		wrist.setSelectedSensorPosition(wrist.getSensorCollection().getPulseWidthPosition(), 0, 10);
 	}
+	
+	private final Loop loop = new Loop(){
+
+		@Override
+		public void onStart(double timestamp) {
+			
+		}
+
+		@Override
+		public void onLoop(double timestamp) {
+			if(wrist.getOutputCurrent() > Constants.WRIST_MAX_CURRENT){
+				stop();
+			}
+		}
+
+		@Override
+		public void onStop(double timestamp) {
+			
+		}
+		
+	};
 
 	@Override
 	public void stop() {
@@ -90,22 +117,24 @@ public class Wrist extends Subsystem{
 
 	@Override
 	public void zeroSensors() {
-		resetToAbsolutePosition();
+		
 	}
 
 	@Override
 	public void registerEnabledLoops(Looper enabledLooper) {
-		
+		enabledLooper.register(loop);
 	}
 
 	@Override
 	public void outputToSmartDashboard() {
 		SmartDashboard.putNumber("Wrist Current", wrist.getOutputCurrent());
 		SmartDashboard.putNumber("Wrist Voltage", wrist.getMotorOutputVoltage());
-		SmartDashboard.putNumber("Wrist Encoder", wrist.getSelectedSensorPosition(0));
+		SmartDashboard.putNumber("Wrist Encoder", wrist.getSensorCollection().getPulseWidthPosition());
 		SmartDashboard.putNumber("Wrist Angle", getAngle());
 		SmartDashboard.putNumber("Wrist Velocity", wrist.getSelectedSensorVelocity(0));
 		SmartDashboard.putNumber("Wrist Error", wrist.getClosedLoopError(0));
+		if(wrist.getControlMode() == ControlMode.MotionMagic)
+			SmartDashboard.putNumber("Wrist Setpoint", wrist.getClosedLoopTarget(0));
 	}
 	
 	public boolean checkSystem(){

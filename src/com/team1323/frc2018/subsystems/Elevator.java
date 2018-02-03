@@ -6,9 +6,11 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.team1323.frc2018.Constants;
 import com.team1323.frc2018.Ports;
+import com.team1323.frc2018.loops.Loop;
 import com.team1323.frc2018.loops.Looper;
 
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Solenoid;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -21,6 +23,7 @@ public class Elevator extends Subsystem{
 	}
 	
 	TalonSRX master, motor2, motor3, motor4;
+	Solenoid shifter, releasePiston, gasStruts;
 	int encoderOffset = 0;
 	
 	public enum ControlState{
@@ -40,6 +43,10 @@ public class Elevator extends Subsystem{
 		motor3 = new TalonSRX(Ports.ELEVATOR_3);
 		motor4 = new TalonSRX(Ports.ELEVATOR_4);
 		
+		shifter = new Solenoid(20, Ports.ELEVATOR_SHIFTER);
+		releasePiston = new Solenoid(20, Ports.ELEVATOR_RELEASE_PISTON);
+		gasStruts = new Solenoid(20, Ports.GAS_STRUTS);
+		
 		master.enableVoltageCompensation(true);
 		
 		master.setInverted(true);
@@ -49,7 +56,7 @@ public class Elevator extends Subsystem{
 		
 		master.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
 		master.setSensorPhase(true);
-		resetToAbsolutePosition();
+		//resetToAbsolutePosition();
 		master.setNeutralMode(NeutralMode.Brake);
 		configForLifting();
 		master.set(ControlMode.PercentOutput, 0.0);
@@ -59,6 +66,8 @@ public class Elevator extends Subsystem{
 	}
 	
 	private void configForLifting(){
+		shifter.set(true);
+		
 		master.selectProfileSlot(0, 0);
 		master.config_kP(0, 3.0, 10);
 		master.config_kI(0, 0.0, 10);
@@ -75,6 +84,8 @@ public class Elevator extends Subsystem{
 	}
 	
 	private void configForHanging(){
+		shifter.set(false);
+		
 		master.selectProfileSlot(1, 0);
 		master.config_kP(1, 8.0, 10);
 		master.config_kI(1, 0.0, 10);
@@ -117,7 +128,7 @@ public class Elevator extends Subsystem{
 		}
 	}
 	
-	public void lockHeight(){
+	public synchronized void lockHeight(){
 		setState(ControlState.Locked);
 		if(isSensorConnected()){
 			master.set(ControlMode.MotionMagic, master.getSelectedSensorPosition(0));
@@ -163,6 +174,41 @@ public class Elevator extends Subsystem{
 		return encUnits / Constants.ELEVATOR_TICKS_PER_FOOT;
 	}
 	
+	private boolean getMotorsWithHighCurrent(){
+		int motors = 0;
+		if(master.getOutputCurrent() >= Constants.ELEVATOR_MAX_CURRENT)
+			motors++;
+		if(motor2.getOutputCurrent() >= Constants.ELEVATOR_MAX_CURRENT)
+			motors++;
+		if(motor3.getOutputCurrent() >= Constants.ELEVATOR_MAX_CURRENT)
+			motors++;
+		if(motor4.getOutputCurrent() >= Constants.ELEVATOR_MAX_CURRENT)
+			motors++;
+		return motors > 1;
+	}
+	
+	private final Loop loop  = new Loop(){
+
+		@Override
+		public void onStart(double timestamp) {
+			
+		}
+
+		@Override
+		public void onLoop(double timestamp) {
+			if(getMotorsWithHighCurrent()){
+				DriverStation.reportError("Elevator current too high", false);
+				stop();
+			}
+		}
+
+		@Override
+		public void onStop(double timestamp) {
+			
+		}
+		
+	};
+	
 	public boolean isSensorConnected(){
 		int pulseWidthPeriod = master.getSensorCollection().getPulseWidthRiseToRiseUs();
 		return pulseWidthPeriod != 0;
@@ -181,14 +227,12 @@ public class Elevator extends Subsystem{
 
 	@Override
 	public void zeroSensors() {
-		master.getSensorCollection().setPulseWidthPosition(0, 10);
-		resetToAbsolutePosition();
+		master.setSelectedSensorPosition(0, 0, 10);
 	}
 
 	@Override
 	public void registerEnabledLoops(Looper enabledLooper) {
-		// TODO Auto-generated method stub
-		
+		enabledLooper.register(loop);
 	}
 	
 	@Override
