@@ -7,7 +7,7 @@ import edu.wpi.first.wpilibj.XboxController;
 
 public class Xbox extends XboxController{
     private static final double PRESS_THRESHOLD = 0.3;
-    private static final double DEAD_BAND = 0.15;
+    private double DEAD_BAND = 0.15;
     private boolean rumbling = false;
     public ButtonCheck aButton;
     public ButtonCheck bButton;
@@ -21,7 +21,10 @@ public class Xbox extends XboxController{
     public ButtonCheck rightCenterClick;
     public ButtonCheck leftTrigger;
     public ButtonCheck rightTrigger;
+    public ButtonCheck POV0;
+    public ButtonCheck POV90;
     public ButtonCheck POV180;
+    public ButtonCheck POV270;
     public static final int A_BUTTON = 1;
     public static final int B_BUTTON = 2;
     public static final int X_BUTTON = 3;
@@ -34,7 +37,14 @@ public class Xbox extends XboxController{
     public static final int RIGHT_CENTER_CLICK = 10;
     public static final int LEFT_TRIGGER = -2;
     public static final int RIGHT_TRIGGER = -3;
-    public static final int POV_180 = -4;
+    public static final int POV_0 = -4;
+    public static final int POV_90 = -5;
+    public static final int POV_180 = -6;
+    public static final int POV_270 = -7;
+    
+    public void setDeadband(double deadband){
+    	DEAD_BAND = deadband;
+    }
     
     public Xbox(int usb)   { 
     	super(usb);
@@ -50,7 +60,10 @@ public class Xbox extends XboxController{
         rightCenterClick = new ButtonCheck(RIGHT_CENTER_CLICK);     
         leftTrigger = new ButtonCheck(LEFT_TRIGGER);
         rightTrigger = new ButtonCheck(RIGHT_TRIGGER);
+        POV0 = new ButtonCheck(POV_0);
+        POV90 = new ButtonCheck(POV_90);
         POV180 = new ButtonCheck(POV_180);
+        POV270 = new ButtonCheck(POV_270);
    }
     
     @Override
@@ -139,8 +152,17 @@ public class Xbox extends XboxController{
     				case RIGHT_TRIGGER:
     					buttonCheck = getTriggerAxis(Hand.kRight) > 0;
     					break;
+    				case POV_0:
+    					buttonCheck = (getPOV() == 0);
+    					break;
+    				case POV_90:
+    					buttonCheck = (getPOV() == 90);
+    					break;
     				case POV_180:
     					buttonCheck = (getPOV() == 180);
+    					break;
+    				case POV_270:
+    					buttonCheck = (getPOV() == 270);
     					break;
     				default:
     					buttonCheck = false;
@@ -195,6 +217,9 @@ public class Xbox extends XboxController{
     	rightCenterClick.update();
     	leftTrigger.update();
     	rightTrigger.update();
+    	POV0.update();
+    	POV90.update();
     	POV180.update();
+    	POV270.update();
     }
 }

@@ -54,7 +54,7 @@ public class Intake extends Subsystem{
 	}
 	
 	public enum State{
-		OFF, INTAKING, CLAMPING, EJECTING, SPINNING
+		OFF, INTAKING, CLAMPING, EJECTING, SPINNING, OPEN
 	}
 	private State currentState = State.OFF;
 	public State getState(){
@@ -117,7 +117,7 @@ public class Intake extends Subsystem{
 				break;
 			case INTAKING:
 				if(leftBanner.get() && rightBanner.get()){
-					hasCube = true;
+					//hasCube = true;
 					//clamp();
 				}
 				if(leftIntake.getOutputCurrent() > 20.0 && rightIntake.getOutputCurrent() > 20.0){
@@ -125,6 +125,7 @@ public class Intake extends Subsystem{
 						highCurrentBeganTimestamp = timestamp;
 					}else{
 						if(timestamp - highCurrentBeganTimestamp > 0.25){
+							hasCube = true;
 							clamp();
 						}
 					}
@@ -140,6 +141,7 @@ public class Intake extends Subsystem{
 				
 				break;
 			case EJECTING:
+				hasCube = false;
 				if(timestamp - stateEnteredTimestamp > 1.0)
 					stop();
 				break;
@@ -182,6 +184,20 @@ public class Intake extends Subsystem{
 		hasCube = false;
 	}
 	
+	public void open(){
+		setState(State.OPEN);
+		stopRollers();
+		firePinchers(false);
+		fireClampers(false);
+	}
+	
+	public void requestIdle(){
+		if(!hasCube)
+			stop();
+		else
+			clamp();
+	}
+	
 	@Override
 	public synchronized void stop(){
 		if(getState() != State.OFF)
@@ -209,6 +225,7 @@ public class Intake extends Subsystem{
 		SmartDashboard.putNumber("Left Intake Voltage", leftIntake.getMotorOutputVoltage());
 		SmartDashboard.putNumber("Right Intake Voltage", rightIntake.getMotorOutputVoltage());
 		SmartDashboard.putString("Intake State", currentState.toString());
+		SmartDashboard.putBoolean("Intake Has Cube", hasCube);
 	}
 	
 	public boolean checkSystem(){

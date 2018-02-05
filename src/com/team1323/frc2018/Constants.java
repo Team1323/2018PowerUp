@@ -1,11 +1,30 @@
 package com.team1323.frc2018;
 
+import com.team1323.lib.util.InterpolatingDouble;
+import com.team1323.lib.util.InterpolatingTreeMap;
 import com.team254.lib.util.math.Translation2d;
 
 public class Constants {
 	public static final double kLooperDt = 0.005;
 	
 	public static final double kEpsilon = 0.0001;
+	
+	//Physical Robot Dimensions
+	public static final double ROBOT_WIDTH = 39.0 / 12.0;
+	public static final double ROBOT_LENGTH = 34.0 / 12.0;
+	public static final double ROBOT_HALF_WIDTH = ROBOT_WIDTH / 2.0;
+	public static final double ROBOT_HALF_LENGTH = ROBOT_LENGTH / 2.0;
+	public static final double ROBOT_INTAKE_EXTRUSION = 11.0/12.0;
+	
+	//Field Landmarks
+	public static final Translation2d kAutoStartingCorner = new Translation2d(0.0, 12.5);
+	public static final Translation2d kRightSwitchCloseCorner = new Translation2d(140.0 / 12.0, 27.0 - (85.25/12.0));
+	public static final Translation2d kRightSwitchFarCorner = new Translation2d(196.0 / 12.0, 27.0 - (85.25/12.0));
+	public static final Translation2d kLeftSwitchCloseCorner = new Translation2d(140.0 / 12.0, 85.25/12.0);
+	public static final Translation2d kLeftSwitchFarCorner = new Translation2d(196.0 / 12.0, 85.25/12.0);
+	public static final Translation2d kRightScaleCorner = new Translation2d(299.65 / 12.0, 27.0 - (95.25/12.0));
+	
+	public static final double kCubeWidth = 13.0/12.0;
 	
 	//Swerve Calculations Constants
     public static final double WHEELBASE_LENGTH = 18.5 / 12.0; //feet
@@ -48,8 +67,23 @@ public class Constants {
 	public static final double ELEVATOR_HEIGHT_TOLERANCE = 0.1; //feet
 	public static final double ELEVATOR_INTAKING_HEIGHT = 0.125; //feet
 	public static final double ELEVATOR_SWITCH_HEIGHT = 2.0; //feet
-	public static final double ELEVATOR_SCALE_HEIGHT = 5.0; //feet
-	public static final double ELEVATOR_MAX_CURRENT = 40.0;//amps
+	public static final double ELEVATOR_BALANCED_SCALE_HEIGHT = 5.0; //feet
+	public static final double ELEVATOR_HIGH_SCALE_HEIGHT = 5.2;
+	public static final double ELEVATOR_LOW_SCALE_HEIGHT = 4.75;
+	public static final double ELEVATOR_HANGING_HEIGHT = 4.8;
+	public static final double ELEVATOR_MIN_HEIGHT = 0.0; //feet
+	public static final double ELEVATOR_MAX_HEIGHT = 5.4; //feet
+	public static final double ELEVATOR_MAX_CURRENT = 50.0;//amps
+	
+	//Swerve Speed Constraint Treemap
+	public static InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> kSwerveSpeedTreeMap = new InterpolatingTreeMap<>();
+	static{
+		kSwerveSpeedTreeMap.put(new InterpolatingDouble(-0.1), new InterpolatingDouble(1.0));
+		kSwerveSpeedTreeMap.put(new InterpolatingDouble(0.0), new InterpolatingDouble(1.0));
+		kSwerveSpeedTreeMap.put(new InterpolatingDouble(ELEVATOR_INTAKING_HEIGHT), new InterpolatingDouble(1.0));
+		kSwerveSpeedTreeMap.put(new InterpolatingDouble(ELEVATOR_MAX_HEIGHT), new InterpolatingDouble(0.5));
+		kSwerveSpeedTreeMap.put(new InterpolatingDouble(ELEVATOR_MAX_HEIGHT + 0.2), new InterpolatingDouble(0.5));
+	}
 	
 	//Wrist Constants
 	public static final double WRIST_MAX_SPEED = 41.58 * 4096.0 / 600.0; //encoder units per 100 ms
@@ -63,5 +97,19 @@ public class Constants {
 	 */
 	public static final double WRIST_ENCODER_TO_OUTPUT_RATIO = 41.58 / 19.19;
 	public static final double WRIST_ANGLE_TOLERANCE = 1.0; //degrees
+	public static final double WRIST_MIN_ANGLE = -2.0; //degrees
+	public static final double WRIST_MAX_ANGLE = 92.0; //degrees
+	public static final double WRIST_PRIMARY_STOW_ANGLE = 90.0;
+	public static final double WRIST_SECONDARY_STOW_ANGLE = 60.0;
+	public static final double WRIST_MAX_STOW_HEIGHT = 3.5; //height of the elevator
 	public static final double WRIST_MAX_CURRENT = 20.0;//amps
+	
+	public static InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> kMaxWristAngleMap = new InterpolatingTreeMap<>();
+	static{
+		kMaxWristAngleMap.put(new InterpolatingDouble(-0.1), new InterpolatingDouble(90.0));
+		kMaxWristAngleMap.put(new InterpolatingDouble(0.0), new InterpolatingDouble(90.0));
+		kMaxWristAngleMap.put(new InterpolatingDouble(3.5), new InterpolatingDouble(90.0));
+		kMaxWristAngleMap.put(new InterpolatingDouble(ELEVATOR_MAX_HEIGHT), new InterpolatingDouble(60.0));
+		kMaxWristAngleMap.put(new InterpolatingDouble(ELEVATOR_MAX_HEIGHT + 0.2), new InterpolatingDouble(60.0));
+	}
 }

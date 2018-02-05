@@ -53,6 +53,7 @@ public class Robot extends IterativeRobot {
 	
 	private AutoModeExecuter autoModeExecuter = null;
 	
+	private Looper swerveLooper = new Looper();
 	private Looper enabledLooper = new Looper();
 	
 	private Xbox driver, coDriver;
@@ -66,16 +67,17 @@ public class Robot extends IterativeRobot {
 	public void robotInit() {
 		driver = new Xbox(0);
 		coDriver = new Xbox(1);
+		driver.setDeadband(0.0);
 		
 		Logger.clearLog();
 		
+		swerve.registerEnabledLoops(swerveLooper);
 		subsystems.registerEnabledLoops(enabledLooper);
-		swerve.registerEnabledLoops(enabledLooper);
 		
 		subsystems.zeroSensors();
 		swerve.zeroSensors();
 		
-		/*PathManager.buildAllPaths();
+		PathManager.buildAllPaths();
 		
 		PathfinderPath path = PathManager.mRightSwitchDropoff;
 		
@@ -85,12 +87,13 @@ public class Robot extends IterativeRobot {
 		    if(i != (path.getTrajectory().length() - 1))
 		    	coordinates += ", ";
 		    Logger.log(coordinates);
-		}*/
+		}
 	}
 	
 	public void allPeriodic(){
 		subsystems.outputToSmartDashboard();
 		swerve.outputToSmartDashboard();
+		SmartDashboard.putNumber("Swerve dt", swerveLooper.dt_);
 		enabledLooper.outputToSmartDashboard();
 	}
 
@@ -114,7 +117,10 @@ public class Robot extends IterativeRobot {
 			subsystems.zeroSensors();
 			swerve.zeroSensors();
 			
+			swerveLooper.start();
 			enabledLooper.start();
+			
+			superstructure.enableCompressor(false);
 			
 			SmartDashboard.putBoolean("Auto", true);
 			
@@ -152,7 +158,9 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopInit(){
 		try{
+			swerveLooper.start();
 			enabledLooper.start();
+			superstructure.enableCompressor(true);
 			SmartDashboard.putBoolean("Auto", false);
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
@@ -170,7 +178,7 @@ public class Robot extends IterativeRobot {
 			coDriver.update();
 			
 			if(coDriver.backButton.isBeingPressed()){
-				superstructure.intake.stop();
+				superstructure.requestIntakeIdle();
 			}
 			
 			swerve.sendInput(driver.getX(Hand.kLeft), -driver.getY(Hand.kLeft), driver.getX(Hand.kRight), false, driver.leftTrigger.isBeingPressed());
@@ -184,20 +192,21 @@ public class Robot extends IterativeRobot {
 				swerve.rotate(270);
 			if(driver.backButton.isBeingPressed()){
 				swerve.temporarilyDisableHeadingController();
-				swerve.zeroSensors(new RigidTransform2d(new Translation2d(18.393, 19.354), Rotation2d.fromDegrees(0)));
+				swerve.zeroSensors(new RigidTransform2d(new Translation2d(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH), Rotation2d.fromDegrees(0)));
 			}
 			
-			if(driver.POV180.wasPressed()){
-				//swerve.followPath(PathManager.mRightCubeToLeftScale, -450);
-			}
+			/*if(driver.POV180.wasPressed()){
+				//swerve.followPath(PathManager.mRightSwitchDropoff, -90.0);
+			}*/
 			
 			if(coDriver.rightBumper.wasPressed()){
-				if(superstructure.intake.getState() == Intake.State.INTAKING)
-					superstructure.intake.clamp();
-				else
-					superstructure.intake.intake();
+				superstructure.requestIntakeOn();
 			}else if(coDriver.leftBumper.wasPressed()){
-				superstructure.intake.eject();
+				superstructure.requestIntakeScore();
+			}else if(coDriver.leftTrigger.wasPressed()){
+				superstructure.requestIntakeOpen();
+			}else if(coDriver.rightTrigger.wasPressed()){
+				superstructure.requestIntakeScore();
 			}
 			
 			if(coDriver.aButton.wasPressed()){
@@ -205,13 +214,23 @@ public class Robot extends IterativeRobot {
 			}else if(coDriver.xButton.wasPressed()){
 				superstructure.requestSwitchConfig();
 			}else if(coDriver.bButton.wasPressed()){
-				superstructure.requestWristRetract();
+				superstructure.requestWristStow();
 			}else if(coDriver.yButton.wasPressed()){
-				superstructure.requestScaleConfig();
+				superstructure.requestBalancedScaleConfig();
+			}else if(coDriver.POV0.wasPressed()){
+				superstructure.requestHighScaleConfig();
+			}else if(coDriver.POV180.wasPressed()){
+				superstructure.requestLowScaleConfig();
 			}
 			
-			superstructure.requestElevatorOpenLoop(-coDriver.getY(Hand.kRight));
-			superstructure.requestWristOpenLoop(-coDriver.getY(Hand.kLeft));
+			superstructure.requestElevatorOpenLoop(-coDriver.getY(Hand.kLeft));
+			superstructure.requestWristOpenLoop(-coDriver.getY(Hand.kRight));
+			
+			if(driver.POV180.wasPressed()){
+				superstructure.requestHangingConfig();
+			}else if(driver.startButton.wasPressed()){
+				superstructure.requestHungConfig();
+			}
 			
 			/*if(coDriver.getY(Hand.kRight) != 0)
 				superstructure.elevator.setOpenLoop(-coDriver.getY(Hand.kRight)*0.25);
@@ -233,6 +252,7 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void disabledInit(){
 		try{
+			swerveLooper.stop();
 			enabledLooper.stop();
 			subsystems.stop();
 		}catch(Throwable t){

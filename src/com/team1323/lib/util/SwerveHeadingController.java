@@ -8,7 +8,8 @@ public class SwerveHeadingController {
 	private double disabledTimestamp;
 	private double lastUpdateTimestamp;
 	private final double disableTimeLength = 0.3;
-	private SynchronousPIDF headingPID = new SynchronousPIDF(0.01, 0.0, 0.0, 0.0);
+	private SynchronousPIDF stabilizationPID = new SynchronousPIDF(0.005, 0.0, 0.0, 0.0);
+	private SynchronousPIDF snapPID = new SynchronousPIDF(0.01, 0.0, 0.0, 0.0);
 	
 	public enum State{
 		Off, Stabilize, Snap, TemporaryDisable
@@ -64,10 +65,10 @@ public class SwerveHeadingController {
 				setState(State.Stabilize);
 			break;
 		case Stabilize:
-			correction = headingPID.calculate(error, dt);
+			correction = stabilizationPID.calculate(error, dt);
 			break;
 		case Snap:
-			correction = headingPID.calculate(error, dt);
+			correction = snapPID.calculate(error, dt);
 			break;
 		}
 		

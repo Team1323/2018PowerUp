@@ -6,7 +6,7 @@ public class TestPath extends PathfinderPath{
 	
 	public TestPath(){
 		super.points = new Waypoint[]{
-			new Waypoint(0, 0, 0)	
+			new Waypoint(0, 0, 0)
 		};
 	}
 	

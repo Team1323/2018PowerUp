@@ -82,6 +82,12 @@ public class Swerve extends Subsystem{
 	private double xInput = 0;
 	private double yInput = 0;
 	private double rotationalInput = 0;
+	private Rotation2d lastActiveVector = new Rotation2d();
+	private final Rotation2d rotationalVector = new Rotation2d();
+	private double maxSpeedFactor = 1.0;
+	public void setMaxSpeed(double max){
+		maxSpeedFactor = max;
+	}
 	
 	private SwerveKinematics kinematics = new SwerveKinematics();
 	
@@ -97,6 +103,16 @@ public class Swerve extends Subsystem{
 	}
 	
 	public void sendInput(double x, double y, double rotate, boolean robotCentric, boolean lowPower){
+		double inputMagnitude = Math.hypot(x, y);
+		double deadband = 0.15;
+		x = (inputMagnitude < deadband) ? 0 : x;
+		y = (inputMagnitude < deadband) ? 0 : y;
+		rotate = (Math.abs(rotate) < deadband) ? 0 : rotate;
+		
+		x *= maxSpeedFactor;
+		y *= maxSpeedFactor;
+		rotate *= maxSpeedFactor;
+		
 		Rotation2d angle = pigeon.getAngle();
 		if(robotCentric){
 			xInput = x;
@@ -126,13 +142,18 @@ public class Swerve extends Subsystem{
 		
 		if((x != 0 || y != 0 || rotate != 0) && currentState != ControlState.MANUAL)
 			setState(ControlState.MANUAL);
+		
+		if(inputMagnitude > 0.3)
+			lastActiveVector = new Rotation2d(x, y, false);
+		else if(x == 0 && y == 0 && rotate != 0)
+			lastActiveVector = rotationalVector;
 	}
 	
 	public void rotate(double goalHeading){
 		if(xInput == 0 && yInput == 0)
 			rotateInPlace(Rotation2d.fromDegrees(goalHeading));
 		else
-			headingController.setSnapTarget(
+			headingController.setStabilizationTarget(
 					Util.placeInAppropriate0To360Scope(pose.getRotation().getUnboundedDegrees(), goalHeading));
 	}
 	
@@ -145,13 +166,13 @@ public class Swerve extends Subsystem{
 	}
 	
 	public void setPathHeading(double goalHeading){
-		headingController.setStabilizationTarget(
+		headingController.setSnapTarget(
 				Util.placeInAppropriate0To360Scope(
 						pose.getRotation().getUnboundedDegrees(), goalHeading));
 	}
 	
 	public void setAbsolutePathHeading(double absoluteHeading){
-		headingController.setStabilizationTarget(absoluteHeading);
+		headingController.setSnapTarget(absoluteHeading);
 	}
 	
 	public void setPositionTarget(double directionDegrees, double magnitudeInches){
@@ -167,7 +188,7 @@ public class Swerve extends Subsystem{
 		currentPath = path;
 		pathFollower = path.resetFollower();
 		currentPathTrajectory = path.getTrajectory();
-		headingController.setStabilizationTarget(goalHeading);
+		headingController.setSnapTarget(goalHeading);
 		setState(ControlState.PATH_FOLLOWING);
 	}
 	
@@ -193,7 +214,23 @@ public class Swerve extends Subsystem{
 		switch(currentState){
 		case MANUAL:
 			if(xInput == 0 && yInput == 0 && rotationalInput == 0){
-				stop();
+				if(!lastActiveVector.equals(rotationalVector)){
+					double tmp = (lastActiveVector.sin()* pose.getRotation().cos()) + (lastActiveVector.cos() * pose.getRotation().sin());
+					double x = (-lastActiveVector.sin() * pose.getRotation().sin()) + (lastActiveVector.cos() * pose.getRotation().cos());
+					double y = tmp;
+					kinematics.calculate(x, y, rotationCorrection);
+					for(int i=0; i<modules.size(); i++){
+			    		if(Util.shouldReverse(kinematics.wheelAngles[i], modules.get(i).getModuleAngle().getDegrees())){
+			    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i] + 180);
+			    			modules.get(i).setDriveOpenLoop(0);
+			    		}else{
+			    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i]);
+			    			modules.get(i).setDriveOpenLoop(0);
+			    		}
+			    	}
+				}else{
+					stop();
+				}
 			}else{
 				kinematics.calculate(xInput, yInput, rotationalInput + rotationCorrection);
 				for(int i=0; i<modules.size(); i++){
@@ -318,5 +355,6 @@ public class Swerve extends Subsystem{
 		SmartDashboard.putNumber("Target Heading", headingController.getTargetHeading());
 		SmartDashboard.putNumber("Distance Traveled", distanceTraveled);
 		SmartDashboard.putNumber("Robot Velocity", currentVelocity);
+		SmartDashboard.putString("Swerve State", currentState.toString());
 	}
 }

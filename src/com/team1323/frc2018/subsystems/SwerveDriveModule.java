@@ -19,6 +19,7 @@ public class SwerveDriveModule extends Subsystem{
 	int moduleID;
 	String name = "Module ";
 	double rotationSetpoint = 0;
+	double currentAngle = 0;
 	int encoderOffset;
 	int encoderReverseFactor = 1;
 	private double previousEncDistance = 0;
@@ -37,6 +38,7 @@ public class SwerveDriveModule extends Subsystem{
 		previousEncDistance = 0;
 		position = startingPose;
 		this.startingPosition = startingPose;
+		updateRawAngle();
 	}
 	
 	public synchronized void invertDriveMotor(boolean invert){
@@ -68,7 +70,7 @@ public class SwerveDriveModule extends Subsystem{
     	rotationMotor.configNominalOutputReverse(0.0, 10);
     	rotationMotor.configAllowableClosedloopError(0, 0, 10);
     	rotationMotor.configMotionAcceleration((int)(Constants.SWERVE_ROTATION_MAX_SPEED*10), 10);
-    	rotationMotor.configMotionCruiseVelocity((int)(Constants.SWERVE_ROTATION_MAX_SPEED*0.8), 10);
+    	rotationMotor.configMotionCruiseVelocity((int)(Constants.SWERVE_ROTATION_MAX_SPEED*0.8), 10);//0.8
     	rotationMotor.selectProfileSlot(0, 0);
     	rotationMotor.config_kP(0, 4.0, 10);//4
     	rotationMotor.config_kI(0, 0.0, 10);
@@ -95,12 +97,13 @@ public class SwerveDriveModule extends Subsystem{
     	driveMotor.configMotionAcceleration(4500, 10);
 	}
 	
-	public double getRawAngle(){
-		return encUnitsToDegrees(rotationMotor.getSelectedSensorPosition(0));
+	private double updateRawAngle(){
+		currentAngle = encUnitsToDegrees(rotationMotor.getSelectedSensorPosition(0));
+		return currentAngle;
 	}
 	
 	public Rotation2d getModuleAngle(){
-		return Rotation2d.fromDegrees(getRawAngle());
+		return Rotation2d.fromDegrees(currentAngle);
 	}
 	
 	public Rotation2d getFieldCentricAngle(Rotation2d robotHeading){
@@ -108,7 +111,7 @@ public class SwerveDriveModule extends Subsystem{
 	}
 	
 	public void setModuleAngle(double goalAngle){
-		double newAngle = Util.placeInAppropriate0To360Scope(getRawAngle(), goalAngle);
+		double newAngle = Util.placeInAppropriate0To360Scope(currentAngle, goalAngle);
 		rotationMotor.set(ControlMode.MotionMagic, degreesToEncUnits(newAngle));
 		rotationSetpoint = degreesToEncUnits(newAngle);
 	}
@@ -127,11 +130,11 @@ public class SwerveDriveModule extends Subsystem{
 				inchesToEncUnits(deltaDistanceInches));
 	}
 	
-	public double getDriveDistanceFeet(){
+	private double getDriveDistanceFeet(){
 		return getDriveDistanceInches() / 12.0;
 	}
 	
-	public double getDriveDistanceInches(){
+	private double getDriveDistanceInches(){
 		return encUnitsToInches(driveMotor.getSelectedSensorPosition(0));
 	}
 	
@@ -166,6 +169,7 @@ public class SwerveDriveModule extends Subsystem{
 	public synchronized void updatePose(Rotation2d robotHeading){
 		double currentEncDistance = getDriveDistanceFeet();
 		double deltaEncDistance = currentEncDistance - previousEncDistance;
+		updateRawAngle();
 		Rotation2d angle = getFieldCentricAngle(robotHeading);
 		Translation2d deltaPosition = new Translation2d(angle.cos()*deltaEncDistance, 
 				angle.sin()*deltaEncDistance);
@@ -188,8 +192,7 @@ public class SwerveDriveModule extends Subsystem{
 	
 	@Override
 	public synchronized void stop(){
-		//setRotationOpenLoop(0.0);
-		setModuleAngle(getModuleAngle().getDegrees());
+		setModuleAngle(currentAngle);
 		setDriveOpenLoop(0.0);
 	}
 	
@@ -223,6 +226,7 @@ public class SwerveDriveModule extends Subsystem{
 		SmartDashboard.putNumber(name + "Drive Voltage", driveMotor.getMotorOutputVoltage());
 		SmartDashboard.putNumber(name + "Inches Driven", getDriveDistanceInches());
 		//SmartDashboard.putNumber(name + "Rotation Voltage", rotationMotor.getMotorOutputVoltage());
+		SmartDashboard.putNumber(name + "Velocity", encUnitsPer100msToFeetPerSecond(driveMotor.getSelectedSensorVelocity(0)));
 		if(rotationMotor.getControlMode() == ControlMode.MotionMagic)
 			SmartDashboard.putNumber(name + "Error", rotationMotor.getClosedLoopError(0));
 	}

@@ -23,7 +23,7 @@ public class Looper {
     private final List<Loop> loops_;
     private final Object taskRunningLock_ = new Object();
     private double timestamp_ = 0;
-    private double dt_ = 0;
+    public double dt_ = 0;
 
     private final CrashTrackingRunnable runnable_ = new CrashTrackingRunnable() {
         @Override

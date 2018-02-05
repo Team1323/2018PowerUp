@@ -21,6 +21,12 @@ public class Wrist extends Subsystem{
 	}
 
 	TalonSRX wrist;
+	private double targetAngle = 0.0;
+	private double maxAllowableAngle = Constants.WRIST_MAX_ANGLE;
+	public void setMaxAllowableAngle(double angle){
+		maxAllowableAngle = angle;
+		lockAngle();
+	}
 	
 	private Wrist(){
 		wrist = new TalonSRX(Ports.WRIST);
@@ -40,6 +46,10 @@ public class Wrist extends Subsystem{
 		wrist.config_kF(1, 1023.0/Constants.WRIST_MAX_SPEED, 10);
 		wrist.configMotionCruiseVelocity((int)(Constants.WRIST_MAX_SPEED*0.9), 10);
 		wrist.configMotionAcceleration((int)(Constants.WRIST_MAX_SPEED*3.0), 10);
+		wrist.configForwardSoftLimitThreshold(wristAngleToEncUnits(Constants.WRIST_MAX_ANGLE), 10);
+		wrist.configReverseSoftLimitThreshold(wristAngleToEncUnits(Constants.WRIST_MIN_ANGLE), 10);
+		wrist.configForwardSoftLimitEnable(true, 10);
+		wrist.configReverseSoftLimitEnable(true, 10);
 	}
 	
 	public void setOpenLoop(double output){
@@ -48,12 +58,16 @@ public class Wrist extends Subsystem{
 	
 	public void setAngle(double angle){
 		if(isSensorConnected()){
+			if(angle <= maxAllowableAngle){
+				targetAngle = angle;
+			}else{
+				targetAngle = maxAllowableAngle;
+			}
 			if(angle > getAngle())
 				wrist.selectProfileSlot(1, 0);
 			else
 				wrist.selectProfileSlot(0, 0);
-			wrist.set(ControlMode.MotionMagic, Constants.WRIST_STARTING_ENCODER_POSITION + 
-					degreesToEncUnits(angle-Constants.WRIST_STARTING_ANGLE));
+			wrist.set(ControlMode.MotionMagic, wristAngleToEncUnits(targetAngle));
 		}else{
 			DriverStation.reportError("Wrist encoder not detected!", false);
 			stop();
@@ -65,11 +79,11 @@ public class Wrist extends Subsystem{
 	}
 	
 	public double getAngle(){
-		return Constants.WRIST_STARTING_ANGLE + encUnitsToDegrees(wrist.getSelectedSensorPosition(0) - Constants.WRIST_STARTING_ENCODER_POSITION);
+		return encUnitsToWristAngle(wrist.getSelectedSensorPosition(0));
 	}
 	
 	public boolean hasReachedTargetAngle(){
-		return encUnitsToDegrees(wrist.getClosedLoopError(0)) <= Constants.WRIST_ANGLE_TOLERANCE;
+		return Math.abs(targetAngle - getAngle()) <= Constants.WRIST_ANGLE_TOLERANCE;
 	}
 	
 	public double encUnitsToDegrees(int encUnits){
@@ -78,6 +92,14 @@ public class Wrist extends Subsystem{
 	
 	public int degreesToEncUnits(double degrees){
 		return (int) (degrees / 360.0 * Constants.WRIST_ENCODER_TO_OUTPUT_RATIO * 4096.0);
+	}
+	
+	public double encUnitsToWristAngle(int encUnits){
+		return Constants.WRIST_STARTING_ANGLE + encUnitsToDegrees(encUnits - Constants.WRIST_STARTING_ENCODER_POSITION);
+	}
+	
+	public int wristAngleToEncUnits(double wristAngle){
+		return Constants.WRIST_STARTING_ENCODER_POSITION + degreesToEncUnits(wristAngle - Constants.WRIST_STARTING_ANGLE);
 	}
 	
 	public boolean isSensorConnected(){

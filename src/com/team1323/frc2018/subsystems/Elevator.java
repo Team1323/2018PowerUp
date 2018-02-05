@@ -24,7 +24,11 @@ public class Elevator extends Subsystem{
 	
 	TalonSRX master, motor2, motor3, motor4;
 	Solenoid shifter, releasePiston, gasStruts;
-	int encoderOffset = 0;
+	private double targetHeight = 0.0;
+	private boolean isHighGear = true;
+	public boolean isHighGear(){
+		return isHighGear;
+	}
 	
 	public enum ControlState{
 		Neutral, Position, OpenLoop, Locked
@@ -56,6 +60,10 @@ public class Elevator extends Subsystem{
 		
 		master.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
 		master.setSensorPhase(true);
+		master.configReverseSoftLimitThreshold(Constants.ELEVATOR_ENCODER_STARTING_POSITION, 10);
+		master.configForwardSoftLimitThreshold(Constants.ELEVATOR_ENCODER_STARTING_POSITION + feetToEncUnits(Constants.ELEVATOR_MAX_HEIGHT), 10);
+		master.configForwardSoftLimitEnable(true, 10);
+		master.configReverseSoftLimitEnable(true, 10);
 		//resetToAbsolutePosition();
 		master.setNeutralMode(NeutralMode.Brake);
 		configForLifting();
@@ -65,8 +73,13 @@ public class Elevator extends Subsystem{
 		motor4.set(ControlMode.Follower, Ports.ELEVATOR_1);
 	}
 	
+	private void setHighGear(boolean high){
+		shifter.set(high);
+		isHighGear = high;
+	}
+	
 	private void configForLifting(){
-		shifter.set(true);
+		setHighGear(true);
 		
 		master.selectProfileSlot(0, 0);
 		master.config_kP(0, 3.0, 10);
@@ -83,15 +96,15 @@ public class Elevator extends Subsystem{
 		master.configMotionAcceleration((int)(Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR*3.0), 10);
 	}
 	
-	private void configForHanging(){
-		shifter.set(false);
+	public void configForHanging(){
+		setHighGear(false);
 		
 		master.selectProfileSlot(1, 0);
 		master.config_kP(1, 8.0, 10);
 		master.config_kI(1, 0.0, 10);
 		master.config_kD(1, 160.0, 10);
 		master.config_kF(1, 1023.0/Constants.ELEVATOR_MAX_SPEED_LOW_GEAR, 10);
-		master.configMotionCruiseVelocity((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR*0.75), 10);
+		master.configMotionCruiseVelocity((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR*0.9), 10);
 		master.configMotionAcceleration((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR), 10);
 	}
 	
@@ -102,11 +115,28 @@ public class Elevator extends Subsystem{
 	
 	public synchronized void setTargetHeight(double heightFeet){
 		setState(ControlState.Position);
+		if(!isHighGear)
+			configForLifting();
 		if(isSensorConnected()){
 			if(heightFeet > getHeight())
 				master.selectProfileSlot(0, 0);
 			else
 				master.selectProfileSlot(1, 0);
+			targetHeight = heightFeet;
+			master.set(ControlMode.MotionMagic, Constants.ELEVATOR_ENCODER_STARTING_POSITION + feetToEncUnits(heightFeet));
+		}else{
+			DriverStation.reportError("Elevator encoder not detected!", false);
+			stop();
+		}
+	}
+	
+	public synchronized void setHanigngTargetHeight(double heightFeet){
+		setState(ControlState.Position);
+		if(isHighGear)
+			configForHanging();
+		if(isSensorConnected()){
+			master.selectProfileSlot(1, 0);
+			targetHeight = heightFeet;
 			master.set(ControlMode.MotionMagic, Constants.ELEVATOR_ENCODER_STARTING_POSITION + feetToEncUnits(heightFeet));
 		}else{
 			DriverStation.reportError("Elevator encoder not detected!", false);
@@ -131,6 +161,7 @@ public class Elevator extends Subsystem{
 	public synchronized void lockHeight(){
 		setState(ControlState.Locked);
 		if(isSensorConnected()){
+			targetHeight = getHeight();
 			master.set(ControlMode.MotionMagic, master.getSelectedSensorPosition(0));
 		}else{
 			DriverStation.reportError("Elevator encoder not detected!", false);
@@ -148,7 +179,7 @@ public class Elevator extends Subsystem{
 	
 	public boolean hasReachedTargetHeight(){
 		if(master.getControlMode() == ControlMode.MotionMagic)
-			return (encUnitsToFeet(master.getClosedLoopError(0)) <= Constants.ELEVATOR_HEIGHT_TOLERANCE);
+			return (Math.abs(targetHeight - getHeight()) <= Constants.ELEVATOR_HEIGHT_TOLERANCE);
 		return false;
 	}
 	
@@ -161,7 +192,7 @@ public class Elevator extends Subsystem{
 	}
 	
 	public void goToScaleHeight(){
-		setTargetHeight(Constants.ELEVATOR_SCALE_HEIGHT);
+		setTargetHeight(Constants.ELEVATOR_BALANCED_SCALE_HEIGHT);
 	}
 	
 	public int feetToEncUnits(double feet){
@@ -217,7 +248,6 @@ public class Elevator extends Subsystem{
 	private void resetToAbsolutePosition(){
 		int absolutePosition = master.getSensorCollection().getPulseWidthPosition();
 		master.setSelectedSensorPosition(absolutePosition, 0, 10);
-		encoderOffset = absolutePosition;
 	}
 
 	@Override
