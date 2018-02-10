@@ -63,6 +63,7 @@ public class SwerveDriveModule extends Subsystem{
     	resetRotationToAbsolute();
     	rotationMotor.setSensorPhase(true);
     	rotationMotor.setInverted(false);
+    	rotationMotor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 20, 10);
     	rotationMotor.enableVoltageCompensation(true);
     	rotationMotor.setNeutralMode(NeutralMode.Brake);
     	rotationMotor.configVoltageCompSaturation(7.0, 10);
@@ -79,9 +80,9 @@ public class SwerveDriveModule extends Subsystem{
     	rotationMotor.set(ControlMode.MotionMagic, rotationMotor.getSelectedSensorPosition(0));
     	driveMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
     	driveMotor.setSelectedSensorPosition(0, 0, 10);
-    	driveMotor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 5, 10);
-    	driveMotor.configNominalOutputForward(0.0/12.0, 10);
-    	driveMotor.configNominalOutputReverse(0.0/12.0, 10);
+    	driveMotor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 20, 10);
+    	driveMotor.configNominalOutputForward(3.0/12.0, 10);
+    	driveMotor.configNominalOutputReverse(-3.0/12.0, 10);
     	driveMotor.enableVoltageCompensation(true);
     	driveMotor.configOpenloopRamp(0.25, 10);
     	driveMotor.configAllowableClosedloopError(0, 0, 10);
@@ -107,7 +108,8 @@ public class SwerveDriveModule extends Subsystem{
 	}
 	
 	public Rotation2d getFieldCentricAngle(Rotation2d robotHeading){
-		return getModuleAngle().rotateBy(robotHeading);
+		Rotation2d normalizedAngle = getModuleAngle();
+		return normalizedAngle.rotateBy(robotHeading);
 	}
 	
 	public void setModuleAngle(double goalAngle){
@@ -168,9 +170,10 @@ public class SwerveDriveModule extends Subsystem{
 	
 	public synchronized void updatePose(Rotation2d robotHeading){
 		double currentEncDistance = getDriveDistanceFeet();
-		double deltaEncDistance = currentEncDistance - previousEncDistance;
+		double deltaEncDistance = (currentEncDistance - previousEncDistance) * Constants.kWheelScrubFactors[moduleID];
 		updateRawAngle();
-		Rotation2d angle = getFieldCentricAngle(robotHeading);
+		Rotation2d angle = getFieldCentricAngle(Pigeon.getInstance().getAngle());
+		angle.normalize();
 		Translation2d deltaPosition = new Translation2d(angle.cos()*deltaEncDistance, 
 				angle.sin()*deltaEncDistance);
 		Translation2d updatedPosition = position.translateBy(deltaPosition);
@@ -221,7 +224,7 @@ public class SwerveDriveModule extends Subsystem{
 
 	@Override
 	public void outputToSmartDashboard() {
-		SmartDashboard.putNumber(name + "Angle", getModuleAngle().getDegrees());
+		SmartDashboard.putNumber(name + "Angle", Util.boundAngle0to360Degrees(updateRawAngle()));
 		SmartDashboard.putNumber(name + "Pulse Width", rotationMotor.getSensorCollection().getPulseWidthPosition());
 		SmartDashboard.putNumber(name + "Drive Voltage", driveMotor.getMotorOutputVoltage());
 		SmartDashboard.putNumber(name + "Inches Driven", getDriveDistanceInches());
@@ -229,6 +232,8 @@ public class SwerveDriveModule extends Subsystem{
 		SmartDashboard.putNumber(name + "Velocity", encUnitsPer100msToFeetPerSecond(driveMotor.getSelectedSensorVelocity(0)));
 		if(rotationMotor.getControlMode() == ControlMode.MotionMagic)
 			SmartDashboard.putNumber(name + "Error", rotationMotor.getClosedLoopError(0));
+		SmartDashboard.putNumber(name + "X", position.x());
+		SmartDashboard.putNumber(name + "Y", position.y());
 	}
 	
 }

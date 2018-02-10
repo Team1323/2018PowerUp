@@ -6,7 +6,7 @@ public class EjectCubeAction extends RunOnceAction{
 
 	@Override
 	public void runOnce() {
-		Superstructure.getInstance().intake.eject();
+		Superstructure.getInstance().requestIntakeOpen();
 	}
 
 }

@@ -34,6 +34,8 @@ public class Wrist extends Subsystem{
 		wrist.configNominalOutputForward(0.45/12.0, 10);
 		wrist.configNominalOutputForward(-0.45/12.0, 10);
 		wrist.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
+		wrist.setSensorPhase(false);
+		wrist.getSensorCollection().setPulseWidthPosition(0, 10);
 		resetToAbsolutePosition();
 		wrist.selectProfileSlot(0, 0);
 		wrist.config_kP(0, 3.0, 10);
@@ -151,7 +153,8 @@ public class Wrist extends Subsystem{
 	public void outputToSmartDashboard() {
 		SmartDashboard.putNumber("Wrist Current", wrist.getOutputCurrent());
 		SmartDashboard.putNumber("Wrist Voltage", wrist.getMotorOutputVoltage());
-		SmartDashboard.putNumber("Wrist Encoder", wrist.getSensorCollection().getPulseWidthPosition());
+		SmartDashboard.putNumber("Wrist Encoder", wrist.getSelectedSensorPosition(0));
+		SmartDashboard.putNumber("Wrist Pulse Width Position", wrist.getSensorCollection().getPulseWidthPosition());
 		SmartDashboard.putNumber("Wrist Angle", getAngle());
 		SmartDashboard.putNumber("Wrist Velocity", wrist.getSelectedSensorVelocity(0));
 		SmartDashboard.putNumber("Wrist Error", wrist.getClosedLoopError(0));

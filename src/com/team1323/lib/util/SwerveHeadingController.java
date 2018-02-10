@@ -9,7 +9,7 @@ public class SwerveHeadingController {
 	private double lastUpdateTimestamp;
 	private final double disableTimeLength = 0.3;
 	private SynchronousPIDF stabilizationPID = new SynchronousPIDF(0.005, 0.0, 0.0, 0.0);
-	private SynchronousPIDF snapPID = new SynchronousPIDF(0.01, 0.0, 0.0, 0.0);
+	private SynchronousPIDF snapPID = new SynchronousPIDF(0.015, 0.0, 0.0, 0.0);
 	
 	public enum State{
 		Off, Stabilize, Snap, TemporaryDisable

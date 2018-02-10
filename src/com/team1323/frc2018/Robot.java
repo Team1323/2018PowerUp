@@ -45,11 +45,9 @@ import jaci.pathfinder.Trajectory;
  * project.
  */
 public class Robot extends IterativeRobot {
-	private Swerve swerve = Swerve.getInstance();
-	private Superstructure superstructure = Superstructure.getInstance();
-	private SubsystemManager subsystems = new SubsystemManager(
-			Arrays.asList(Intake.getInstance(), Elevator.getInstance(), 
-					Wrist.getInstance(), Superstructure.getInstance()));
+	private Swerve swerve;
+	private Superstructure superstructure;
+	private SubsystemManager subsystems;
 	
 	private AutoModeExecuter autoModeExecuter = null;
 	
@@ -65,9 +63,16 @@ public class Robot extends IterativeRobot {
 	 */
 	@Override
 	public void robotInit() {
+		swerve = Swerve.getInstance();
+		superstructure = Superstructure.getInstance();
+		subsystems = new SubsystemManager(
+				Arrays.asList(Intake.getInstance(), Elevator.getInstance(), 
+						Wrist.getInstance(), Superstructure.getInstance()));
+		
 		driver = new Xbox(0);
 		coDriver = new Xbox(1);
 		driver.setDeadband(0.0);
+		coDriver.setDeadband(0.3);
 		
 		Logger.clearLog();
 		
@@ -79,7 +84,7 @@ public class Robot extends IterativeRobot {
 		
 		PathManager.buildAllPaths();
 		
-		PathfinderPath path = PathManager.mRightSwitchDropoff;
+		PathfinderPath path = PathManager.mRightCubeToRightScale;
 		
 		for (int i = 0; i < path.getTrajectory().length(); i++) {
 		    Trajectory.Segment seg = path.getTrajectory().get(i);
@@ -196,13 +201,11 @@ public class Robot extends IterativeRobot {
 			}
 			
 			/*if(driver.POV180.wasPressed()){
-				//swerve.followPath(PathManager.mRightSwitchDropoff, -90.0);
+				swerve.followPath(PathManager.mRightSwitchDropoff, -90.0);
 			}*/
 			
 			if(coDriver.rightBumper.wasPressed()){
 				superstructure.requestIntakeOn();
-			}else if(coDriver.leftBumper.wasPressed()){
-				superstructure.requestIntakeScore();
 			}else if(coDriver.leftTrigger.wasPressed()){
 				superstructure.requestIntakeOpen();
 			}else if(coDriver.rightTrigger.wasPressed()){
@@ -214,13 +217,19 @@ public class Robot extends IterativeRobot {
 			}else if(coDriver.xButton.wasPressed()){
 				superstructure.requestSwitchConfig();
 			}else if(coDriver.bButton.wasPressed()){
-				superstructure.requestWristStow();
+				superstructure.requestPrimaryWristStow();
 			}else if(coDriver.yButton.wasPressed()){
 				superstructure.requestBalancedScaleConfig();
 			}else if(coDriver.POV0.wasPressed()){
 				superstructure.requestHighScaleConfig();
 			}else if(coDriver.POV180.wasPressed()){
 				superstructure.requestLowScaleConfig();
+			}else if(coDriver.bButton.longPressed()){
+				superstructure.requestGroundStowedConfig();
+			}else if(coDriver.rightCenterClick.wasPressed()){
+				superstructure.requestHighIntakingConfig();
+			}else if(coDriver.startButton.wasPressed()){
+				superstructure.requestHumanLoadingConfig();
 			}
 			
 			superstructure.requestElevatorOpenLoop(-coDriver.getY(Hand.kLeft));
@@ -231,16 +240,6 @@ public class Robot extends IterativeRobot {
 			}else if(driver.startButton.wasPressed()){
 				superstructure.requestHungConfig();
 			}
-			
-			/*if(coDriver.getY(Hand.kRight) != 0)
-				superstructure.elevator.setOpenLoop(-coDriver.getY(Hand.kRight)*0.25);
-			else if(coDriver.aButton.wasPressed()){
-				superstructure.elevator.setTargetHeight(0.25);
-			}else if(coDriver.yButton.wasPressed()){
-				superstructure.elevator.setTargetHeight(4.0);
-			}else if(superstructure.elevator.getState() == Elevator.ControlState.OpenLoop){
-				superstructure.elevator.lockHeight();
-			}*/
 			
 			allPeriodic();
 		}catch(Throwable t){

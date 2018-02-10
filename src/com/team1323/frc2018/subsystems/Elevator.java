@@ -294,6 +294,9 @@ public class Elevator extends Subsystem{
 			return false;
 		}
 		
+		master.configForwardSoftLimitEnable(false, 10);
+		master.configReverseSoftLimitEnable(false, 10);
+		
 		motor2.set(ControlMode.PercentOutput, 0.0);
 		motor3.set(ControlMode.PercentOutput, 0.0);
 		motor4.set(ControlMode.PercentOutput, 0.0);
@@ -311,7 +314,8 @@ public class Elevator extends Subsystem{
 			System.out.println("Master elevator motor current too low: " + current);
 			passed = false;
 		}else if(current > currentMaximum){
-			System.out.println("Master elevator motor current too low: " + current);
+			System.out.println("Master elevator motor current too high: " + current);
+			passed = false;
 		}else{
 			System.out.println("Master elevator motor current good: " + current);
 		}
@@ -372,6 +376,11 @@ public class Elevator extends Subsystem{
 		}else{
 			System.out.println("Elevator motor 4 current good: " + current);
 		}
+		
+		master.configForwardSoftLimitEnable(true, 10);
+		master.configReverseSoftLimitEnable(true, 10);
+		
+		configForLifting();
 		
 		return passed;
 	}

@@ -18,7 +18,7 @@ public class PathfinderPath {
 	protected int samples = Trajectory.Config.SAMPLES_LOW;
 	protected double p = 1.0;
 	protected double d = 0.0;
-	protected double v = 1.0/13.89;
+	protected double v = 1.0/12.5;
 	protected double a = 0.0;
 	protected int lookaheadPoints = 6;
 	private Segment lastSegment;
@@ -60,5 +60,25 @@ public class PathfinderPath {
 	
 	public double runPID(double error){
 		return error * p + v * lastSegment.velocity;
+	}
+	
+	public int getClosestSegmentIndex(RigidTransform2d robotPose, int currentSegment){
+		double distance = segmentToTranslation(trajectory.get(currentSegment)).translateBy(robotPose.getTranslation().inverse()).norm();
+		double distanceBehind = distance;
+		double distanceAhead = distance;
+		if(currentSegment > 0)
+			distanceBehind = segmentToTranslation(trajectory.get(currentSegment - 1)).translateBy(robotPose.getTranslation().inverse()).norm();
+		if(currentSegment < (trajectory.length() - 1))
+			distanceAhead = segmentToTranslation(trajectory.get(currentSegment + 1)).translateBy(robotPose.getTranslation().inverse()).norm();
+		if(distanceBehind < distance)
+			return currentSegment - 1;
+		else if(distanceAhead < distance)
+			return currentSegment + 1;
+		else
+			return currentSegment;
+	}
+	
+	public Translation2d segmentToTranslation(Segment seg){
+		return new Translation2d(seg.x, seg.y);
 	}
 }
