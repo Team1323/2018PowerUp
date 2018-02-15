@@ -64,8 +64,15 @@ public class Elevator extends Subsystem{
 		master.configForwardSoftLimitThreshold(Constants.ELEVATOR_ENCODER_STARTING_POSITION + feetToEncUnits(Constants.ELEVATOR_MAX_HEIGHT), 10);
 		master.configForwardSoftLimitEnable(true, 10);
 		master.configReverseSoftLimitEnable(true, 10);
+		master.configContinuousCurrentLimit(30, 10);
+		master.configPeakCurrentLimit(40, 10);
+		master.configPeakCurrentDuration(100, 10);
+		master.enableCurrentLimit(true);
 		//resetToAbsolutePosition();
 		master.setNeutralMode(NeutralMode.Brake);
+		motor2.setNeutralMode(NeutralMode.Brake);
+		motor3.setNeutralMode(NeutralMode.Brake);
+		motor4.setNeutralMode(NeutralMode.Brake);
 		configForLifting();
 		master.set(ControlMode.PercentOutput, 0.0);
 		motor2.set(ControlMode.Follower, Ports.ELEVATOR_1);
@@ -229,7 +236,7 @@ public class Elevator extends Subsystem{
 		public void onLoop(double timestamp) {
 			if(getMotorsWithHighCurrent()){
 				DriverStation.reportError("Elevator current too high", false);
-				stop();
+				//stop();
 			}
 		}
 

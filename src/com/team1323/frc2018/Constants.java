@@ -16,6 +16,8 @@ public class Constants {
 	public static final double ROBOT_HALF_LENGTH = ROBOT_LENGTH / 2.0;
 	public static final double ROBOT_INTAKE_EXTRUSION = 11.0/12.0;
 	
+	public static final double kCubeWidth = 13.0/12.0;
+	
 	//Field Landmarks
 	public static final Translation2d kAutoStartingCorner = new Translation2d(0.0, 12.5);
 	public static final Translation2d kRightSwitchCloseCorner = new Translation2d(140.0 / 12.0, 27.0 - (85.25/12.0));
@@ -23,8 +25,7 @@ public class Constants {
 	public static final Translation2d kLeftSwitchCloseCorner = new Translation2d(140.0 / 12.0, 85.25/12.0);
 	public static final Translation2d kLeftSwitchFarCorner = new Translation2d(196.0 / 12.0, 85.25/12.0);
 	public static final Translation2d kRightScaleCorner = new Translation2d(299.65 / 12.0, 27.0 - (95.25/12.0));
-	
-	public static final double kCubeWidth = 13.0/12.0;
+	public static final Translation2d kRightMostCube = kRightSwitchFarCorner.translateBy(new Translation2d(kCubeWidth, 0.0));
 	
 	//Swerve Calculations Constants
     public static final double WHEELBASE_LENGTH = 18.5 / 12.0; //feet
@@ -33,6 +34,7 @@ public class Constants {
     
     //Swerve Speed Constants
     public static final double SWERVE_ROTATION_MAX_SPEED = 1250.0;
+    public static final double SWERVE_DRIVE_MAX_SPEED = 5432.0;
     
     //Swerve Module Wheel Offsets
 	public static final int FRONT_RIGHT_ENCODER_STARTING_POS = 294;//done
@@ -109,10 +111,11 @@ public class Constants {
 	public static final double WRIST_ANGLE_TOLERANCE = 1.0; //degrees
 	public static final double WRIST_MIN_ANGLE = -2.0; //degrees
 	public static final double WRIST_MAX_ANGLE = 92.0; //degrees
+	public static final double WRIST_INTAKING_ANGLE = 4.0;
 	public static final double WRIST_PRIMARY_STOW_ANGLE = 80.0;
 	public static final double WRIST_SECONDARY_STOW_ANGLE = 60.0;
 	public static final double WRIST_MAX_STOW_HEIGHT = 3.5; //height of the elevator
-	public static final double WRIST_MAX_CURRENT = 20.0;//amps
+	public static final double WRIST_MAX_CURRENT = 40.0;//amps
 	
 	public static InterpolatingTreeMap<InterpolatingDouble, InterpolatingDouble> kMaxWristAngleMap = new InterpolatingTreeMap<>();
 	static{

@@ -20,7 +20,7 @@ public class Intake extends Subsystem{
 	}
 	
 	boolean hasCube = false;
-	public boolean hasCube(){
+	public synchronized boolean hasCube(){
 		return hasCube;
 	}
 	
@@ -53,7 +53,7 @@ public class Intake extends Subsystem{
 	}
 	
 	public enum State{
-		OFF, INTAKING, CLAMPING, EJECTING, SPINNING, OPEN, WEAK_EJECT
+		OFF, INTAKING, CLAMPING, EJECTING, SPINNING, OPEN, WEAK_EJECT, INTAKING_WIDE
 	}
 	private State currentState = State.OFF;
 	public State getState(){
@@ -67,6 +67,15 @@ public class Intake extends Subsystem{
 	
 	private double bannerSensorBeganTimestamp = Double.POSITIVE_INFINITY;
 	
+	private boolean needsToNotifyDrivers = false;
+	public boolean needsToNotifyDrivers(){
+		if(needsToNotifyDrivers){
+			needsToNotifyDrivers = false;
+			return true;
+		}
+		return false;
+	}
+	
 	public void firePinchers(boolean fire){
 		pinchers.set(!fire);
 	}
@@ -76,8 +85,8 @@ public class Intake extends Subsystem{
 	}
 	
 	private void forwardRollers(){
-		leftIntake.set(ControlMode.PercentOutput, 0.8);
-		rightIntake.set(ControlMode.PercentOutput, 0.8);
+		leftIntake.set(ControlMode.PercentOutput, 1.0);
+		rightIntake.set(ControlMode.PercentOutput, 1.0);
 	}
 	
 	private void reverseRollers(){
@@ -86,8 +95,8 @@ public class Intake extends Subsystem{
 	}
 	
 	private void weakReverseRollers(){
-		leftIntake.set(ControlMode.PercentOutput, -0.3);
-		rightIntake.set(ControlMode.PercentOutput, -0.3);
+		leftIntake.set(ControlMode.PercentOutput, -0.4);
+		rightIntake.set(ControlMode.PercentOutput, -0.4);
 	}
 	
 	private void spinRollers(){
@@ -122,6 +131,7 @@ public class Intake extends Subsystem{
 			case INTAKING:
 				if(banner.get()){
 					hasCube = true;
+					needsToNotifyDrivers = true;
 					clamp();
 				}
 				/*if(banner.get()){
@@ -136,6 +146,9 @@ public class Intake extends Subsystem{
 				}else if(bannerSensorBeganTimestamp != Double.POSITIVE_INFINITY){
 					bannerSensorBeganTimestamp = Double.POSITIVE_INFINITY;
 				}*/
+				break;
+			case INTAKING_WIDE:
+				
 				break;
 			case SPINNING:
 				if(timestamp - stateEnteredTimestamp > 0.25)
@@ -170,6 +183,13 @@ public class Intake extends Subsystem{
 		forwardRollers();
 		firePinchers(true);
 		fireClampers(false);
+	}
+	
+	public void intakeWide(){
+		setState(State.INTAKING_WIDE);
+		firePinchers(false);
+		fireClampers(false);
+		forwardRollers();
 	}
 	
 	public void spin(){

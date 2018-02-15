@@ -10,9 +10,10 @@ public class SwerveHeadingController {
 	private final double disableTimeLength = 0.3;
 	private SynchronousPIDF stabilizationPID = new SynchronousPIDF(0.005, 0.0, 0.0, 0.0);
 	private SynchronousPIDF snapPID = new SynchronousPIDF(0.015, 0.0, 0.0, 0.0);
+	private SynchronousPIDF stationaryPID = new SynchronousPIDF(0.01, 0.0, 0.002, 0.0);
 	
 	public enum State{
-		Off, Stabilize, Snap, TemporaryDisable
+		Off, Stabilize, Snap, TemporaryDisable, Stationary
 	}
 	private State currentState = State.Off;
 	public State getState(){
@@ -35,6 +36,11 @@ public class SwerveHeadingController {
 	public void setSnapTarget(double angle){
 		targetHeading = angle;
 		setState(State.Snap);
+	}
+	
+	public void setStationaryTarget(double angle){
+		targetHeading = angle;
+		setState(State.Stationary);
 	}
 	
 	public void disable(){
@@ -69,6 +75,9 @@ public class SwerveHeadingController {
 			break;
 		case Snap:
 			correction = snapPID.calculate(error, dt);
+			break;
+		case Stationary:
+			correction = stationaryPID.calculate(error, dt);
 			break;
 		}
 		

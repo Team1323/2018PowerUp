@@ -33,6 +33,7 @@ import com.team254.lib.util.math.Translation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.IterativeRobot;
+import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import jaci.pathfinder.Trajectory;
@@ -48,6 +49,7 @@ public class Robot extends IterativeRobot {
 	private Swerve swerve;
 	private Superstructure superstructure;
 	private SubsystemManager subsystems;
+	private PowerDistributionPanel pdp = new PowerDistributionPanel(21);
 	
 	private AutoModeExecuter autoModeExecuter = null;
 	
@@ -84,7 +86,8 @@ public class Robot extends IterativeRobot {
 		
 		PathManager.buildAllPaths();
 		
-		PathfinderPath path = PathManager.mRightCubeToRightScale;
+		PathfinderPath path = PathManager.mRightSwitchDropoff;
+		double maxSpeed = 0.0;
 		
 		for (int i = 0; i < path.getTrajectory().length(); i++) {
 		    Trajectory.Segment seg = path.getTrajectory().get(i);
@@ -92,14 +95,18 @@ public class Robot extends IterativeRobot {
 		    if(i != (path.getTrajectory().length() - 1))
 		    	coordinates += ", ";
 		    Logger.log(coordinates);
+		    maxSpeed = (seg.velocity > maxSpeed) ? seg.velocity : maxSpeed;
 		}
+		System.out.println("Max Path Velocity: " + maxSpeed);
 	}
 	
 	public void allPeriodic(){
 		subsystems.outputToSmartDashboard();
 		swerve.outputToSmartDashboard();
-		SmartDashboard.putNumber("Swerve dt", swerveLooper.dt_);
-		enabledLooper.outputToSmartDashboard();
+		SmartDashboard.putNumber("PDP Current", pdp.getTotalCurrent());
+		//SmartDashboard.putNumber("Swerve dt", swerveLooper.dt_);
+		//enabledLooper.outputToSmartDashboard();
+		
 	}
 
 	/**
@@ -195,6 +202,10 @@ public class Robot extends IterativeRobot {
 				swerve.rotate(180);
 			else if(driver.xButton.wasPressed())
 				swerve.rotate(270);
+			else if(driver.leftCenterClick.wasPressed())
+				swerve.rotate(-135);
+			else if(driver.rightCenterClick.wasPressed())
+				swerve.rotate(135);
 			if(driver.backButton.isBeingPressed()){
 				swerve.temporarilyDisableHeadingController();
 				swerve.zeroSensors(new RigidTransform2d(new Translation2d(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH), Rotation2d.fromDegrees(0)));
@@ -230,10 +241,17 @@ public class Robot extends IterativeRobot {
 				superstructure.requestHighIntakingConfig();
 			}else if(coDriver.startButton.wasPressed()){
 				superstructure.requestHumanLoadingConfig();
+			}else if(coDriver.aButton.longPressed()){
+				superstructure.requestExchangeConfig();
 			}
 			
 			superstructure.requestElevatorOpenLoop(-coDriver.getY(Hand.kLeft));
 			superstructure.requestWristOpenLoop(-coDriver.getY(Hand.kRight));
+			
+			if(Intake.getInstance().needsToNotifyDrivers()){
+				driver.rumble(1.0, 1.0);
+				coDriver.rumble(1.0, 1.0);
+			}
 			
 			if(driver.POV180.wasPressed()){
 				superstructure.requestHangingConfig();
@@ -251,6 +269,8 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void disabledInit(){
 		try{
+			if(autoModeExecuter != null)
+				autoModeExecuter.stop();
 			swerveLooper.stop();
 			enabledLooper.stop();
 			subsystems.stop();

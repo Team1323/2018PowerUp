@@ -14,15 +14,17 @@ public class PathfinderPath {
 	protected double maxSpeed = 10.0;
 	protected double maxAccel = 10.0;
 	protected double maxJerk = 84.0;
-	protected double dt = 0.01;
+	protected double dt = 0.02;
 	protected int samples = Trajectory.Config.SAMPLES_LOW;
 	protected double p = 1.0;
 	protected double d = 0.0;
 	protected double v = 1.0/12.5;
 	protected double a = 0.0;
-	protected int lookaheadPoints = 6;
+	protected int lookaheadPoints = 20;
 	private Segment lastSegment;
 	private Translation2d desiredFinalPosition;
+	protected double defaultSpeed = 7.5;
+	protected double rotationScalar = 1.0;
 	
 	protected Waypoint[] points = null;
 	private Trajectory trajectory;
@@ -48,6 +50,14 @@ public class PathfinderPath {
 		return trajectory;
 	}
 	
+	public double defaultSpeed(){
+		return defaultSpeed;
+	}
+	
+	public double rotationScalar(){
+		return rotationScalar;
+	}
+	
 	public DistanceFollower resetFollower(){
 		follower = new DistanceFollower(trajectory);
 		follower.configurePIDVA(p, 0.0, d, v, a);
@@ -63,6 +73,8 @@ public class PathfinderPath {
 	}
 	
 	public int getClosestSegmentIndex(RigidTransform2d robotPose, int currentSegment){
+		if(currentSegment > (trajectory.length() - 1))
+			return trajectory.length() - 1;
 		double distance = segmentToTranslation(trajectory.get(currentSegment)).translateBy(robotPose.getTranslation().inverse()).norm();
 		double distanceBehind = distance;
 		double distanceAhead = distance;

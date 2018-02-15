@@ -30,7 +30,7 @@ public class Superstructure extends Subsystem{
 		wrist = Wrist.getInstance();
 		elevator = Elevator.getInstance();
 		swerve = Swerve.getInstance();
-		//compressor = new Compressor();
+		compressor = new Compressor(20);
 	}
 	
 	public enum State{
@@ -74,10 +74,10 @@ public class Superstructure extends Subsystem{
 				
 				swerve.setMaxSpeed(Constants.kSwerveSpeedTreeMap.getInterpolated(new InterpolatingDouble(elevatorHeight)).value);
 				
-				if(elevatorHeight >= Constants.WRIST_MAX_STOW_HEIGHT && wrist.getAngle() > Constants.WRIST_SECONDARY_STOW_ANGLE
+				/*if(elevatorHeight >= Constants.WRIST_MAX_STOW_HEIGHT && wrist.getAngle() > Constants.WRIST_SECONDARY_STOW_ANGLE
 						&& wantedState != WantedState.READY_FOR_HANG && wantedState != WantedState.HUNG){
 					wrist.setAngle(Constants.WRIST_SECONDARY_STOW_ANGLE);
-				}
+				}*/
 				
 				switch(currentState){
 				case IDLE:
@@ -201,6 +201,7 @@ public class Superstructure extends Subsystem{
 		wrist.setAngle(wristAngle);
 		elevator.setTargetHeight(elevatorHeight);
 		setState(State.ASSUMING_CONFIG);
+		System.out.println("Config: Elevator: " + elevatorHeight + " Wrist: " + wristAngle);
 	}
 	
 	public synchronized void requestConfig(double wristAngle){
@@ -209,19 +210,19 @@ public class Superstructure extends Subsystem{
 	
 	public synchronized void requestIntakingConfig(){
 		intake.stop();
-		requestConfig(0, Constants.ELEVATOR_INTAKING_HEIGHT);
+		requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_INTAKING_HEIGHT);
 		setWantedState(WantedState.INTAKING);
 	}
 	
 	public synchronized void requestHighIntakingConfig(){
 		intake.stop();
-		requestConfig(0, Constants.ELEVATOR_SECOND_CUBE_HEIGHT);
+		requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_SECOND_CUBE_HEIGHT);
 		setWantedState(WantedState.INTAKING);
 	}
 	
 	public synchronized void requestHumanLoadingConfig(){
 		intake.stop();
-		requestConfig(0, Constants.ELEVATOR_HUMAN_LOAD_HEIGHT);
+		requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_HUMAN_LOAD_HEIGHT);
 		setWantedState(WantedState.INTAKING);
 	}
 	
@@ -299,13 +300,12 @@ public class Superstructure extends Subsystem{
 		requestConfig(90.0, Constants.ELEVATOR_INTAKING_HEIGHT);
 	}
 	
-	public synchronized void requestWristDeploy(){
-		requestConfig(90.0);
+	public synchronized void requestExchangeConfig(){
+		requestConfig(Constants.WRIST_INTAKING_ANGLE + 5.0, Constants.ELEVATOR_INTAKING_HEIGHT);
 	}
 	
 	public synchronized void requestIntakeOn(){
-		if(getState() != State.ASSUMING_CONFIG)
-			intake.intake();
+		intake.intake();
 	}
 	
 	public synchronized void requestIntakeHold(){
@@ -313,8 +313,7 @@ public class Superstructure extends Subsystem{
 	}
 	
 	public synchronized void requestIntakeScore(){
-		if(getState() != State.ASSUMING_CONFIG)
-			intake.eject();
+		intake.eject();
 	}
 	
 	public synchronized void requestIntakeWeakScore(){
@@ -356,7 +355,7 @@ public class Superstructure extends Subsystem{
 	}
 	
 	public void enableCompressor(boolean enable){
-		//compressor.setClosedLoopControl(enable);
+		compressor.setClosedLoopControl(enable);
 	}
 	
 	@Override

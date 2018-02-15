@@ -52,6 +52,10 @@ public class Wrist extends Subsystem{
 		wrist.configReverseSoftLimitThreshold(wristAngleToEncUnits(Constants.WRIST_MIN_ANGLE), 10);
 		wrist.configForwardSoftLimitEnable(true, 10);
 		wrist.configReverseSoftLimitEnable(true, 10);
+		wrist.configContinuousCurrentLimit(25, 10);
+		wrist.configPeakCurrentLimit(30, 10);
+		wrist.configPeakCurrentDuration(100, 10);
+		wrist.enableCurrentLimit(true);
 	}
 	
 	public void setOpenLoop(double output){
@@ -70,6 +74,7 @@ public class Wrist extends Subsystem{
 			else
 				wrist.selectProfileSlot(0, 0);
 			wrist.set(ControlMode.MotionMagic, wristAngleToEncUnits(targetAngle));
+			System.out.println("Wrist: " + targetAngle);
 		}else{
 			DriverStation.reportError("Wrist encoder not detected!", false);
 			stop();
@@ -123,7 +128,8 @@ public class Wrist extends Subsystem{
 		@Override
 		public void onLoop(double timestamp) {
 			if(wrist.getOutputCurrent() > Constants.WRIST_MAX_CURRENT){
-				stop();
+				//stop();
+				DriverStation.reportError("Wrist current high", false);
 			}
 		}
 

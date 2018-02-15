@@ -4,6 +4,7 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatusFrame;
+import com.ctre.phoenix.motorcontrol.VelocityMeasPeriod;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.team1323.frc2018.Constants;
 import com.team1323.frc2018.loops.Looper;
@@ -19,6 +20,7 @@ public class SwerveDriveModule extends Subsystem{
 	int moduleID;
 	String name = "Module ";
 	double rotationSetpoint = 0;
+	double driveSetpoint = 0;
 	double currentAngle = 0;
 	int encoderOffset;
 	int encoderReverseFactor = 1;
@@ -81,8 +83,11 @@ public class SwerveDriveModule extends Subsystem{
     	driveMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
     	driveMotor.setSelectedSensorPosition(0, 0, 10);
     	driveMotor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 20, 10);
-    	driveMotor.configNominalOutputForward(3.0/12.0, 10);
-    	driveMotor.configNominalOutputReverse(-3.0/12.0, 10);
+    	driveMotor.configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms, 10);
+    	driveMotor.configVelocityMeasurementWindow(32, 10);
+    	driveMotor.configNominalOutputForward(0.0/12.0, 10);
+    	driveMotor.configNominalOutputReverse(-0.0/12.0, 10);
+    	driveMotor.configVoltageCompSaturation(12.0, 10);
     	driveMotor.enableVoltageCompensation(true);
     	driveMotor.configOpenloopRamp(0.25, 10);
     	driveMotor.configAllowableClosedloopError(0, 0, 10);
@@ -90,12 +95,12 @@ public class SwerveDriveModule extends Subsystem{
     	driveMotor.setSensorPhase(false);
     	driveMotor.setNeutralMode(NeutralMode.Brake);
     	driveMotor.selectProfileSlot(0, 0);
-    	driveMotor.config_kP(0, 0.5, 10);
+    	driveMotor.config_kP(0, 0.2, 10);
     	driveMotor.config_kI(0, 0.0, 10);
-    	driveMotor.config_kD(0, 80.0, 10);
-    	driveMotor.config_kF(0, 0.10685189, 10);
-    	driveMotor.configMotionCruiseVelocity(3200, 10);
-    	driveMotor.configMotionAcceleration(4500, 10);
+    	driveMotor.config_kD(0, 24.0, 10);
+    	driveMotor.config_kF(0, 1023.0/Constants.SWERVE_DRIVE_MAX_SPEED, 10);
+    	driveMotor.configMotionCruiseVelocity((int)(Constants.SWERVE_DRIVE_MAX_SPEED*0.9), 10);
+    	driveMotor.configMotionAcceleration((int)(Constants.SWERVE_DRIVE_MAX_SPEED), 10);
 	}
 	
 	private double updateRawAngle(){
@@ -125,11 +130,19 @@ public class SwerveDriveModule extends Subsystem{
 	
 	public void setDriveOpenLoop(double power){
 		driveMotor.set(ControlMode.PercentOutput, power);
+		driveSetpoint = power;
 	}
 	
 	public void setDrivePositionTarget(double deltaDistanceInches){
-		driveMotor.set(ControlMode.MotionMagic, driveMotor.getSelectedSensorPosition(0) +
-				inchesToEncUnits(deltaDistanceInches));
+		double setpoint = driveMotor.getSelectedSensorPosition(0) + inchesToEncUnits(deltaDistanceInches);
+		driveMotor.set(ControlMode.MotionMagic, setpoint);
+		driveSetpoint = setpoint;
+	}
+	
+	public boolean drivePositionOnTarget(){
+		if(driveMotor.getControlMode() == ControlMode.MotionMagic)
+			return encUnitsToInches((int)Math.abs(driveSetpoint - driveMotor.getSelectedSensorPosition(0))) < 2.0;
+		return false;
 	}
 	
 	private double getDriveDistanceFeet(){
@@ -225,7 +238,7 @@ public class SwerveDriveModule extends Subsystem{
 	@Override
 	public void outputToSmartDashboard() {
 		SmartDashboard.putNumber(name + "Angle", Util.boundAngle0to360Degrees(updateRawAngle()));
-		SmartDashboard.putNumber(name + "Pulse Width", rotationMotor.getSensorCollection().getPulseWidthPosition());
+		//SmartDashboard.putNumber(name + "Pulse Width", rotationMotor.getSensorCollection().getPulseWidthPosition());
 		SmartDashboard.putNumber(name + "Drive Voltage", driveMotor.getMotorOutputVoltage());
 		SmartDashboard.putNumber(name + "Inches Driven", getDriveDistanceInches());
 		//SmartDashboard.putNumber(name + "Rotation Voltage", rotationMotor.getMotorOutputVoltage());
@@ -234,6 +247,7 @@ public class SwerveDriveModule extends Subsystem{
 			SmartDashboard.putNumber(name + "Error", rotationMotor.getClosedLoopError(0));
 		SmartDashboard.putNumber(name + "X", position.x());
 		SmartDashboard.putNumber(name + "Y", position.y());
+		SmartDashboard.putNumber(name + "Drive Current", driveMotor.getOutputCurrent());
 	}
 	
 }

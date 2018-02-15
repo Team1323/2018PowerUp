@@ -50,6 +50,7 @@ public class Swerve extends Subsystem{
 	Trajectory currentPathTrajectory;
 	int currentPathSegment = 0;
 	double pathMotorOutput = 0;
+	boolean shouldUsePathfinder = false;
 	Rotation2d lastSteeringDirection;
 	boolean hasFinishedPath = false;
 	public boolean hasFinishedPath(){
@@ -93,7 +94,7 @@ public class Swerve extends Subsystem{
 	private SwerveKinematics kinematics = new SwerveKinematics();
 	
 	public enum ControlState{
-		NEUTRAL, MANUAL, POSITION, PATH_FOLLOWING
+		NEUTRAL, MANUAL, POSITION, PATH_FOLLOWING, ROTATION
 	}
 	private ControlState currentState = ControlState.NEUTRAL;
 	public ControlState getState(){
@@ -155,18 +156,26 @@ public class Swerve extends Subsystem{
 	
 	public void rotate(double goalHeading){
 		if(xInput == 0 && yInput == 0)
-			rotateInPlace(Rotation2d.fromDegrees(goalHeading));
+			rotateInPlace(goalHeading);
 		else
 			headingController.setStabilizationTarget(
 					Util.placeInAppropriate0To360Scope(pose.getRotation().getUnboundedDegrees(), goalHeading));
 	}
 	
-	public void rotateInPlace(Rotation2d goalHeading){
-		setState(ControlState.POSITION);
+	public void rotateInPlace(double goalHeading){
+		/*setState(ControlState.POSITION);
 		kinematics.calculate(0, 0, 1);
 		modules.forEach((m) -> m.setModuleAngle(kinematics.wheelAngles[m.moduleID]));
 		Rotation2d deltaAngle = goalHeading.rotateBy(pose.getRotation().inverse());
-		modules.forEach((m) -> m.setDrivePositionTarget(deltaAngle.getRadians()*Constants.SWERVE_DIAGONAL/2));
+		modules.forEach((m) -> m.setDrivePositionTarget(deltaAngle.getRadians()*(Constants.SWERVE_DIAGONAL/2)*12.0));*/
+		setState(ControlState.ROTATION);
+		headingController.setStationaryTarget(
+				Util.placeInAppropriate0To360Scope(pose.getRotation().getUnboundedDegrees(), goalHeading));
+	}
+	
+	public void rotateInPlaceAbsolutely(double absoluteHeading){
+		setState(ControlState.ROTATION);
+		headingController.setStationaryTarget(absoluteHeading);
 	}
 	
 	public void setPathHeading(double goalHeading){
@@ -185,8 +194,17 @@ public class Swerve extends Subsystem{
 		modules.forEach((m) -> m.setDrivePositionTarget(magnitudeInches));
 	}
 	
+	public boolean positionOnTarget(){
+		boolean onTarget = false;
+		for(SwerveDriveModule m : modules){
+			onTarget |= m.drivePositionOnTarget();
+		}
+		return onTarget;
+	}
+	
 	public synchronized void followPath(PathfinderPath path, double goalHeading){
 		hasFinishedPath = false;
+		shouldUsePathfinder = false;
 		distanceTraveled = 0;
 		currentPathSegment = 0;
 		currentPath = path;
@@ -213,7 +231,7 @@ public class Swerve extends Subsystem{
 		distanceTraveled += deltaPos;
 		currentVelocity = deltaPos / (timestamp - lastUpdateTimestamp);
 		pose = updatedPose;
-		modules.forEach((m) -> m.resetPose(pose));
+		//modules.forEach((m) -> m.resetPose(pose));
 	}
 	
 	public synchronized void updateControlCycle(double timestamp){
@@ -253,7 +271,20 @@ public class Swerve extends Subsystem{
 			}
 			break;
 		case POSITION:
-			
+			if(positionOnTarget())
+				rotate(headingController.getTargetHeading());
+			break;
+		case ROTATION:
+			kinematics.calculate(0.0, 0.0, rotationCorrection);
+			for(int i=0; i<modules.size(); i++){
+	    		if(Util.shouldReverse(kinematics.wheelAngles[i], modules.get(i).getModuleAngle().getDegrees())){
+	    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i] + 180.0);
+	    			modules.get(i).setDriveOpenLoop(-kinematics.wheelSpeeds[i]);
+	    		}else{
+	    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i]);
+	    			modules.get(i).setDriveOpenLoop(kinematics.wheelSpeeds[i]);
+	    		}
+	    	}
 			break;
 		case PATH_FOLLOWING:
 			currentPathSegment = currentPath.getClosestSegmentIndex(pose, currentPathSegment);
@@ -266,26 +297,25 @@ public class Swerve extends Subsystem{
 			//angleToLookahead = Rotation2d.fromRadians(pathFollower.getHeading());
 			if(currentPathSegment >= (currentPathTrajectory.length() - 1)){
 				double error = currentPath.getFinalPosition().translateBy(pose.getTranslation().inverse()).norm();
-				System.out.println(error);
-				//if(Math.abs(angleToLookahead.rotateBy(lastSteeringDirection.inverse()).getDegrees()) > 90.0){
-				if(error <= (1.0/12.0)){
+				//if(error <= (1.0/12.0)){
 					hasFinishedPath = true;
 					setState(ControlState.NEUTRAL);
 					return;
-				}
-				pathMotorOutput = currentPath.runPID(error);
-				//hasFinishedPath = true;
-				//setState(ControlState.NEUTRAL);
-				return;
+				//}
 			}else{
-				pathMotorOutput = currentPathTrajectory.get(currentPathSegment).velocity / 12.5;
+				if(currentPathTrajectory.get(currentPathSegment).velocity >= currentPath.defaultSpeed())
+					shouldUsePathfinder = true;
+				if(shouldUsePathfinder)
+					pathMotorOutput = currentPathTrajectory.get(currentPathSegment).velocity / 12.5;
+				else
+					pathMotorOutput = currentPath.defaultSpeed() / 12.5;
 			}
 			double x = angleToLookahead.sin();
 		    double y = angleToLookahead.cos();
 		    double tmp = (y * pose.getRotation().cos()) + (x * pose.getRotation().sin());
 			xInput = (-y * pose.getRotation().sin()) + (x * pose.getRotation().cos());
 			yInput = tmp;	
-		    kinematics.calculate(xInput * pathMotorOutput, yInput * pathMotorOutput, rotationCorrection * pathMotorOutput);
+		    kinematics.calculate(xInput * pathMotorOutput, yInput * pathMotorOutput, rotationCorrection*pathMotorOutput*currentPath.rotationScalar());
 			//modules.forEach((m) -> m.setModuleAngle(kinematics.wheelAngles[m.moduleID]));
 			//modules.forEach((m) -> m.setDriveOpenLoop(kinematics.wheelSpeeds[m.moduleID]));
 		    for(int i=0; i<modules.size(); i++){
