@@ -86,7 +86,7 @@ public class Robot extends IterativeRobot {
 		
 		PathManager.buildAllPaths();
 		
-		PathfinderPath path = PathManager.mRightSwitchDropoff;
+		PathfinderPath path = PathManager.mRightCubeToLeftScale;
 		double maxSpeed = 0.0;
 		
 		for (int i = 0; i < path.getTrajectory().length(); i++) {
@@ -219,7 +219,7 @@ public class Robot extends IterativeRobot {
 				superstructure.requestIntakeOn();
 			}else if(coDriver.leftTrigger.wasPressed()){
 				superstructure.requestIntakeOpen();
-			}else if(coDriver.rightTrigger.wasPressed()){
+			}else if(coDriver.rightTrigger.wasPressed() || driver.rightTrigger.wasPressed()){
 				superstructure.requestIntakeScore();
 			}
 			

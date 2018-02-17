@@ -201,7 +201,7 @@ public class Superstructure extends Subsystem{
 		wrist.setAngle(wristAngle);
 		elevator.setTargetHeight(elevatorHeight);
 		setState(State.ASSUMING_CONFIG);
-		System.out.println("Config: Elevator: " + elevatorHeight + " Wrist: " + wristAngle);
+		//System.out.println("Config: Elevator: " + elevatorHeight + " Wrist: " + wristAngle);
 	}
 	
 	public synchronized void requestConfig(double wristAngle){
@@ -212,6 +212,11 @@ public class Superstructure extends Subsystem{
 		intake.stop();
 		requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_INTAKING_HEIGHT);
 		setWantedState(WantedState.INTAKING);
+	}
+	
+	public synchronized void requestNonchalantIntakeConfig(){
+		requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_INTAKING_HEIGHT);
+		intake.nonchalantIntake();
 	}
 	
 	public synchronized void requestHighIntakingConfig(){
@@ -306,6 +311,10 @@ public class Superstructure extends Subsystem{
 	
 	public synchronized void requestIntakeOn(){
 		intake.intake();
+	}
+	
+	public synchronized void requestNonchalantIntake(){
+		intake.nonchalantIntake();
 	}
 	
 	public synchronized void requestIntakeHold(){

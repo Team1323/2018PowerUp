@@ -9,7 +9,6 @@ public class RightCubeToRightScalePath extends PathfinderPath{
 
 	public RightCubeToRightScalePath(){
 		super.points = new Waypoint[]{
-			//new Waypoint(Constants.kRightSwitchFarCorner.x() + Constants.ROBOT_INTAKE_EXTRUSION + Constants.ROBOT_HALF_LENGTH + 0.5, Constants.kRightSwitchFarCorner.y() - (Constants.kCubeWidth/2.0), Pathfinder.d2r(30)),
 			new Waypoint(Constants.kRightMostCube.x() + 1.85, Constants.kRightMostCube.y() + 1.85, Pathfinder.d2r(0)),
 			new Waypoint(Constants.kRightScaleCorner.x() - Constants.ROBOT_HALF_LENGTH - 1.5, Constants.kRightScaleCorner.y() + Constants.ROBOT_HALF_WIDTH + 1.0, Pathfinder.d2r(0))
 		};

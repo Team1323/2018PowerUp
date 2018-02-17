@@ -231,7 +231,7 @@ public class Swerve extends Subsystem{
 		distanceTraveled += deltaPos;
 		currentVelocity = deltaPos / (timestamp - lastUpdateTimestamp);
 		pose = updatedPose;
-		//modules.forEach((m) -> m.resetPose(pose));
+		modules.forEach((m) -> m.resetPose(pose));
 	}
 	
 	public synchronized void updateControlCycle(double timestamp){

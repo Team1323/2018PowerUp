@@ -74,7 +74,8 @@ public class Wrist extends Subsystem{
 			else
 				wrist.selectProfileSlot(0, 0);
 			wrist.set(ControlMode.MotionMagic, wristAngleToEncUnits(targetAngle));
-			System.out.println("Wrist: " + targetAngle);
+			//System.out.println("Wrist: " + targetAngle);
+			//DriverStation.reportWarning("Wrist Angle set to: " + targetAngle, true);
 		}else{
 			DriverStation.reportError("Wrist encoder not detected!", false);
 			stop();

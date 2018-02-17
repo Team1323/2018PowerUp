@@ -53,7 +53,7 @@ public class Intake extends Subsystem{
 	}
 	
 	public enum State{
-		OFF, INTAKING, CLAMPING, EJECTING, SPINNING, OPEN, WEAK_EJECT, INTAKING_WIDE
+		OFF, INTAKING, CLAMPING, EJECTING, SPINNING, OPEN, WEAK_EJECT, INTAKING_WIDE, NONCHALANT_INTAKING, GROUND_CLAMPING
 	}
 	private State currentState = State.OFF;
 	public State getState(){
@@ -147,6 +147,12 @@ public class Intake extends Subsystem{
 					bannerSensorBeganTimestamp = Double.POSITIVE_INFINITY;
 				}*/
 				break;
+			case NONCHALANT_INTAKING:
+				if(banner.get()){
+					hasCube = true;
+					clamp();
+				}
+				break;
 			case INTAKING_WIDE:
 				
 				break;
@@ -155,6 +161,9 @@ public class Intake extends Subsystem{
 					intake();
 				break;
 			case CLAMPING:
+				
+				break;
+			case GROUND_CLAMPING:
 				
 				break;
 			case EJECTING:
@@ -166,6 +175,8 @@ public class Intake extends Subsystem{
 				hasCube = false;
 				if(timestamp - stateEnteredTimestamp > 1.0)
 					stop();
+				break;
+			default:
 				break;
 			}
 		}
@@ -185,6 +196,13 @@ public class Intake extends Subsystem{
 		fireClampers(false);
 	}
 	
+	public void nonchalantIntake(){
+		setState(State.NONCHALANT_INTAKING);
+		forwardRollers();
+		firePinchers(true);
+		fireClampers(false);
+	}
+	
 	public void intakeWide(){
 		setState(State.INTAKING_WIDE);
 		firePinchers(false);
@@ -199,7 +217,13 @@ public class Intake extends Subsystem{
 	
 	public void clamp(){
 		setState(State.CLAMPING);
-		//stopRollers();
+		holdRollers();
+		firePinchers(true);
+		fireClampers(true);
+	}
+	
+	public void groundClamp(){
+		setState(State.GROUND_CLAMPING);
 		holdRollers();
 		firePinchers(true);
 		fireClampers(true);

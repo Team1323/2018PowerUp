@@ -35,7 +35,7 @@ public class RightSwitchRightScaleMode extends AutoModeBase{
 		runAction(new WaitToPassXCoordinateAction(Constants.kRightSwitchFarCorner.x()));
 		runAction(new SetTargetHeadingAction(-150.0));
 		runAction(new WaitAction(0.25));
-		Superstructure.getInstance().requestIntakingConfig();
+		Superstructure.getInstance().requestNonchalantIntakeConfig();
 		runAction(new WaitToFinishPathAction());
 		runAction(new FollowPathAction(PathManager.mRightmostCubePickup, -150.0));
 		runAction(new WaitToIntakeCubeAction(2.0));
@@ -53,14 +53,14 @@ public class RightSwitchRightScaleMode extends AutoModeBase{
 		Swerve.getInstance().rotateInPlaceAbsolutely(-135.0);
 		runAction(new WaitForHeadingAction(-145.0, -125.0));
 		runAction(new FollowPathAction(PathManager.mRightScaleToSecondCube, -135.0));
-		Superstructure.getInstance().requestIntakingConfig();
+		Superstructure.getInstance().requestNonchalantIntakeConfig();
 		runAction(new WaitToIntakeCubeAction(3.0));
 		System.out.println("Third Cube intaken at: " + (Timer.getFPGATimestamp() - startTime));
-		runAction(new FollowPathAction(PathManager.mSecondRightCubeToScale, -20.0));
+		runAction(new FollowPathAction(PathManager.mSecondRightCubeToScale, -30.0));
 		Superstructure.getInstance().requestConfig(35.0, Constants.ELEVATOR_BALANCED_SCALE_HEIGHT);
 		runAction(new WaitToPassXCoordinateAction(22.0));
-		Swerve.getInstance().rotateInPlaceAbsolutely(-20.0);
-		runAction(new WaitForHeadingAction(-30.0, -10.0));
+		Swerve.getInstance().rotateInPlaceAbsolutely(-30.0);
+		runAction(new WaitForHeadingAction(-40.0, -20.0));
 		runAction(new WaitForElevatorAction());
 		Superstructure.getInstance().requestIntakeScore();
 		System.out.println("Third Cube scored at: " + (Timer.getFPGATimestamp() - startTime));
