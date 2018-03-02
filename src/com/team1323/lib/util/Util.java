@@ -63,6 +63,13 @@ public class Util {
         return angle;
     }
     
+    public static double boundToScope(double scopeFloor, double scopeCeiling, double argument){
+    	double stepSize = scopeCeiling - scopeFloor;
+    	while(argument >= scopeCeiling) {argument -= stepSize;}
+    	while(argument < scopeFloor) {argument += stepSize;}
+    	return argument;
+    }
+    
     public static double placeInAppropriate0To360Scope(double scopeReference, double newAngle){
     	double lowerBound;
         double upperBound;

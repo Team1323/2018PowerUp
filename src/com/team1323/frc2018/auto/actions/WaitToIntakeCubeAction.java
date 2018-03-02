@@ -16,8 +16,17 @@ public class WaitToIntakeCubeAction implements Action{
 
 	@Override
 	public boolean isFinished() {
-		return intake.getState() == Intake.State.GROUND_CLAMPING || intake.getState() == Intake.State.CLAMPING
-				|| intake.hasCube() || ((Timer.getFPGATimestamp() - startTime) > timeout);
+		if(intake.hasCube()){
+			System.out.println("Intake recognizes cube");
+			return true;
+		}else if(intake.getState() == Intake.State.GROUND_CLAMPING || intake.getState() == Intake.State.CLAMPING){
+			System.out.println("Intake state changed to clamping");
+			return true;
+		}else if((Timer.getFPGATimestamp() - startTime) > timeout){
+			System.out.println("Wait for intake timed out");
+			return true;
+		}
+		return false;
 	}
 
 	@Override

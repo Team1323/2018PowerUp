@@ -25,6 +25,7 @@ public class PathfinderPath {
 	private Translation2d desiredFinalPosition;
 	protected double defaultSpeed = 7.5;
 	protected double rotationScalar = 1.0;
+	protected boolean rotationOverride = false;
 	
 	protected Waypoint[] points = null;
 	private Trajectory trajectory;
@@ -56,6 +57,10 @@ public class PathfinderPath {
 	
 	public double rotationScalar(){
 		return rotationScalar;
+	}
+	
+	public boolean rotationOverride(){
+		return rotationOverride;
 	}
 	
 	public DistanceFollower resetFollower(){

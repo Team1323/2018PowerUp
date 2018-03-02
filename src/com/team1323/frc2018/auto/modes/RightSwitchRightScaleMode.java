@@ -28,19 +28,20 @@ public class RightSwitchRightScaleMode extends AutoModeBase{
 		double startTime = Timer.getFPGATimestamp();
 		runAction(new ResetPoseAction(new RigidTransform2d(new Translation2d(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH), Rotation2d.fromDegrees(0))));
 		Superstructure.getInstance().requestIntakeHold();
-		runAction(new FollowPathAction(PathManager.mRightSwitchDropoff, -90.0));
+		runAction(new FollowPathAction(PathManager.mRightSwitchDropoff, 0.0));
+		runAction(new WaitAction(0.5));
+		Swerve.getInstance().setAbsolutePathHeading(-90.0);
 		Superstructure.getInstance().requestSwitchConfig();
 		runAction(new WaitToPassXCoordinateAction(Constants.kRightSwitchCloseCorner.x() - 2.0));
 		runAction(new EjectCubeAction());
 		runAction(new WaitToPassXCoordinateAction(Constants.kRightSwitchFarCorner.x()));
-		runAction(new SetTargetHeadingAction(-150.0));
 		runAction(new WaitAction(0.25));
 		Superstructure.getInstance().requestNonchalantIntakeConfig();
 		runAction(new WaitToFinishPathAction());
-		runAction(new FollowPathAction(PathManager.mRightmostCubePickup, -150.0));
+		runAction(new FollowPathAction(PathManager.mRightmostCubePickup, -135.0));
 		runAction(new WaitToIntakeCubeAction(2.0));
 		System.out.println("Intaken at: " + (Timer.getFPGATimestamp() - startTime));
-		runAction(new FollowPathAction(PathManager.mRightCubeToRightScale, -20.0));
+		/*runAction(new FollowPathAction(PathManager.mRightCubeToRightScale, -20.0));
 		runAction(new WaitAction(0.5));
 		Superstructure.getInstance().requestConfig(35.0, Constants.ELEVATOR_BALANCED_SCALE_HEIGHT);
 		runAction(new WaitToPassXCoordinateAction(22.0));
@@ -64,7 +65,7 @@ public class RightSwitchRightScaleMode extends AutoModeBase{
 		runAction(new WaitForElevatorAction());
 		Superstructure.getInstance().requestIntakeScore();
 		System.out.println("Third Cube scored at: " + (Timer.getFPGATimestamp() - startTime));
-		runAction(new WaitAction(0.5));
+		runAction(new WaitAction(0.5));*/
 	}
 
 }

@@ -7,6 +7,7 @@ import com.team1323.lib.util.InterpolatingDouble;
 
 import edu.wpi.first.wpilibj.Compressor;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Superstructure extends Subsystem{
@@ -35,13 +36,15 @@ public class Superstructure extends Subsystem{
 	
 	public enum State{
 		IDLE, ASSUMING_CONFIG, CONFIGURED, ELEVATOR_MANUAL, WRIST_MANUAL, WAITING_FOR_WRIST, WAITING_FOR_ELEVATOR, INTAKING, STOWING,
-		RAISING
+		HANGING, READY_FOR_HANG
 	}
 	private State currentState = State.IDLE;
+	private State previousState = State.IDLE;
 	public State getState(){
 		return currentState;
 	}
 	private void setState(State newState){
+		previousState = currentState;
 		currentState = newState;
 	}
 	
@@ -49,10 +52,12 @@ public class Superstructure extends Subsystem{
 		IDLE, INTAKING, STOWED, RAISED, READY_FOR_HANG, HUNG
 	}
 	private WantedState wantedState = WantedState.IDLE;
+	private WantedState previousWantedState = WantedState.IDLE;
 	public WantedState getWantedState(){
 		return wantedState;
 	}
 	private void setWantedState(WantedState newState){
+		previousWantedState = wantedState;
 		wantedState = newState;
 	}
 	
@@ -190,7 +195,11 @@ public class Superstructure extends Subsystem{
 			break;
 		case READY_FOR_HANG:
 			elevator.configForHanging();
-			setState(State.IDLE);
+			setState(State.READY_FOR_HANG);
+			break;
+		case HUNG:
+			//flipDriveTrain();
+			setState(State.HANGING);
 			break;
 		default:
 			break;
@@ -201,7 +210,6 @@ public class Superstructure extends Subsystem{
 		wrist.setAngle(wristAngle);
 		elevator.setTargetHeight(elevatorHeight);
 		setState(State.ASSUMING_CONFIG);
-		//System.out.println("Config: Elevator: " + elevatorHeight + " Wrist: " + wristAngle);
 	}
 	
 	public synchronized void requestConfig(double wristAngle){
@@ -219,6 +227,11 @@ public class Superstructure extends Subsystem{
 		intake.nonchalantIntake();
 	}
 	
+	public synchronized void requestOpenIntakingConfig(){
+		requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_INTAKING_HEIGHT);
+		intake.intakeWide();
+	}
+	
 	public synchronized void requestHighIntakingConfig(){
 		intake.stop();
 		requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_SECOND_CUBE_HEIGHT);
@@ -233,39 +246,37 @@ public class Superstructure extends Subsystem{
 	
 	public synchronized void requestSwitchConfig(){
 		requestIntakeHold();
-		/*desiredElevatorHeight = Constants.ELEVATOR_SWITCH_HEIGHT;
-		desiredWristAngle = 20.0;
-		desiredStowAngle = 60.0;
-		setWantedState(WantedState.RAISED);
-		setState(State.IDLE);*/
 		requestConfig(20.0, Constants.ELEVATOR_SWITCH_HEIGHT);
 	}
 	
 	public synchronized void requestBalancedScaleConfig(){
 		requestIntakeHold();
-		desiredElevatorHeight = Constants.ELEVATOR_BALANCED_SCALE_HEIGHT;
+		/*desiredElevatorHeight = Constants.ELEVATOR_BALANCED_SCALE_HEIGHT;
 		desiredWristAngle = 35.0;
 		desiredStowAngle = 60.0;
 		setWantedState(WantedState.RAISED);
-		setState(State.IDLE);
+		setState(State.IDLE);*/
+		requestConfig(35.0, Constants.ELEVATOR_BALANCED_SCALE_HEIGHT);
 	}
 	
 	public synchronized void requestLowScaleConfig(){
 		requestIntakeHold();
-		desiredElevatorHeight = Constants.ELEVATOR_LOW_SCALE_HEIGHT;
+		/*desiredElevatorHeight = Constants.ELEVATOR_LOW_SCALE_HEIGHT;
 		desiredWristAngle = 15.0;
 		desiredStowAngle = 60.0;
 		setWantedState(WantedState.RAISED);
-		setState(State.IDLE);
+		setState(State.IDLE);*/
+		requestConfig(15.0, Constants.ELEVATOR_LOW_SCALE_HEIGHT);
 	}
 	
 	public synchronized void requestHighScaleConfig(){
 		requestIntakeHold();
-		desiredElevatorHeight = Constants.ELEVATOR_HIGH_SCALE_HEIGHT;
+		/*desiredElevatorHeight = Constants.ELEVATOR_HIGH_SCALE_HEIGHT;
 		desiredWristAngle = 60.0;
 		desiredStowAngle = 60.0;
 		setWantedState(WantedState.RAISED);
-		setState(State.IDLE);
+		setState(State.IDLE);*/
+		requestConfig(60.0, Constants.ELEVATOR_HIGH_SCALE_HEIGHT);
 	}
 	
 	public synchronized void requestHangingConfig(){
@@ -275,16 +286,37 @@ public class Superstructure extends Subsystem{
 	}
 	
 	public synchronized void requestHungConfig(){
-		elevator.configForHanging();
-		wrist.setAngle(90.0);
-		elevator.setHanigngTargetHeight(Constants.ELEVATOR_INTAKING_HEIGHT);
-		setState(State.ASSUMING_CONFIG);
-		setWantedState(WantedState.HUNG);
+		if(getState() == State.READY_FOR_HANG){
+			elevator.configForHanging();
+			wrist.setAngle(90.0);
+			elevator.setHanigngTargetHeight(Constants.ELEVATOR_MINIMUM_HANGING_HEIGHT);
+			setState(State.ASSUMING_CONFIG);
+			setWantedState(WantedState.HUNG);
+		}
+	}
+	
+	public synchronized void requestFinalHungConfig(){
+		if(getState() == State.HANGING){
+			elevator.configForHanging();
+			wrist.setAngle(90.0);
+			elevator.setHanigngTargetHeight(Constants.ELEVATOR_MINIMUM_HANGING_HEIGHT);
+		}
+	}
+	
+	/**
+	 * Should only be called once per match, when hanging.
+	 */
+	public synchronized void flipDriveTrain(){
+		if(getState() == State.CONFIGURED && getWantedState() == WantedState.HUNG){
+			elevator.fireGasStruts(true);
+			Timer.delay(0.5);
+			elevator.fireLatch(true);
+		}
 	}
 	
 	public synchronized void requestPrimaryWristStow(){
 		if(elevator.getHeight() <= Constants.WRIST_MAX_STOW_HEIGHT){
-			desiredStowAngle = Constants.WRIST_PRIMARY_STOW_ANGLE;
+			desiredStowAngle = /*Constants.WRIST_PRIMARY_STOW_ANGLE*/60.0;
 		}else{
 			desiredStowAngle = Constants.WRIST_SECONDARY_STOW_ANGLE;
 		}
@@ -307,6 +339,12 @@ public class Superstructure extends Subsystem{
 	
 	public synchronized void requestExchangeConfig(){
 		requestConfig(Constants.WRIST_INTAKING_ANGLE + 5.0, Constants.ELEVATOR_INTAKING_HEIGHT);
+	}
+	
+	public synchronized void requestTippingCubeConfig(){
+		setWantedState(WantedState.IDLE);
+		intake.stop();
+		requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_TIPPING_CUBE_HEIGHT);
 	}
 	
 	public synchronized void requestIntakeOn(){
@@ -341,11 +379,15 @@ public class Superstructure extends Subsystem{
 		if(input != 0 && getState() != State.WRIST_MANUAL){
 			setWantedState(WantedState.IDLE);
 			setState(State.ELEVATOR_MANUAL);
-			elevator.setOpenLoop(input * 0.5);
+			elevator.setOpenLoop(input * 0.25);
 		}else if(getState() == State.ELEVATOR_MANUAL){
 			elevator.setOpenLoop(0);
 			if(elevator.getVelocityFeetPerSecond() <= 1.0){
-				setState(State.IDLE);
+				//setWantedState(previousWantedState);
+				if(previousState == State.READY_FOR_HANG)
+					setState(previousState);
+				else
+					setState(State.IDLE);
 				elevator.lockHeight();
 			}
 		}
@@ -358,7 +400,11 @@ public class Superstructure extends Subsystem{
 			wrist.setOpenLoop(input * 0.5);
 		}else if(getState() == State.WRIST_MANUAL){
 			wrist.setOpenLoop(0);
-			setState(State.IDLE);
+			//setWantedState(previousWantedState);
+			if(previousState == State.READY_FOR_HANG)
+				setState(previousState);
+			else
+				setState(State.IDLE);
 			wrist.lockAngle();
 		}
 	}

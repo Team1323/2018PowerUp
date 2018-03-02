@@ -23,7 +23,7 @@ public class Elevator extends Subsystem{
 	}
 	
 	TalonSRX master, motor2, motor3, motor4;
-	Solenoid shifter, releasePiston, gasStruts;
+	Solenoid shifter, latch, gasStruts;
 	private double targetHeight = 0.0;
 	private boolean isHighGear = true;
 	public boolean isHighGear(){
@@ -48,7 +48,7 @@ public class Elevator extends Subsystem{
 		motor4 = new TalonSRX(Ports.ELEVATOR_4);
 		
 		shifter = new Solenoid(20, Ports.ELEVATOR_SHIFTER);
-		releasePiston = new Solenoid(20, Ports.ELEVATOR_RELEASE_PISTON);
+		latch = new Solenoid(20, Ports.ELEVATOR_RELEASE_PISTON);
 		gasStruts = new Solenoid(20, Ports.GAS_STRUTS);
 		
 		master.enableVoltageCompensation(true);
@@ -81,7 +81,7 @@ public class Elevator extends Subsystem{
 	}
 	
 	private void setHighGear(boolean high){
-		shifter.set(high);
+		shifter.set(!high);
 		isHighGear = high;
 	}
 	
@@ -112,7 +112,29 @@ public class Elevator extends Subsystem{
 		master.config_kD(1, 160.0, 10);
 		master.config_kF(1, 1023.0/Constants.ELEVATOR_MAX_SPEED_LOW_GEAR, 10);
 		master.configMotionCruiseVelocity((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR*0.9), 10);
-		master.configMotionAcceleration((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR), 10);
+		master.configMotionAcceleration((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR*0.5), 10);
+	}
+	
+	public void setLowCurrentLimit(){
+		master.configContinuousCurrentLimit(15, 10);
+		master.configPeakCurrentLimit(20, 10);
+		master.configPeakCurrentDuration(100, 10);
+		master.enableCurrentLimit(true);
+	}
+	
+	public void setHighCurrentLimit(){
+		master.configContinuousCurrentLimit(30, 10);
+		master.configPeakCurrentLimit(40, 10);
+		master.configPeakCurrentDuration(100, 10);
+		master.enableCurrentLimit(true);
+	}
+	
+	public void fireGasStruts(boolean fire){
+		gasStruts.set(fire);
+	}
+	
+	public void fireLatch(boolean fire){
+		latch.set(fire);
 	}
 	
 	public void setOpenLoop(double output){

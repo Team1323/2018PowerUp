@@ -1,10 +1,12 @@
 package com.team1323.frc2018.subsystems;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import com.team1323.frc2018.Constants;
 import com.team1323.frc2018.Ports;
+import com.team1323.frc2018.RobotState;
 import com.team1323.frc2018.loops.Loop;
 import com.team1323.frc2018.loops.Looper;
 import com.team1323.frc2018.pathfinder.PathfinderPath;
@@ -15,6 +17,7 @@ import com.team254.lib.util.math.RigidTransform2d;
 import com.team254.lib.util.math.Rotation2d;
 import com.team254.lib.util.math.Translation2d;
 
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import jaci.pathfinder.Trajectory;
 import jaci.pathfinder.Trajectory.Segment;
@@ -30,6 +33,14 @@ public class Swerve extends Subsystem{
 	
 	public SwerveDriveModule frontRight, frontLeft, rearLeft, rearRight;
 	List<SwerveDriveModule> modules;
+	List<SwerveDriveModule> positionModules;
+	
+	AnalogInput ultrasonic;
+	public double getUltrasonicReading(){
+		return (((((ultrasonic.getVoltage() * 1000) - 293.0) / 4.88) * 5.0) + 300.0) * 0.0393701;
+	}
+	boolean ultraSensesWall = false;
+	boolean robotXPassed = false;
 	
 	Pigeon pigeon;
 	SwerveHeadingController headingController = new SwerveHeadingController();
@@ -57,6 +68,11 @@ public class Swerve extends Subsystem{
 		return hasFinishedPath;
 	}
 	
+	private boolean trackCube = false;
+	public void enableCubeTracking(boolean enable){
+		trackCube = enable;
+	}
+	
 	private Swerve(){
 		frontRight = new SwerveDriveModule(Ports.FRONT_RIGHT_ROTATION, Ports.FRONT_RIGHT_DRIVE,
 				0, Constants.FRONT_RIGHT_ENCODER_STARTING_POS, Constants.kVehicleToModuleOne);
@@ -68,11 +84,14 @@ public class Swerve extends Subsystem{
 				3, Constants.REAR_RIGHT_ENCODER_STARTING_POS, Constants.kVehicleToModuleFour);
 		
 		modules = Arrays.asList(frontRight, frontLeft, rearLeft, rearRight);
+		positionModules = Arrays.asList(frontRight, frontLeft, rearRight);
 		
 		rearLeft.invertDriveMotor(true);
 		frontLeft.invertDriveMotor(true);
 		
 		modules.forEach((m) -> m.reverseRotationSensor(true));
+		
+		ultrasonic = new AnalogInput(0);
 		
 		pigeon = Pigeon.getInstance();
 		
@@ -130,9 +149,9 @@ public class Swerve extends Subsystem{
 		
 		isInLowPower = lowPower;
 		if(lowPower){
-			xInput *= 0.5;
-			yInput *= 0.5;
-			rotate *= 0.5;
+			xInput *= 0.6;
+			yInput *= 0.6;
+			rotate *= 0.6;
 		}else{
 			rotate *= 0.8;
 		}
@@ -212,6 +231,10 @@ public class Swerve extends Subsystem{
 		currentPathTrajectory = path.getTrajectory();
 		headingController.setSnapTarget(goalHeading);
 		setState(ControlState.PATH_FOLLOWING);
+		
+		ultraSensesWall = false;
+		robotXPassed = false;
+		enableCubeTracking(false);
 	}
 	
 	public synchronized void updatePose(double timestamp){
@@ -219,14 +242,50 @@ public class Swerve extends Subsystem{
 		double y = 0;
 		Rotation2d heading = pigeon.getAngle();
 		
+		double averageDistance = 0.0;
+		double[] distances = new double[4];
 		for(SwerveDriveModule m : modules){
-			if(m.moduleID != 0 && m.moduleID != 2){
-			m.updatePose(heading);
-			x += m.getEstimatedRobotPose().getTranslation().x();
-			y += m.getEstimatedRobotPose().getTranslation().y();
+			if(m.moduleID != 2){
+				m.updatePose(heading);
+				double distance = m.getEstimatedRobotPose().getTranslation().translateBy(pose.getTranslation().inverse()).norm();
+				distances[m.moduleID] = distance;
+				averageDistance += distance;
+			}else{
+				distances[m.moduleID] = 0.0;
 			}
 		}
-		RigidTransform2d updatedPose = new RigidTransform2d(new Translation2d(x / 2.0, y / 2.0), heading);
+		averageDistance /= 3.0;
+		
+		int minDevianceIndex = 0;
+		double minDeviance = 100.0;
+		List<SwerveDriveModule> modulesToUse = new ArrayList<>();
+		for(SwerveDriveModule m : modules){
+			if(m.moduleID != 2){
+				double deviance = Math.abs(distances[m.moduleID] - averageDistance);
+				if(deviance < minDeviance){
+					minDeviance = deviance;
+					minDevianceIndex = m.moduleID;
+				}
+				if(deviance <= 0.01){
+					modulesToUse.add(m);
+				}
+			}
+		}
+		
+		if(modulesToUse.isEmpty()){
+			modulesToUse.add(modules.get(minDevianceIndex));
+		}
+		
+		SmartDashboard.putNumber("Modules Used", modulesToUse.size());
+		
+		for(SwerveDriveModule m : modulesToUse){
+			//if(m.moduleID != 0 && m.moduleID != 2 && m.moduleID != 1){
+			//m.updatePose(heading);
+			x += m.getEstimatedRobotPose().getTranslation().x();
+			y += m.getEstimatedRobotPose().getTranslation().y();
+			//}
+		}
+		RigidTransform2d updatedPose = new RigidTransform2d(new Translation2d(x / modulesToUse.size(), y / modulesToUse.size()), heading);
 		double deltaPos = updatedPose.getTranslation().translateBy(pose.getTranslation().inverse()).norm();
 		distanceTraveled += deltaPos;
 		currentVelocity = deltaPos / (timestamp - lastUpdateTimestamp);
@@ -235,6 +294,12 @@ public class Swerve extends Subsystem{
 	}
 	
 	public synchronized void updateControlCycle(double timestamp){
+		if(trackCube && RobotState.getInstance().getAimingParameters().isPresent()){
+			headingController.setSnapTarget(Util.placeInAppropriate0To360Scope(pose.getRotation().getUnboundedDegrees(), RobotState.getInstance().getAimingParameters().get().getRobotToGoal().getDegrees()));
+			if(RobotState.getInstance().getAimingParameters().isPresent()){
+				//System.out.println("Angle To Cube: " + RobotState.getInstance().getAimingParameters().get().getRobotToGoal().getDegrees());
+			}
+		}
 		double rotationCorrection = headingController.updateRotationCorrection(pose.getRotation().getUnboundedDegrees(), timestamp);
 		//rotationCorrection = 0.0;
 		switch(currentState){
@@ -314,8 +379,10 @@ public class Swerve extends Subsystem{
 		    double y = angleToLookahead.cos();
 		    double tmp = (y * pose.getRotation().cos()) + (x * pose.getRotation().sin());
 			xInput = (-y * pose.getRotation().sin()) + (x * pose.getRotation().cos());
-			yInput = tmp;	
-		    kinematics.calculate(xInput * pathMotorOutput, yInput * pathMotorOutput, rotationCorrection*pathMotorOutput*currentPath.rotationScalar());
+			yInput = tmp;
+			if(!currentPath.rotationOverride())
+				rotationCorrection = rotationCorrection*pathMotorOutput*currentPath.rotationScalar();
+		    kinematics.calculate(xInput * pathMotorOutput, yInput * pathMotorOutput, rotationCorrection);
 			//modules.forEach((m) -> m.setModuleAngle(kinematics.wheelAngles[m.moduleID]));
 			//modules.forEach((m) -> m.setDriveOpenLoop(kinematics.wheelSpeeds[m.moduleID]));
 		    for(int i=0; i<modules.size(); i++){
@@ -329,6 +396,15 @@ public class Swerve extends Subsystem{
 	    	}
 			lastSteeringDirection = angleToLookahead;
 			currentPathSegment++;
+			
+			/*if(!ultraSensesWall && getUltrasonicReading() <= 30.0){
+				System.out.println("Ultra sensed wall at: " + timestamp);
+				ultraSensesWall = true;
+			}
+			if(!robotXPassed && pose.getTranslation().x() >= 12.49){
+				System.out.println("Robot passed switch at: " + timestamp);
+				robotXPassed = true;
+			}*/
 			break;
 		case NEUTRAL:
 			stop();
@@ -393,6 +469,12 @@ public class Swerve extends Subsystem{
 		pose = startingPose;
 		distanceTraveled = 0;
 	}
+	
+	public synchronized void resetPosition(RigidTransform2d newPose){
+		modules.forEach((m) -> m.zeroSensors(newPose));
+		pose = newPose;
+		distanceTraveled = 0;
+	}
 
 	@Override
 	public void outputToSmartDashboard() {
@@ -405,5 +487,6 @@ public class Swerve extends Subsystem{
 		SmartDashboard.putNumber("Distance Traveled", distanceTraveled);
 		SmartDashboard.putNumber("Robot Velocity", currentVelocity);
 		SmartDashboard.putString("Swerve State", currentState.toString());
+		SmartDashboard.putNumber("Swerve Ultrasonic", getUltrasonicReading());
 	}
 }

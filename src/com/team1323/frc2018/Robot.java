@@ -14,7 +14,10 @@ import com.team1323.frc2018.auto.modes.LeftSwitchLeftScaleMode;
 import com.team1323.frc2018.auto.modes.LeftSwitchRightScaleMode;
 import com.team1323.frc2018.auto.modes.RightSwitchLeftScaleMode;
 import com.team1323.frc2018.auto.modes.RightSwitchRightScaleMode;
+import com.team1323.frc2018.loops.LimelightProcessor;
 import com.team1323.frc2018.loops.Looper;
+import com.team1323.frc2018.loops.PathTransmitter;
+import com.team1323.frc2018.loops.RobotStateEstimator;
 import com.team1323.frc2018.pathfinder.PathManager;
 import com.team1323.frc2018.pathfinder.PathfinderPath;
 import com.team1323.frc2018.subsystems.Elevator;
@@ -30,6 +33,9 @@ import com.team254.lib.util.math.RigidTransform2d;
 import com.team254.lib.util.math.Rotation2d;
 import com.team254.lib.util.math.Translation2d;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.IterativeRobot;
@@ -52,9 +58,13 @@ public class Robot extends IterativeRobot {
 	private PowerDistributionPanel pdp = new PowerDistributionPanel(21);
 	
 	private AutoModeExecuter autoModeExecuter = null;
+	private PathTransmitter transmitter = PathTransmitter.getInstance();
 	
 	private Looper swerveLooper = new Looper();
 	private Looper enabledLooper = new Looper();
+	private Looper disabledLooper = new Looper();
+	
+	private RobotState robotState = RobotState.getInstance();
 	
 	private Xbox driver, coDriver;
 	
@@ -74,20 +84,31 @@ public class Robot extends IterativeRobot {
 		driver = new Xbox(0);
 		coDriver = new Xbox(1);
 		driver.setDeadband(0.0);
-		coDriver.setDeadband(0.3);
+		coDriver.setDeadband(0.4);
 		
 		Logger.clearLog();
 		
 		swerve.registerEnabledLoops(swerveLooper);
 		subsystems.registerEnabledLoops(enabledLooper);
+		enabledLooper.register(LimelightProcessor.getInstance());
+		enabledLooper.register(RobotStateEstimator.getInstance());
+		//enabledLooper.register(PathTransmitter.getInstance());
+		disabledLooper.register(LimelightProcessor.getInstance());
+		disabledLooper.register(RobotStateEstimator.getInstance());
+		disabledLooper.register(PathTransmitter.getInstance());
 		
 		subsystems.zeroSensors();
 		swerve.zeroSensors();
 		
 		PathManager.buildAllPaths();
 		
-		PathfinderPath path = PathManager.mRightCubeToLeftScale;
+		transmitter.addPaths(Arrays.asList(PathManager.mLeftSwitchDropoff, PathManager.mLeftmostCubePickup,
+				PathManager.mLeftCubeToLeftScale, PathManager.mLeftScaleToSecondCube, PathManager.mSecondLeftCubeToScale,
+				PathManager.mLeftScaleToThirdCube));
+		
+		PathfinderPath path = PathManager.mSecondLeftCubeToScale;
 		double maxSpeed = 0.0;
+		int points = 0;
 		
 		for (int i = 0; i < path.getTrajectory().length(); i++) {
 		    Trajectory.Segment seg = path.getTrajectory().get(i);
@@ -96,17 +117,28 @@ public class Robot extends IterativeRobot {
 		    	coordinates += ", ";
 		    Logger.log(coordinates);
 		    maxSpeed = (seg.velocity > maxSpeed) ? seg.velocity : maxSpeed;
+		    points++;
 		}
-		System.out.println("Max Path Velocity: " + maxSpeed);
+		System.out.println("Max Path Velocity: " + maxSpeed + ", Number of Points: " + points);
 	}
 	
 	public void allPeriodic(){
 		subsystems.outputToSmartDashboard();
 		swerve.outputToSmartDashboard();
 		SmartDashboard.putNumber("PDP Current", pdp.getTotalCurrent());
+		robotState.outputToSmartDashboard();
 		//SmartDashboard.putNumber("Swerve dt", swerveLooper.dt_);
 		//enabledLooper.outputToSmartDashboard();
 		
+	}
+	
+	private void printPath(PathfinderPath path){
+		for (int i = 0; i < path.getTrajectory().length(); i++) {
+		    Trajectory.Segment seg = path.getTrajectory().get(i);
+		    SmartDashboard.putNumber("Path X", seg.x);
+		    SmartDashboard.putNumber("Path Y", seg.y);
+		    Timer.delay(0.02);
+		}
 	}
 
 	/**
@@ -128,7 +160,10 @@ public class Robot extends IterativeRobot {
 			
 			subsystems.zeroSensors();
 			swerve.zeroSensors();
+			/*transmitter.addPaths(Arrays.asList(PathManager.mLeftSwitchDropoff, PathManager.mLeftmostCubePickup,
+					PathManager.mLeftCubeToLeftScale, PathManager.mLeftScaleToSecondCube));*/
 			
+			disabledLooper.stop();
 			swerveLooper.start();
 			enabledLooper.start();
 			
@@ -170,6 +205,8 @@ public class Robot extends IterativeRobot {
 	@Override
 	public void teleopInit(){
 		try{
+			disabledLooper.stop();
+			swerveLooper.stop();
 			swerveLooper.start();
 			enabledLooper.start();
 			superstructure.enableCompressor(true);
@@ -193,7 +230,11 @@ public class Robot extends IterativeRobot {
 				superstructure.requestIntakeIdle();
 			}
 			
-			swerve.sendInput(driver.getX(Hand.kLeft), -driver.getY(Hand.kLeft), driver.getX(Hand.kRight), false, driver.leftTrigger.isBeingPressed());
+			double swerveYInput = (superstructure.getState() == Superstructure.State.HANGING) ? 0.0 : -driver.getY(Hand.kLeft);
+			double swerveXInput = (superstructure.getState() == Superstructure.State.HANGING) ? 0.0 : driver.getX(Hand.kLeft);
+			double swerveRotationInput = (driver.rightCenterClick.isBeingPressed()) ? 0.0 : driver.getX(Hand.kRight);
+			
+			swerve.sendInput(swerveXInput, swerveYInput, swerveRotationInput, false, driver.leftTrigger.isBeingPressed());
 			if(driver.yButton.wasPressed())
 				swerve.rotate(0);
 			else if(driver.bButton.wasPressed())
@@ -202,22 +243,34 @@ public class Robot extends IterativeRobot {
 				swerve.rotate(180);
 			else if(driver.xButton.wasPressed())
 				swerve.rotate(270);
-			else if(driver.leftCenterClick.wasPressed())
+			else if(driver.leftCenterClick.isBeingPressed())
 				swerve.rotate(-135);
-			else if(driver.rightCenterClick.wasPressed())
+			else if(driver.rightCenterClick.isBeingPressed())
 				swerve.rotate(135);
-			if(driver.backButton.isBeingPressed()){
+			if(driver.backButton.wasPressed()){
+				//robotState.resetRobotPosition(Constants.kLeftMostCubeCorner);
+				NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+				NetworkTableEntry ledMode = table.getEntry("ledMode");
+				if(ledMode.getDouble(0) == 0)
+					ledMode.setNumber(1);
+				else
+					ledMode.setNumber(0);
+				//swerve.temporarilyDisableHeadingController();
+				//swerve.zeroSensors(new RigidTransform2d(new Translation2d(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH), Rotation2d.fromDegrees(0)));
+			}else if(driver.backButton.longPressed()){
 				swerve.temporarilyDisableHeadingController();
 				swerve.zeroSensors(new RigidTransform2d(new Translation2d(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH), Rotation2d.fromDegrees(0)));
 			}
 			
-			/*if(driver.POV180.wasPressed()){
-				swerve.followPath(PathManager.mRightSwitchDropoff, -90.0);
-			}*/
+			if(driver.startButton.isBeingPressed()){
+				swerve.enableCubeTracking(true);
+			}else{
+				swerve.enableCubeTracking(false);
+			}
 			
 			if(coDriver.rightBumper.wasPressed()){
 				superstructure.requestIntakeOn();
-			}else if(coDriver.leftTrigger.wasPressed()){
+			}else if(coDriver.leftTrigger.wasPressed() || driver.rightBumper.wasPressed()){
 				superstructure.requestIntakeOpen();
 			}else if(coDriver.rightTrigger.wasPressed() || driver.rightTrigger.wasPressed()){
 				superstructure.requestIntakeScore();
@@ -243,9 +296,15 @@ public class Robot extends IterativeRobot {
 				superstructure.requestHumanLoadingConfig();
 			}else if(coDriver.aButton.longPressed()){
 				superstructure.requestExchangeConfig();
+			}else if(coDriver.leftBumper.wasPressed()){
+				superstructure.requestTippingCubeConfig();
 			}
 			
-			superstructure.requestElevatorOpenLoop(-coDriver.getY(Hand.kLeft));
+			if(superstructure.getState() == Superstructure.State.HANGING)
+				superstructure.requestElevatorOpenLoop(driver.getY(Hand.kLeft));
+			else
+				superstructure.requestElevatorOpenLoop(-coDriver.getY(Hand.kLeft));
+			
 			superstructure.requestWristOpenLoop(-coDriver.getY(Hand.kRight));
 			
 			if(Intake.getInstance().needsToNotifyDrivers()){
@@ -253,10 +312,18 @@ public class Robot extends IterativeRobot {
 				coDriver.rumble(1.0, 1.0);
 			}
 			
-			if(driver.POV180.wasPressed()){
-				superstructure.requestHangingConfig();
-			}else if(driver.startButton.wasPressed()){
-				superstructure.requestHungConfig();
+			if(driver.leftBumper.wasPressed()){
+				if(superstructure.getState() == Superstructure.State.HANGING)
+					superstructure.requestFinalHungConfig();
+				else
+					superstructure.requestHangingConfig();
+			}else if(driver.POV180.wasPressed()){
+				if(superstructure.getWantedState() == Superstructure.WantedState.READY_FOR_HANG)
+					superstructure.requestHungConfig();
+			}else if(driver.POV270.wasPressed()){
+				superstructure.elevator.fireGasStruts(true);
+			}else if(driver.POV90.wasPressed()){
+				superstructure.elevator.fireLatch(true);
 			}
 			
 			allPeriodic();
@@ -271,9 +338,13 @@ public class Robot extends IterativeRobot {
 		try{
 			if(autoModeExecuter != null)
 				autoModeExecuter.stop();
-			swerveLooper.stop();
 			enabledLooper.stop();
 			subsystems.stop();
+			swerveLooper.stop();
+			swerveLooper.start();
+			disabledLooper.start();
+			Elevator.getInstance().fireGasStruts(false);
+			Elevator.getInstance().fireLatch(false);
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw t;

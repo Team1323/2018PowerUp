@@ -43,14 +43,30 @@ public class RightSwitchLeftScaleMode extends AutoModeBase {
 		runAction(new WaitToIntakeCubeAction(2.0));
 		System.out.println("Intaken at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new FollowPathAction(PathManager.mRightCubeToLeftScale, -180.0));
-		runAction(new WaitToPassYCoordinateAction(13.25));
+		runAction(new WaitToPassYCoordinateAction(17.5));
+		Swerve.getInstance().setAbsolutePathHeading(-340.0);
+		runAction(new WaitForHeadingAction(-350.0, -330.0));
 		Superstructure.getInstance().requestConfig(35.0, Constants.ELEVATOR_BALANCED_SCALE_HEIGHT);
 		runAction(new WaitToFinishPathAction());
-		Swerve.getInstance().rotateInPlaceAbsolutely(-340.0);
-		runAction(new WaitForHeadingAction(-350.0, -330.0));
 		runAction(new WaitForElevatorAction());
 		Superstructure.getInstance().requestIntakeScore();
 		System.out.println("Second cube scored at: " + (Timer.getFPGATimestamp() - startTime));
+		runAction(new WaitAction(0.5));
+		Swerve.getInstance().rotateInPlaceAbsolutely(-225.0);
+		Superstructure.getInstance().requestGroundStowedConfig();
+		runAction(new WaitForHeadingAction(-235.0, -215.0));
+		Superstructure.getInstance().requestNonchalantIntakeConfig();
+		runAction(new FollowPathAction(PathManager.mLeftScaleToFirstCube, -225.0));
+		runAction(new WaitToIntakeCubeAction(3.0));
+		System.out.println("Third cube intaken at: " + (Timer.getFPGATimestamp() - startTime));
+		runAction(new FollowPathAction(PathManager.mLeftCubeToLeftScale, -330.0));
+		runAction(new WaitAction(0.75));
+		Superstructure.getInstance().requestConfig(35.0, Constants.ELEVATOR_BALANCED_SCALE_HEIGHT);
+		runAction(new WaitToPassXCoordinateAction(22.0));
+		runAction(new WaitForElevatorAction());
+		runAction(new WaitForHeadingAction(-340.0 ,-320.0));
+		Superstructure.getInstance().requestIntakeScore();
+		System.out.println("Third cube scored at: " + (Timer.getFPGATimestamp() - startTime));
 	}
 
 }

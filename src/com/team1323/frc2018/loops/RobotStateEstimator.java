@@ -15,16 +15,16 @@ public class RobotStateEstimator implements Loop{
 	}
 	
 	RobotState robotState = RobotState.getInstance();
-	Swerve swerve = Swerve.getInstance();
+	Swerve swerve;
 
 	@Override
 	public void onStart(double timestamp) {
-		
+		swerve = Swerve.getInstance();
 	}
 
 	@Override
 	public void onLoop(double timestamp) {
-		
+		robotState.addFieldToVehicleObservation(timestamp, swerve.getPose());
 	}
 
 	@Override

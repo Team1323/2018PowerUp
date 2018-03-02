@@ -7,6 +7,7 @@ import com.team1323.frc2018.Constants;
 import com.team1323.frc2018.Ports;
 import com.team1323.frc2018.loops.Loop;
 import com.team1323.frc2018.loops.Looper;
+import com.team1323.lib.util.Util;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
@@ -116,7 +117,8 @@ public class Wrist extends Subsystem{
 	}
 	
 	public void resetToAbsolutePosition(){
-		wrist.setSelectedSensorPosition(wrist.getSensorCollection().getPulseWidthPosition(), 0, 10);
+		int absolutePosition = (int) Util.boundToScope(0, 4096, wrist.getSensorCollection().getPulseWidthPosition());
+		wrist.setSelectedSensorPosition(absolutePosition, 0, 10);
 	}
 	
 	private final Loop loop = new Loop(){

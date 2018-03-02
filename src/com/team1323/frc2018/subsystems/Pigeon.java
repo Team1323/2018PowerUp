@@ -19,13 +19,10 @@ public class Pigeon {
 	}
 	
 	private PigeonIMU pigeon;
-	PigeonIMU.FusionStatus fusionStatus = new PigeonIMU.FusionStatus();
     
 	private Pigeon(){
 		try{
 			pigeon = new PigeonIMU(new TalonSRX(Ports.PIGEON_TALON));
-			pigeon.setStatusFramePeriod(PigeonIMU_StatusFrame.BiasedStatus_2_Gyro, 20, 10);
-			pigeon.setStatusFramePeriod(PigeonIMU_StatusFrame.BiasedStatus_6_Accel, 20, 10);
 		}catch(Exception e){
 			System.out.println(e);
 		}
@@ -38,7 +35,8 @@ public class Pigeon {
 	public Rotation2d getAngle(){
 		double [] ypr = new double[3];
 		pigeon.getYawPitchRoll(ypr);
-		return Rotation2d.fromDegrees(/*-pigeon.getFusedHeading(fusionStatus)*/-ypr[0]);
+		PigeonIMU.FusionStatus fusionStatus = new PigeonIMU.FusionStatus();
+		return Rotation2d.fromDegrees(-pigeon.getFusedHeading(fusionStatus)/*-ypr[0]*/);
 	}
 	
 	public void setAngle(double angle){

@@ -1,6 +1,7 @@
 package com.team1323.frc2018.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 import com.team1323.frc2018.Ports;
 import com.team1323.frc2018.loops.Loop;
@@ -42,18 +43,22 @@ public class Intake extends Subsystem{
 		leftIntake.setInverted(false);
 		rightIntake.setInverted(true);
 		
-		leftIntake.configContinuousCurrentLimit(25, 10);
+		/*leftIntake.configContinuousCurrentLimit(25, 10);
 		leftIntake.configPeakCurrentLimit(30, 10);
 		leftIntake.configPeakCurrentDuration(100, 10);
 		leftIntake.enableCurrentLimit(true);
 		rightIntake.configContinuousCurrentLimit(25, 10);
 		rightIntake.configPeakCurrentLimit(30, 10);
 		rightIntake.configPeakCurrentDuration(100, 10);
-		rightIntake.enableCurrentLimit(true);
+		rightIntake.enableCurrentLimit(true);*/
+		leftIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 1000, 10);
+		leftIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 1000, 10);
+		rightIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 1000, 10);
+		rightIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 1000, 10);
 	}
 	
 	public enum State{
-		OFF, INTAKING, CLAMPING, EJECTING, SPINNING, OPEN, WEAK_EJECT, INTAKING_WIDE, NONCHALANT_INTAKING, GROUND_CLAMPING
+		OFF, INTAKING, CLAMPING, EJECTING, SPINNING, OPEN, WEAK_EJECT, INTAKING_WIDE, NONCHALANT_INTAKING, GROUND_CLAMPING, STRONG_EJECT
 	}
 	private State currentState = State.OFF;
 	public State getState(){
@@ -99,6 +104,11 @@ public class Intake extends Subsystem{
 		rightIntake.set(ControlMode.PercentOutput, -0.4);
 	}
 	
+	private void strongReverseRollers(){
+		leftIntake.set(ControlMode.PercentOutput, -1.0);
+		rightIntake.set(ControlMode.PercentOutput, -1.0);
+	}
+	
 	private void spinRollers(){
 		leftIntake.set(ControlMode.PercentOutput, 0.8);
 		rightIntake.set(ControlMode.PercentOutput, -0.33);
@@ -118,6 +128,8 @@ public class Intake extends Subsystem{
 
 		@Override
 		public void onStart(double timestamp) {
+			hasCube = false;
+			needsToNotifyDrivers = false;
 			setState(State.OFF);
 			stop();
 		}
@@ -129,23 +141,24 @@ public class Intake extends Subsystem{
 				
 				break;
 			case INTAKING:
-				if(banner.get()){
+				/*if(banner.get()){
 					hasCube = true;
 					needsToNotifyDrivers = true;
 					clamp();
-				}
-				/*if(banner.get()){
+				}*/
+				if(banner.get()){
 					if(bannerSensorBeganTimestamp == Double.POSITIVE_INFINITY){
 						bannerSensorBeganTimestamp = timestamp;
 					}else{
-						if(timestamp - bannerSensorBeganTimestamp > 0.5){
+						if(timestamp - bannerSensorBeganTimestamp > 0.25){
 							hasCube = true;
+							needsToNotifyDrivers = true;
 							clamp();
 						}
 					}
 				}else if(bannerSensorBeganTimestamp != Double.POSITIVE_INFINITY){
 					bannerSensorBeganTimestamp = Double.POSITIVE_INFINITY;
-				}*/
+				}
 				break;
 			case NONCHALANT_INTAKING:
 				if(banner.get()){
@@ -172,6 +185,11 @@ public class Intake extends Subsystem{
 					stop();
 				break;
 			case WEAK_EJECT:
+				hasCube = false;
+				if(timestamp - stateEnteredTimestamp > 1.0)
+					stop();
+				break;
+			case STRONG_EJECT:
 				hasCube = false;
 				if(timestamp - stateEnteredTimestamp > 1.0)
 					stop();
@@ -245,6 +263,14 @@ public class Intake extends Subsystem{
 		hasCube = false;
 	}
 	
+	public void strongEject(){
+		setState(State.STRONG_EJECT);
+		strongReverseRollers();
+		firePinchers(true);
+		fireClampers(false);
+		hasCube = false;
+	}
+	
 	public void open(){
 		setState(State.OPEN);
 		stopRollers();
@@ -282,13 +308,13 @@ public class Intake extends Subsystem{
 	
 	@Override
 	public void outputToSmartDashboard() {
-		SmartDashboard.putNumber("Left Intake Current", leftIntake.getOutputCurrent());
+		/*SmartDashboard.putNumber("Left Intake Current", leftIntake.getOutputCurrent());
 		SmartDashboard.putNumber("Right Intake Current", rightIntake.getOutputCurrent());
 		SmartDashboard.putNumber("Left Intake Voltage", leftIntake.getMotorOutputVoltage());
 		SmartDashboard.putNumber("Right Intake Voltage", rightIntake.getMotorOutputVoltage());
 		SmartDashboard.putString("Intake State", currentState.toString());
 		SmartDashboard.putBoolean("Intake Has Cube", hasCube);
-		SmartDashboard.putBoolean("Intake Banner", banner.get());
+		SmartDashboard.putBoolean("Intake Banner", banner.get());*/
 	}
 	
 	public boolean checkSystem(){
