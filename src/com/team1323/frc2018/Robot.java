@@ -102,9 +102,11 @@ public class Robot extends IterativeRobot {
 		
 		PathManager.buildAllPaths();
 		
-		transmitter.addPaths(Arrays.asList(PathManager.mLeftSwitchDropoff, PathManager.mLeftmostCubePickup,
+		/*transmitter.addPaths(Arrays.asList(PathManager.mLeftSwitchDropoff, PathManager.mLeftmostCubePickup,
 				PathManager.mLeftCubeToLeftScale, PathManager.mLeftScaleToSecondCube, PathManager.mSecondLeftCubeToScale,
-				PathManager.mLeftScaleToThirdCube));
+				PathManager.mLeftScaleToThirdCube));*/
+		transmitter.addPaths(Arrays.asList(PathManager.mRightSwitchDropoff, PathManager.mRightmostCubePickup,
+				PathManager.mRightCubeToRightScale, PathManager.mRightScaleToSecondCube, PathManager.mSecondRightCubeToScale));
 		
 		PathfinderPath path = PathManager.mSecondLeftCubeToScale;
 		double maxSpeed = 0.0;

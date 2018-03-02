@@ -9,12 +9,13 @@ public class SecondRightCubeToScalePath extends PathfinderPath{
 	
 	public SecondRightCubeToScalePath(){
 		super.points = new Waypoint[]{
-				new Waypoint(18.75, 19.0, Pathfinder.d2r(70.0)),
-				new Waypoint(Constants.kRightScaleCorner.x() - Constants.ROBOT_HALF_LENGTH - 2.0, Constants.kRightScaleCorner.y() + Constants.ROBOT_HALF_WIDTH + 1.0, Pathfinder.d2r(0))
+				new Waypoint(Constants.kRightSwitchFarCorner.x() + 3.6, Constants.kRightSwitchFarCorner.y() + Constants.ROBOT_HALF_LENGTH - 2.5, Pathfinder.d2r(60.0)),
+				new Waypoint(23.25, 22.5, Pathfinder.d2r(0.0))
 			};
-		super.maxAccel = 5.0;
-		super.defaultSpeed = 4.5;
-		super.rotationScalar = 0.75;
+		super.maxAccel = 6.0;
+		super.defaultSpeed = 5.0;
+		super.rotationScalar = 1.0;
+		super.lookaheadPoints = 20;
 	}
 	
 }

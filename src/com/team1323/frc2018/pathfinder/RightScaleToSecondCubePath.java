@@ -8,11 +8,12 @@ import jaci.pathfinder.Waypoint;
 public class RightScaleToSecondCubePath extends PathfinderPath{
 	public RightScaleToSecondCubePath(){
 		super.points = new Waypoint[]{
-			new Waypoint(Constants.kRightScaleCorner.x() - Constants.ROBOT_HALF_LENGTH - 2.0, Constants.kRightScaleCorner.y() + Constants.ROBOT_HALF_WIDTH + 0.5, Pathfinder.d2r(180)),
-			new Waypoint(18.75, 19.0, Pathfinder.d2r(-135.0))
+			new Waypoint(23.25, 22.5, Pathfinder.d2r(180.0)),
+			new Waypoint(Constants.kRightSwitchFarCorner.x() + 3.6, Constants.kRightSwitchFarCorner.y() + Constants.ROBOT_HALF_LENGTH - 2.5, Pathfinder.d2r(-90.0))
 		};
 		super.maxAccel = 5.0;
 		super.defaultSpeed = 4.5;
-		super.rotationScalar = 1.0;
+		super.rotationScalar = 0.5;
+		super.lookaheadPoints = 15;
 	}
 }
