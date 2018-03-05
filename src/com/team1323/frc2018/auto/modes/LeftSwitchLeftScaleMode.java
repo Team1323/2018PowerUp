@@ -70,7 +70,7 @@ public class LeftSwitchLeftScaleMode extends AutoModeBase {
 		runAction(new WaitForHeadingAction(125.0, 145.0));*/
 		runAction(new FollowPathAction(PathManager.mLeftScaleToSecondCube, 135.0));
 		runAction(new WaitAction(0.5));
-		Superstructure.getInstance().requestIntakingConfig();
+		Superstructure.getInstance().requestNonchalantIntakeConfig();
 		//runAction(new WaitToPassXCoordinateAction(19.0));
 		//RobotState.getInstance().resetRobotPosition(Constants.kSecondLeftCubeCorner);
 		//Swerve.getInstance().enableCubeTracking(true);

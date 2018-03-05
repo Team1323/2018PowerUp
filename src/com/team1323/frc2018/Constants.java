@@ -75,7 +75,6 @@ public class Constants {
 	public static final Translation2d kVehicleToModuleFour = new Translation2d(0.0, 0.0);*/
 	
 	//Scrub Factors
-	//public static final double[] kWheelScrubFactors = new double[]{1.0, 0.9837398, 0.8832116788, 0.9837398};
 	public static final double[] kWheelScrubFactors = new double[]{1.0, 1.0, 1.0, /*5.0/5.15*/1.0};
 	
 	//Swerve Odometry Constants
@@ -138,7 +137,7 @@ public class Constants {
 	public static final double WRIST_MIN_ANGLE = -2.0; //degrees
 	public static final double WRIST_MAX_ANGLE = 92.0; //degrees
 	public static final double WRIST_INTAKING_ANGLE = 4.0;
-	public static final double WRIST_PRIMARY_STOW_ANGLE = 80.0;
+	public static final double WRIST_PRIMARY_STOW_ANGLE = 85.0;
 	public static final double WRIST_SECONDARY_STOW_ANGLE = 60.0;
 	public static final double WRIST_MAX_STOW_HEIGHT = 3.5; //height of the elevator
 	public static final double WRIST_MAX_CURRENT = 40.0;//amps

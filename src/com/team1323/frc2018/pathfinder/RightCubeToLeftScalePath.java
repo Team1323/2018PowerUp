@@ -9,14 +9,16 @@ public class RightCubeToLeftScalePath extends PathfinderPath{
 	
 	public RightCubeToLeftScalePath(){
 		super.points = new Waypoint[]{
-			new Waypoint(Constants.kRightMostCube.x() + 1.85, Constants.kRightMostCube.y() + 1.85, Pathfinder.d2r(-90)),
+			new Waypoint(Constants.kRightSwitchFarCorner.x() + 3.5, Constants.kRightSwitchFarCorner.y() + Constants.ROBOT_HALF_LENGTH - 0.75, Pathfinder.d2r(-45.0)),
 			new Waypoint(21.0, 13.5, Pathfinder.d2r(-90)),
-			new Waypoint(21.0, 10.0, Pathfinder.d2r(-90)),
-			new Waypoint(Constants.kLeftScaleCorner.x() - Constants.ROBOT_HALF_LENGTH - 1.0, Constants.kLeftScaleCorner.y() - Constants.ROBOT_HALF_WIDTH, Pathfinder.d2r(0))
+			new Waypoint(21.0, 8.5, Pathfinder.d2r(-90)),
+			new Waypoint(Constants.kLeftScaleCorner.x() - Constants.ROBOT_HALF_LENGTH - 1.0, Constants.kLeftScaleCorner.y() - Constants.ROBOT_HALF_WIDTH - 0.5, Pathfinder.d2r(0))
 		};
-		super.maxAccel = 3.0;
+		super.maxAccel = 2.0;
 		super.maxSpeed = 8.0;
-		super.defaultSpeed = 6.9;
+		super.defaultSpeed = 5.6;
+		super.lookaheadPoints = 10;
+		super.rotationScalar = 0.7;
 	}
 	
 }

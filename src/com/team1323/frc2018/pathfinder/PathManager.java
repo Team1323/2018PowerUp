@@ -17,14 +17,16 @@ public class PathManager {
 	public static LeftScaleToSecondCubePath mLeftScaleToSecondCube = new LeftScaleToSecondCubePath();
 	public static SecondLeftCubeToScalePath mSecondLeftCubeToScale = new SecondLeftCubeToScalePath();
 	public static LeftScaleToThirdCubePath mLeftScaleToThirdCube = new LeftScaleToThirdCubePath();
+	public static LeftCubeToRightScalePath mLeftCubeToRightScale = new LeftCubeToRightScalePath();
 	public static SecondRightCubeToScalePath mSecondRightCubeToScale = new SecondRightCubeToScalePath();
+	public static FrontLeftSwitchPath mFrontLeftSwitchPath = new FrontLeftSwitchPath();
 	
 	//public static TestPath mTestPath = new TestPath();
 	
 	public static List<PathfinderPath> paths = Arrays.asList(mRightSwitchDropoff, mRightmostCubePickup, mLeftSwitchDropoff, 
 			mLeftmostCubePickup, mRightCubeToRightScale, mRightScaleToFirstCube, mRightScaleToSecondCube, mRightCubeToLeftScale,
 			mLeftScaleToFirstCube, mLeftCubeToLeftScale,mLeftScaleToSecondCube, mSecondLeftCubeToScale, mLeftScaleToThirdCube,
-			mSecondRightCubeToScale);
+			mLeftCubeToRightScale, mSecondRightCubeToScale, mFrontLeftSwitchPath);
 	
 	public static void buildAllPaths(){
 		paths.forEach((p) -> p.buildPath());

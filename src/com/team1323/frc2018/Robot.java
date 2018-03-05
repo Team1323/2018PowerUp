@@ -10,6 +10,7 @@ package com.team1323.frc2018;
 import java.util.Arrays;
 
 import com.team1323.frc2018.auto.AutoModeExecuter;
+import com.team1323.frc2018.auto.SmartDashboardInteractions;
 import com.team1323.frc2018.auto.modes.LeftSwitchLeftScaleMode;
 import com.team1323.frc2018.auto.modes.LeftSwitchRightScaleMode;
 import com.team1323.frc2018.auto.modes.RightSwitchLeftScaleMode;
@@ -59,6 +60,7 @@ public class Robot extends IterativeRobot {
 	
 	private AutoModeExecuter autoModeExecuter = null;
 	private PathTransmitter transmitter = PathTransmitter.getInstance();
+	private SmartDashboardInteractions smartDashboardInteractions = new SmartDashboardInteractions();
 	
 	private Looper swerveLooper = new Looper();
 	private Looper enabledLooper = new Looper();
@@ -100,15 +102,22 @@ public class Robot extends IterativeRobot {
 		subsystems.zeroSensors();
 		swerve.zeroSensors();
 		
+		smartDashboardInteractions.initWithDefaults();
+		
 		PathManager.buildAllPaths();
 		
 		/*transmitter.addPaths(Arrays.asList(PathManager.mLeftSwitchDropoff, PathManager.mLeftmostCubePickup,
 				PathManager.mLeftCubeToLeftScale, PathManager.mLeftScaleToSecondCube, PathManager.mSecondLeftCubeToScale,
 				PathManager.mLeftScaleToThirdCube));*/
-		transmitter.addPaths(Arrays.asList(PathManager.mRightSwitchDropoff, PathManager.mRightmostCubePickup,
-				PathManager.mRightCubeToRightScale, PathManager.mRightScaleToSecondCube, PathManager.mSecondRightCubeToScale));
+		/*transmitter.addPaths(Arrays.asList(PathManager.mRightSwitchDropoff, PathManager.mRightmostCubePickup,
+				PathManager.mRightCubeToRightScale, PathManager.mRightScaleToSecondCube, PathManager.mSecondRightCubeToScale));*/
+		/*transmitter.addPaths(Arrays.asList(PathManager.mRightSwitchDropoff, PathManager.mRightmostCubePickup,
+				PathManager.mRightCubeToLeftScale, PathManager.mLeftScaleToFirstCube));*/
+		/*transmitter.addPaths(Arrays.asList(PathManager.mLeftSwitchDropoff, PathManager.mLeftmostCubePickup,
+		PathManager.mLeftCubeToRightScale, PathManager.mRightScaleToFirstCube));*/
+		transmitter.addPaths(Arrays.asList(PathManager.mFrontLeftSwitchPath));
 		
-		PathfinderPath path = PathManager.mSecondLeftCubeToScale;
+		PathfinderPath path = PathManager.mFrontLeftSwitchPath;
 		double maxSpeed = 0.0;
 		int points = 0;
 		
@@ -173,22 +182,9 @@ public class Robot extends IterativeRobot {
 			
 			SmartDashboard.putBoolean("Auto", true);
 			
-			autoModeExecuter = new AutoModeExecuter();
 			String gameData = DriverStation.getInstance().getGameSpecificMessage().substring(0, 2);
-			switch(gameData){
-			case "RR":
-				autoModeExecuter.setAutoMode(new RightSwitchRightScaleMode());
-				break;
-			case "RL":
-				autoModeExecuter.setAutoMode(new RightSwitchLeftScaleMode());
-				break;
-			case "LR":
-				autoModeExecuter.setAutoMode(new LeftSwitchRightScaleMode());
-				break;
-			case "LL":
-				autoModeExecuter.setAutoMode(new LeftSwitchLeftScaleMode());
-				break;
-			}
+			autoModeExecuter = new AutoModeExecuter();
+			autoModeExecuter.setAutoMode(smartDashboardInteractions.getSelectedAutoMode(gameData));
 			autoModeExecuter.start();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
@@ -322,10 +318,10 @@ public class Robot extends IterativeRobot {
 			}else if(driver.POV180.wasPressed()){
 				if(superstructure.getWantedState() == Superstructure.WantedState.READY_FOR_HANG)
 					superstructure.requestHungConfig();
-			}else if(driver.POV270.wasPressed()){
+			}else if(driver.POV270.wasPressed() && !Elevator.getInstance().isHighGear()){
 				superstructure.elevator.fireGasStruts(true);
-			}else if(driver.POV90.wasPressed()){
-				superstructure.elevator.fireLatch(true);
+			}else if(driver.POV90.wasPressed() && !Elevator.getInstance().isHighGear()){
+				superstructure.flipDriveTrain();
 			}
 			
 			allPeriodic();

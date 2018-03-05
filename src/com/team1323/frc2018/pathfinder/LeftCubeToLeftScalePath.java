@@ -13,8 +13,8 @@ public class LeftCubeToLeftScalePath extends PathfinderPath{
 				new Waypoint(23.25, 6.75, Pathfinder.d2r(0))
 		};
 		super.maxSpeed = 8.0;
-		super.maxAccel = 6.0;
-		super.defaultSpeed = 4.1;
+		super.maxAccel = 7.0;
+		super.defaultSpeed = 4.5;
 		super.rotationScalar = 1.5;
 		super.lookaheadPoints = 20;
 		super.rotationOverride = false;
