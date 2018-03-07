@@ -43,18 +43,29 @@ public class Intake extends Subsystem{
 		leftIntake.setInverted(false);
 		rightIntake.setInverted(true);
 		
-		/*leftIntake.configContinuousCurrentLimit(25, 10);
+		leftIntake.configPeakOutputForward(1.0, 10);
+		rightIntake.configPeakOutputForward(1.0, 10);
+		leftIntake.configPeakOutputReverse(-1.0, 10);
+		rightIntake.configPeakOutputReverse(-1.0, 10);
+		
+		leftIntake.configVoltageCompSaturation(12.0, 10);
+		rightIntake.configVoltageCompSaturation(12.0, 10);
+		leftIntake.enableVoltageCompensation(true);
+		rightIntake.enableVoltageCompensation(true);
+		
+		leftIntake.configContinuousCurrentLimit(25, 10);
 		leftIntake.configPeakCurrentLimit(30, 10);
 		leftIntake.configPeakCurrentDuration(100, 10);
-		leftIntake.enableCurrentLimit(true);
+		leftIntake.enableCurrentLimit(false);
 		rightIntake.configContinuousCurrentLimit(25, 10);
 		rightIntake.configPeakCurrentLimit(30, 10);
 		rightIntake.configPeakCurrentDuration(100, 10);
-		rightIntake.enableCurrentLimit(true);*/
-		leftIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 1000, 10);
-		leftIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 1000, 10);
-		rightIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 1000, 10);
-		rightIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 1000, 10);
+		rightIntake.enableCurrentLimit(false);
+		leftIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20, 10);
+		leftIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 20, 10);
+		rightIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20, 10);
+		rightIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 20, 10);
+		// 11.3 V 6.6 V 58%
 	}
 	
 	public enum State{
@@ -110,8 +121,8 @@ public class Intake extends Subsystem{
 	}
 	
 	private void spinRollers(){
-		leftIntake.set(ControlMode.PercentOutput, 0.8);
-		rightIntake.set(ControlMode.PercentOutput, -0.33);
+		//leftIntake.set(ControlMode.PercentOutput, 0.8);
+		//rightIntake.set(ControlMode.PercentOutput, -0.33);
 	}
 	
 	private void holdRollers(){
@@ -308,13 +319,13 @@ public class Intake extends Subsystem{
 	
 	@Override
 	public void outputToSmartDashboard() {
-		/*SmartDashboard.putNumber("Left Intake Current", leftIntake.getOutputCurrent());
+		SmartDashboard.putNumber("Left Intake Current", leftIntake.getOutputCurrent());
 		SmartDashboard.putNumber("Right Intake Current", rightIntake.getOutputCurrent());
 		SmartDashboard.putNumber("Left Intake Voltage", leftIntake.getMotorOutputVoltage());
 		SmartDashboard.putNumber("Right Intake Voltage", rightIntake.getMotorOutputVoltage());
 		SmartDashboard.putString("Intake State", currentState.toString());
 		SmartDashboard.putBoolean("Intake Has Cube", hasCube);
-		SmartDashboard.putBoolean("Intake Banner", banner.get());*/
+		SmartDashboard.putBoolean("Intake Banner", banner.get());
 	}
 	
 	public boolean checkSystem(){

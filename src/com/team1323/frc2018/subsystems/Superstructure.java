@@ -312,10 +312,10 @@ public class Superstructure extends Subsystem{
 	 * Should only be called once per match, when hanging.
 	 */
 	public synchronized void flipDriveTrain(){
-		//if(getState() == State.CONFIGURED && getWantedState() == WantedState.HUNG){
 		if(!elevator.isHighGear()){
 			elevator.fireGasStruts(true);
 			elevator.fireLatch(true);
+			elevator.setHangingLimits();
 			driveTrainFlipped = true;
 		}
 	}
@@ -344,7 +344,7 @@ public class Superstructure extends Subsystem{
 	}
 	
 	public synchronized void requestExchangeConfig(){
-		requestConfig(Constants.WRIST_INTAKING_ANGLE + 5.0, Constants.ELEVATOR_INTAKING_HEIGHT);
+		requestConfig(Constants.WRIST_INTAKING_ANGLE + 8.0, Constants.ELEVATOR_INTAKING_HEIGHT);
 	}
 	
 	public synchronized void requestTippingCubeConfig(){

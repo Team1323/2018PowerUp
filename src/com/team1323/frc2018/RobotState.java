@@ -69,7 +69,8 @@ public class RobotState {
         goal_tracker_ = new GoalTracker();
         camera_pitch_correction_ = Rotation2d.fromDegrees(-Constants.kCameraPitchAngleDegrees);
         camera_yaw_correction_ = Rotation2d.fromDegrees(-Constants.kCameraYawAngleDegrees);
-        differential_height_ = (5.5/12.0) - Constants.kCameraZOffset;
+        //differential_height_ = (5.5/12.0) - Constants.kCameraZOffset;
+        differential_height_ = Constants.kTargetHeight - Constants.kCameraZOffset;
         distance_driven_ = 0.0;
     }
     
@@ -111,8 +112,8 @@ public class RobotState {
                 double zr = zyaw * camera_pitch_correction_.cos() - xyaw * camera_pitch_correction_.sin();
                 
                 // find intersection with the goal
-                if (zr < 0) {
-                	//differential_height_ = (5.5/12.0) - Constants.kCameraZOffset - Elevator.getInstance().getHeight();
+                //if (zr < 0) {
+                	differential_height_ = Constants.kTargetHeight - Constants.kCameraZOffset - Elevator.getInstance().getHeight();
                     double scaling = differential_height_ / zr;
                     double distance = Math.hypot(xr, yr) * scaling;
                     Rotation2d angle = new Rotation2d(xr, yr, true);
@@ -120,7 +121,7 @@ public class RobotState {
                             .transformBy(RigidTransform2d
                                     .fromTranslation(new Translation2d(distance * angle.cos(), distance * angle.sin())))
                             .getTranslation());
-                }
+                //}
             }
         }
         synchronized (this) {

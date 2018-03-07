@@ -3,6 +3,12 @@ package com.team1323.frc2018.pathfinder;
 import java.util.Arrays;
 import java.util.List;
 
+import com.team1323.frc2018.pathfinder.frontswitch.FrontLeftSwitchPath;
+import com.team1323.frc2018.pathfinder.frontswitch.FrontLeftSwitchToMiddleCubePath;
+import com.team1323.frc2018.pathfinder.frontswitch.FrontLeftSwitchToOuterCubePath;
+import com.team1323.frc2018.pathfinder.frontswitch.MiddleCubeToFrontLeftSwitchPath;
+import com.team1323.frc2018.pathfinder.frontswitch.OuterCubeToFrontLeftSwitchPath;
+
 public class PathManager {
 	public static RightSwitchDropoffPath mRightSwitchDropoff = new RightSwitchDropoffPath();
 	public static RightmostCubePickupPath mRightmostCubePickup = new RightmostCubePickupPath();
@@ -19,14 +25,19 @@ public class PathManager {
 	public static LeftScaleToThirdCubePath mLeftScaleToThirdCube = new LeftScaleToThirdCubePath();
 	public static LeftCubeToRightScalePath mLeftCubeToRightScale = new LeftCubeToRightScalePath();
 	public static SecondRightCubeToScalePath mSecondRightCubeToScale = new SecondRightCubeToScalePath();
-	public static FrontLeftSwitchPath mFrontLeftSwitchPath = new FrontLeftSwitchPath();
 	
+	public static FrontLeftSwitchPath mFrontLeftSwitchPath = new FrontLeftSwitchPath();
+	public static FrontLeftSwitchToOuterCubePath mFrontLeftSwitchToOuterCube = new FrontLeftSwitchToOuterCubePath();
+	public static OuterCubeToFrontLeftSwitchPath mOuterCubeToFrontLeftSwitch = new OuterCubeToFrontLeftSwitchPath();
+	public static FrontLeftSwitchToMiddleCubePath mFrontLeftSwitchToMiddleCube = new FrontLeftSwitchToMiddleCubePath();
+	public static MiddleCubeToFrontLeftSwitchPath mMiddleCubeToFrontLeftSwitch = new MiddleCubeToFrontLeftSwitchPath();
 	//public static TestPath mTestPath = new TestPath();
 	
 	public static List<PathfinderPath> paths = Arrays.asList(mRightSwitchDropoff, mRightmostCubePickup, mLeftSwitchDropoff, 
 			mLeftmostCubePickup, mRightCubeToRightScale, mRightScaleToFirstCube, mRightScaleToSecondCube, mRightCubeToLeftScale,
 			mLeftScaleToFirstCube, mLeftCubeToLeftScale,mLeftScaleToSecondCube, mSecondLeftCubeToScale, mLeftScaleToThirdCube,
-			mLeftCubeToRightScale, mSecondRightCubeToScale, mFrontLeftSwitchPath);
+			mLeftCubeToRightScale, mSecondRightCubeToScale, mFrontLeftSwitchPath, mFrontLeftSwitchToOuterCube,
+			mOuterCubeToFrontLeftSwitch, mFrontLeftSwitchToMiddleCube, mMiddleCubeToFrontLeftSwitch);
 	
 	public static void buildAllPaths(){
 		paths.forEach((p) -> p.buildPath());

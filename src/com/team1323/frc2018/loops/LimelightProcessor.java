@@ -26,15 +26,15 @@ public class LimelightProcessor implements Loop{
 	public void onStart(double timestamp){
 		table = NetworkTableInstance.getDefault().getTable("limelight");
 		NetworkTableEntry ledMode = table.getEntry("ledMode");
-		ledMode.setNumber(1);
+		ledMode.setNumber(0);
 		NetworkTableEntry pipeline = table.getEntry("pipeline");
-		pipeline.setNumber(2);
+		pipeline.setNumber(3);
 	}
 	
 	@Override 
 	public void onLoop(double timestamp){
 		NetworkTableEntry pipeline = table.getEntry("pipeline");
-		pipeline.setNumber(2);
+		pipeline.setNumber(3);
 		NetworkTableEntry tx = table.getEntry("tx");
 		NetworkTableEntry ty = table.getEntry("ty");
 		NetworkTableEntry ta = table.getEntry("ta");

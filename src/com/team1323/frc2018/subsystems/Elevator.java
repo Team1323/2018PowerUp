@@ -115,6 +115,11 @@ public class Elevator extends Subsystem{
 		master.configMotionAcceleration((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR*0.5), 10);
 	}
 	
+	public void setHangingLimits(){
+		master.configReverseSoftLimitThreshold(feetToEncUnits(Constants.ELEVATOR_MINIMUM_HANGING_HEIGHT), 10);
+		master.configForwardSoftLimitThreshold(feetToEncUnits(Constants.ELEVATOR_MAXIMUM_HANGING_HEIGHT), 10);
+	}
+	
 	public void setLowCurrentLimit(){
 		master.configContinuousCurrentLimit(15, 10);
 		master.configPeakCurrentLimit(20, 10);

@@ -115,9 +115,10 @@ public class Robot extends IterativeRobot {
 				PathManager.mRightCubeToLeftScale, PathManager.mLeftScaleToFirstCube));*/
 		/*transmitter.addPaths(Arrays.asList(PathManager.mLeftSwitchDropoff, PathManager.mLeftmostCubePickup,
 		PathManager.mLeftCubeToRightScale, PathManager.mRightScaleToFirstCube));*/
-		transmitter.addPaths(Arrays.asList(PathManager.mFrontLeftSwitchPath));
+		transmitter.addPaths(Arrays.asList(PathManager.mFrontLeftSwitchPath, PathManager.mFrontLeftSwitchToOuterCube, 
+				PathManager.mOuterCubeToFrontLeftSwitch, PathManager.mFrontLeftSwitchToMiddleCube, PathManager.mMiddleCubeToFrontLeftSwitch));
 		
-		PathfinderPath path = PathManager.mFrontLeftSwitchPath;
+		PathfinderPath path = PathManager.mFrontLeftSwitchToOuterCube;
 		double maxSpeed = 0.0;
 		int points = 0;
 		
@@ -141,15 +142,6 @@ public class Robot extends IterativeRobot {
 		//SmartDashboard.putNumber("Swerve dt", swerveLooper.dt_);
 		//enabledLooper.outputToSmartDashboard();
 		
-	}
-	
-	private void printPath(PathfinderPath path){
-		for (int i = 0; i < path.getTrajectory().length(); i++) {
-		    Trajectory.Segment seg = path.getTrajectory().get(i);
-		    SmartDashboard.putNumber("Path X", seg.x);
-		    SmartDashboard.putNumber("Path Y", seg.y);
-		    Timer.delay(0.02);
-		}
 	}
 
 	/**
@@ -246,15 +238,13 @@ public class Robot extends IterativeRobot {
 			else if(driver.rightCenterClick.isBeingPressed())
 				swerve.rotate(135);
 			if(driver.backButton.wasPressed()){
-				//robotState.resetRobotPosition(Constants.kLeftMostCubeCorner);
-				NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
+				robotState.resetRobotPosition(Constants.kRightSwitchTarget);
+				/*NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
 				NetworkTableEntry ledMode = table.getEntry("ledMode");
 				if(ledMode.getDouble(0) == 0)
 					ledMode.setNumber(1);
 				else
-					ledMode.setNumber(0);
-				//swerve.temporarilyDisableHeadingController();
-				//swerve.zeroSensors(new RigidTransform2d(new Translation2d(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH), Rotation2d.fromDegrees(0)));
+					ledMode.setNumber(0);*/
 			}else if(driver.backButton.longPressed()){
 				swerve.temporarilyDisableHeadingController();
 				swerve.zeroSensors(new RigidTransform2d(new Translation2d(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH), Rotation2d.fromDegrees(0)));
@@ -298,8 +288,8 @@ public class Robot extends IterativeRobot {
 				superstructure.requestTippingCubeConfig();
 			}
 			
-			if(superstructure.getState() == Superstructure.State.HANGING)
-				superstructure.requestElevatorOpenLoop(driver.getY(Hand.kLeft));
+			if(superstructure.driveTrainFlipped() && coDriver.leftTrigger.isBeingPressed())
+				superstructure.requestElevatorOpenLoop(-coDriver.getY(Hand.kLeft)*0.5);
 			else
 				superstructure.requestElevatorOpenLoop(-coDriver.getY(Hand.kLeft));
 			
@@ -318,8 +308,6 @@ public class Robot extends IterativeRobot {
 			}else if(driver.POV180.wasPressed()){
 				if(superstructure.getWantedState() == Superstructure.WantedState.READY_FOR_HANG)
 					superstructure.requestHungConfig();
-			}else if(driver.POV270.wasPressed() && !Elevator.getInstance().isHighGear()){
-				superstructure.elevator.fireGasStruts(true);
 			}else if(driver.POV90.wasPressed() && !Elevator.getInstance().isHighGear()){
 				superstructure.flipDriveTrain();
 			}

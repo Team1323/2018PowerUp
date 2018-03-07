@@ -34,6 +34,7 @@ public class Constants {
 	
 	public static final Translation2d kLeftSwitchTarget = new Translation2d(140.0 / 12.0, 13.5 - (51.875 / 12.0));
 	public static final Translation2d kRightSwitchTarget = new Translation2d(140.0 / 12.0, 13.5 + (51.875 / 12.0));
+	public static final double kTargetHeight = 18.75 / 2.0 / 12.0;
 	
 	//Swerve Calculations Constants
     public static final double WHEELBASE_LENGTH = 18.5 / 12.0; //feet
@@ -45,7 +46,7 @@ public class Constants {
     public static final double kCameraXOffset = ROBOT_HALF_LENGTH - (12.303/12.0) + (0.75/12.0);
     public static final double kCameraZOffset = 16.0 / 12.0;
     public static final double kCameraYawAngleDegrees = 0.0;
-    public static final double kCameraPitchAngleDegrees = -10.0;
+    public static final double kCameraPitchAngleDegrees = -11.375;
     
  // Goal tracker constants
     public static double kMaxGoalTrackAge = 0.25;
@@ -97,8 +98,8 @@ public class Constants {
 	public static final double ELEVATOR_TICKS_PER_FOOT = 11983.0 / 2.5989583; //determined empirically
 	public static final double ELEVATOR_HEIGHT_TOLERANCE = 0.1; //feet
 	public static final double ELEVATOR_INTAKING_HEIGHT = 0.125; //feet
-	public static final double ELEVATOR_SECOND_CUBE_HEIGHT = 0.73;
-	public static final double ELEVATOR_HUMAN_LOAD_HEIGHT = 1.65;
+	public static final double ELEVATOR_SECOND_CUBE_HEIGHT = 1.022;
+	public static final double ELEVATOR_HUMAN_LOAD_HEIGHT = 1.903;
 	public static final double ELEVATOR_SWITCH_HEIGHT = 2.0; //feet
 	public static final double ELEVATOR_BALANCED_SCALE_HEIGHT = 5.05; //feet
 	public static final double ELEVATOR_HIGH_SCALE_HEIGHT = 5.3;
@@ -107,7 +108,8 @@ public class Constants {
 	public static final double ELEVATOR_MIN_HEIGHT = 0.0; //feet
 	public static final double ELEVATOR_MAX_HEIGHT = 5.4; //feet
 	public static final double ELEVATOR_MAX_CURRENT = 50.0;//amps
-	public static final double ELEVATOR_MINIMUM_HANGING_HEIGHT = 1.1;
+	public static final double ELEVATOR_MINIMUM_HANGING_HEIGHT = 0.631;
+	public static final double ELEVATOR_MAXIMUM_HANGING_HEIGHT = 3.517;
 	public static final double ELEVATOR_HANGING_RAMP_HEIGHT = 3.452;
 	public static final double ELEVATOR_TIPPING_CUBE_HEIGHT = 0.57;
 	//0.905
