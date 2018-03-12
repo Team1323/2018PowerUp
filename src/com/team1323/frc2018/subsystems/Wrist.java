@@ -34,6 +34,8 @@ public class Wrist extends Subsystem{
 		wrist.enableVoltageCompensation(true);
 		wrist.configNominalOutputForward(0.45/12.0, 10);
 		wrist.configNominalOutputForward(-0.45/12.0, 10);
+		wrist.configPeakOutputForward(1.0, 10);
+		wrist.configPeakOutputReverse(-1.0, 10);
 		wrist.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
 		wrist.setSensorPhase(false);
 		wrist.getSensorCollection().setPulseWidthPosition(0, 10);
@@ -47,7 +49,7 @@ public class Wrist extends Subsystem{
 		wrist.config_kI(1, 0.0, 10);
 		wrist.config_kD(1, 240.0, 10);
 		wrist.config_kF(1, 1023.0/Constants.WRIST_MAX_SPEED, 10);
-		wrist.configMotionCruiseVelocity((int)(Constants.WRIST_MAX_SPEED*0.9), 10);
+		wrist.configMotionCruiseVelocity((int)(Constants.WRIST_MAX_SPEED*1.0), 10);
 		wrist.configMotionAcceleration((int)(Constants.WRIST_MAX_SPEED*3.0), 10);
 		wrist.configForwardSoftLimitThreshold(wristAngleToEncUnits(Constants.WRIST_MAX_ANGLE), 10);
 		wrist.configReverseSoftLimitThreshold(wristAngleToEncUnits(Constants.WRIST_MIN_ANGLE), 10);

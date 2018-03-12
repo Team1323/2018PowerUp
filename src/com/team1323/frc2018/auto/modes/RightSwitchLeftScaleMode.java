@@ -51,8 +51,8 @@ public class RightSwitchLeftScaleMode extends AutoModeBase {
 		Swerve.getInstance().setAbsolutePathHeading(-330.0);
 		runAction(new WaitForHeadingAction(-340.0, -320.0));
 		Superstructure.getInstance().requestConfig(35.0, Constants.ELEVATOR_BALANCED_SCALE_HEIGHT);
-		//runAction(new WaitToFinishPathAction());
-		runAction(new WaitToPassXCoordinateAction(22.75));
+		runAction(new WaitToFinishPathAction());
+		//runAction(new WaitToPassXCoordinateAction(22.75));
 		runAction(new WaitForElevatorAction());
 		Intake.getInstance().strongEject();
 		System.out.println("Second cube scored at: " + (Timer.getFPGATimestamp() - startTime));

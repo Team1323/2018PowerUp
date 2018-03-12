@@ -18,7 +18,7 @@ public class RightCubeToLeftScalePath extends PathfinderPath{
 		super.maxSpeed = 8.0;
 		super.defaultSpeed = 5.6;
 		super.lookaheadPoints = 10;
-		super.rotationScalar = 0.7;
+		super.rotationScalar = 0.8;
 	}
 	
 }

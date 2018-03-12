@@ -50,7 +50,7 @@ public class PathTransmitter implements Loop{
 		Trajectory.Segment seg = currentPath.getTrajectory().get(currentPointIndex);
 	    SmartDashboard.putNumber("Path X", seg.x);
 	    SmartDashboard.putNumber("Path Y", seg.y);
-	    currentPointIndex += 2;
+	    currentPointIndex += 1;
 	    
 	    if(currentPointIndex >= currentPath.getTrajectory().length()){
 	    	currentPath = null;

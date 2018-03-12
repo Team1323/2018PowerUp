@@ -157,7 +157,7 @@ public class RobotState {
         if (!reports.isEmpty()) {
             TrackReport report = reports.get(0);
             Translation2d robotFrameToFieldFrame = report.field_to_goal.inverse().translateBy(cubePosition);
-            if(robotFrameToFieldFrame.norm() <= 2.0){
+            if(robotFrameToFieldFrame.norm() <= 2.5){
             	Swerve.getInstance().resetPosition(new RigidTransform2d(Swerve.getInstance().getPose().getTranslation().translateBy(robotFrameToFieldFrame), Swerve.getInstance().getPose().getRotation()));
             	System.out.println("Coordinates corrected by " + robotFrameToFieldFrame.norm() + " feet");
             }else{

@@ -67,6 +67,7 @@ public class Robot extends IterativeRobot {
 	private Looper disabledLooper = new Looper();
 	
 	private RobotState robotState = RobotState.getInstance();
+	private LimelightProcessor limelight = LimelightProcessor.getInstance();
 	
 	private Xbox driver, coDriver;
 	
@@ -118,7 +119,7 @@ public class Robot extends IterativeRobot {
 		transmitter.addPaths(Arrays.asList(PathManager.mFrontLeftSwitchPath, PathManager.mFrontLeftSwitchToOuterCube, 
 				PathManager.mOuterCubeToFrontLeftSwitch, PathManager.mFrontLeftSwitchToMiddleCube, PathManager.mMiddleCubeToFrontLeftSwitch));
 		
-		PathfinderPath path = PathManager.mFrontLeftSwitchToOuterCube;
+		PathfinderPath path = PathManager.mFrontLeftSwitchPath;
 		double maxSpeed = 0.0;
 		int points = 0;
 		
@@ -137,7 +138,7 @@ public class Robot extends IterativeRobot {
 	public void allPeriodic(){
 		subsystems.outputToSmartDashboard();
 		swerve.outputToSmartDashboard();
-		SmartDashboard.putNumber("PDP Current", pdp.getTotalCurrent());
+		//SmartDashboard.putNumber("PDP Current", pdp.getTotalCurrent());
 		robotState.outputToSmartDashboard();
 		//SmartDashboard.putNumber("Swerve dt", swerveLooper.dt_);
 		//enabledLooper.outputToSmartDashboard();
@@ -163,12 +164,16 @@ public class Robot extends IterativeRobot {
 			
 			subsystems.zeroSensors();
 			swerve.zeroSensors();
+			swerve.setNominalDriveOutput(1.5);
 			/*transmitter.addPaths(Arrays.asList(PathManager.mLeftSwitchDropoff, PathManager.mLeftmostCubePickup,
 					PathManager.mLeftCubeToLeftScale, PathManager.mLeftScaleToSecondCube));*/
 			
 			disabledLooper.stop();
 			swerveLooper.start();
 			enabledLooper.start();
+			
+			limelight.setVisionMode();
+			limelight.ledOn(true);
 			
 			superstructure.enableCompressor(false);
 			
@@ -200,6 +205,11 @@ public class Robot extends IterativeRobot {
 			swerveLooper.start();
 			enabledLooper.start();
 			superstructure.enableCompressor(true);
+			limelight.setDriverMode();
+			limelight.ledOn(false);
+			swerve.setNominalDriveOutput(0.0);
+			//limelight.setVisionMode();
+			//limelight.ledOn(true);
 			SmartDashboard.putBoolean("Auto", false);
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
@@ -220,45 +230,44 @@ public class Robot extends IterativeRobot {
 				superstructure.requestIntakeIdle();
 			}
 			
-			double swerveYInput = (superstructure.getState() == Superstructure.State.HANGING) ? 0.0 : -driver.getY(Hand.kLeft);
-			double swerveXInput = (superstructure.getState() == Superstructure.State.HANGING) ? 0.0 : driver.getX(Hand.kLeft);
+			double swerveYInput = (superstructure.getState() == Superstructure.State.HANGING) ? 0.0 : driver.getX(Hand.kLeft);
+			double swerveXInput = (superstructure.getState() == Superstructure.State.HANGING) ? 0.0 : -driver.getY(Hand.kLeft);
 			double swerveRotationInput = (driver.rightCenterClick.isBeingPressed()) ? 0.0 : driver.getX(Hand.kRight);
 			
+			if(driver.startButton.isBeingPressed()){
+				swerveYInput = 0.5;
+				swerveRotationInput = 0.75;
+			}
+			
 			swerve.sendInput(swerveXInput, swerveYInput, swerveRotationInput, false, driver.leftTrigger.isBeingPressed());
-			if(driver.yButton.wasPressed())
+			if(driver.yButton.isBeingPressed())
 				swerve.rotate(0);
-			else if(driver.bButton.wasPressed())
+			else if(driver.bButton.isBeingPressed())
 				swerve.rotate(90);
-			else if(driver.aButton.wasPressed())
+			else if(driver.aButton.isBeingPressed())
 				swerve.rotate(180);
-			else if(driver.xButton.wasPressed())
+			else if(driver.xButton.isBeingPressed())
 				swerve.rotate(270);
 			else if(driver.leftCenterClick.isBeingPressed())
 				swerve.rotate(-135);
-			else if(driver.rightCenterClick.isBeingPressed())
-				swerve.rotate(135);
+			else if(driver.rightBumper.isBeingPressed())
+				swerve.rotate(25);
 			if(driver.backButton.wasPressed()){
 				robotState.resetRobotPosition(Constants.kRightSwitchTarget);
-				/*NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
-				NetworkTableEntry ledMode = table.getEntry("ledMode");
-				if(ledMode.getDouble(0) == 0)
-					ledMode.setNumber(1);
-				else
-					ledMode.setNumber(0);*/
 			}else if(driver.backButton.longPressed()){
 				swerve.temporarilyDisableHeadingController();
 				swerve.zeroSensors(new RigidTransform2d(new Translation2d(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH), Rotation2d.fromDegrees(0)));
 			}
 			
 			if(driver.startButton.isBeingPressed()){
-				swerve.enableCubeTracking(true);
+				//swerve.enableCubeTracking(true);
 			}else{
 				swerve.enableCubeTracking(false);
 			}
 			
 			if(coDriver.rightBumper.wasPressed()){
 				superstructure.requestIntakeOn();
-			}else if(coDriver.leftTrigger.wasPressed() || driver.rightBumper.wasPressed()){
+			}else if(coDriver.leftTrigger.wasPressed() || driver.leftBumper.wasPressed()){
 				superstructure.requestIntakeOpen();
 			}else if(coDriver.rightTrigger.wasPressed() || driver.rightTrigger.wasPressed()){
 				superstructure.requestIntakeScore();
@@ -284,8 +293,12 @@ public class Robot extends IterativeRobot {
 				superstructure.requestHumanLoadingConfig();
 			}else if(coDriver.aButton.longPressed()){
 				superstructure.requestExchangeConfig();
-			}else if(coDriver.leftBumper.wasPressed()){
-				superstructure.requestTippingCubeConfig();
+			}
+			
+			if(coDriver.leftBumper.isBeingPressed()){
+				limelight.blink();
+			}else{
+				limelight.ledOn(false);
 			}
 			
 			if(superstructure.driveTrainFlipped() && coDriver.leftTrigger.isBeingPressed())
@@ -298,9 +311,11 @@ public class Robot extends IterativeRobot {
 			if(Intake.getInstance().needsToNotifyDrivers()){
 				driver.rumble(1.0, 1.0);
 				coDriver.rumble(1.0, 1.0);
+			}else if(superstructure.hasDriverAlert()){
+				coDriver.rumble(1.0, 1.0);
 			}
 			
-			if(driver.leftBumper.wasPressed()){
+			if(driver.POV0.wasPressed()){
 				if(superstructure.getState() == Superstructure.State.HANGING)
 					superstructure.requestFinalHungConfig();
 				else

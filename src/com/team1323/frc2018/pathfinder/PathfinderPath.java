@@ -26,6 +26,7 @@ public class PathfinderPath {
 	protected double defaultSpeed = 7.5;
 	protected double rotationScalar = 1.0;
 	protected boolean rotationOverride = false;
+	protected boolean usePID = false;
 	
 	protected Waypoint[] points = null;
 	private Trajectory trajectory;
@@ -63,6 +64,10 @@ public class PathfinderPath {
 		return rotationOverride;
 	}
 	
+	public boolean shouldUsePID(){
+		return usePID;
+	}
+	
 	public DistanceFollower resetFollower(){
 		follower = new DistanceFollower(trajectory);
 		follower.configurePIDVA(p, 0.0, d, v, a);
@@ -78,21 +83,19 @@ public class PathfinderPath {
 	}
 	
 	public int getClosestSegmentIndex(RigidTransform2d robotPose, int currentSegment){
-		if(currentSegment > (trajectory.length() - 1))
-			return trajectory.length() - 1;
-		double distance = segmentToTranslation(trajectory.get(currentSegment)).translateBy(robotPose.getTranslation().inverse()).norm();
-		double distanceBehind = distance;
-		double distanceAhead = distance;
-		if(currentSegment > 0)
-			distanceBehind = segmentToTranslation(trajectory.get(currentSegment - 1)).translateBy(robotPose.getTranslation().inverse()).norm();
-		if(currentSegment < (trajectory.length() - 1))
-			distanceAhead = segmentToTranslation(trajectory.get(currentSegment + 1)).translateBy(robotPose.getTranslation().inverse()).norm();
-		if(distanceBehind < distance)
-			return currentSegment - 1;
-		else if(distanceAhead < distance)
-			return currentSegment + 1;
-		else
-			return currentSegment;
+		currentSegment = (currentSegment < trajectory.length()) ? currentSegment : (trajectory.length() - 1);
+		int window = 10;
+		int minIndex = currentSegment;
+		int pointsLeft = (trajectory.length() - 1) - currentSegment;
+		double minDistance = segmentToTranslation(trajectory.get(minIndex)).translateBy(robotPose.getTranslation().inverse()).norm();
+		for(int i = (currentSegment >= window) ? -window : -currentSegment; i <= ((window < pointsLeft) ? window : pointsLeft); i++){
+			double dist = segmentToTranslation(trajectory.get(currentSegment + i)).translateBy(robotPose.getTranslation().inverse()).norm();
+			if(dist < minDistance){
+				minIndex = currentSegment + i;
+				minDistance = dist;
+			}
+		}
+		return minIndex;
 	}
 	
 	public Translation2d segmentToTranslation(Segment seg){

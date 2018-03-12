@@ -14,6 +14,13 @@ public class LimelightProcessor implements Loop{
 	static LimelightProcessor instance = new LimelightProcessor();
 	edu.wpi.first.networktables.NetworkTable table;
 	RobotState robotState = RobotState.getInstance();
+	NetworkTableEntry ledMode;
+	NetworkTableEntry pipeline;
+	NetworkTableEntry camMode;
+	NetworkTableEntry tx;
+	NetworkTableEntry ty;
+	NetworkTableEntry ta;
+	NetworkTableEntry tv;
 	
 	public static LimelightProcessor getInstance(){
 		return instance;
@@ -25,20 +32,18 @@ public class LimelightProcessor implements Loop{
 	@Override 
 	public void onStart(double timestamp){
 		table = NetworkTableInstance.getDefault().getTable("limelight");
-		NetworkTableEntry ledMode = table.getEntry("ledMode");
-		ledMode.setNumber(0);
-		NetworkTableEntry pipeline = table.getEntry("pipeline");
-		pipeline.setNumber(3);
+		ledMode = table.getEntry("ledMode");
+		pipeline = table.getEntry("pipeline");
+		camMode = table.getEntry("camMode");
+		tx = table.getEntry("tx");
+		ty = table.getEntry("ty");
+		ta = table.getEntry("ta");
+		tv = table.getEntry("tv");
+		setPipeline(3);
 	}
 	
 	@Override 
 	public void onLoop(double timestamp){
-		NetworkTableEntry pipeline = table.getEntry("pipeline");
-		pipeline.setNumber(3);
-		NetworkTableEntry tx = table.getEntry("tx");
-		NetworkTableEntry ty = table.getEntry("ty");
-		NetworkTableEntry ta = table.getEntry("ta");
-		NetworkTableEntry tv = table.getEntry("tv");
 		double targetOffsetAngle_Horizontal = tx.getDouble(0);
 		double targetOffsetAngle_Vertical = ty.getDouble(0);
 		double targetArea = ta.getDouble(0);
@@ -55,5 +60,29 @@ public class LimelightProcessor implements Loop{
 	@Override
 	public void onStop(double timestamp){
 		
+	}
+	
+	public void blink(){
+		if(ledMode.getDouble(0) != 2)
+			ledMode.setNumber(2);
+	}
+	
+	public void ledOn(boolean on){
+		if(ledMode.getDouble(1) != 0 && on)
+			ledMode.setNumber(0);
+		else if(ledMode.getDouble(0) != 1 && !on)
+			ledMode.setNumber(1);
+	}
+	
+	public void setDriverMode(){
+		camMode.setNumber(1);
+	}
+	
+	public void setVisionMode(){
+		camMode.setNumber(0);
+	}
+	
+	public void setPipeline(int id){
+		pipeline.setNumber(id);
 	}
 }

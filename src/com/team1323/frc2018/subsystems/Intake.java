@@ -53,19 +53,27 @@ public class Intake extends Subsystem{
 		leftIntake.enableVoltageCompensation(true);
 		rightIntake.enableVoltageCompensation(true);
 		
-		leftIntake.configContinuousCurrentLimit(25, 10);
+		leftIntake.configOpenloopRamp(0.0, 10);
+		rightIntake.configOpenloopRamp(0.0, 10);
+		
+		leftIntake.configContinuousCurrentLimit(20, 10);
 		leftIntake.configPeakCurrentLimit(30, 10);
-		leftIntake.configPeakCurrentDuration(100, 10);
-		leftIntake.enableCurrentLimit(false);
-		rightIntake.configContinuousCurrentLimit(25, 10);
+		leftIntake.configPeakCurrentDuration(10, 10);
+		leftIntake.enableCurrentLimit(true);
+		rightIntake.configContinuousCurrentLimit(20, 10);
 		rightIntake.configPeakCurrentLimit(30, 10);
-		rightIntake.configPeakCurrentDuration(100, 10);
-		rightIntake.enableCurrentLimit(false);
+		rightIntake.configPeakCurrentDuration(10, 10);
+		rightIntake.enableCurrentLimit(true);
 		leftIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20, 10);
 		leftIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 20, 10);
 		rightIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20, 10);
 		rightIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 20, 10);
 		// 11.3 V 6.6 V 58%
+	}
+	
+	private void setRampRate(double secondsToFull){
+		leftIntake.configOpenloopRamp(secondsToFull, 0);
+		rightIntake.configOpenloopRamp(secondsToFull, 0);
 	}
 	
 	public enum State{
@@ -101,21 +109,25 @@ public class Intake extends Subsystem{
 	}
 	
 	private void forwardRollers(){
+		setRampRate(0.5);
 		leftIntake.set(ControlMode.PercentOutput, 1.0);
 		rightIntake.set(ControlMode.PercentOutput, 1.0);
 	}
 	
 	private void reverseRollers(){
+		setRampRate(0.0);
 		leftIntake.set(ControlMode.PercentOutput, -0.7);
 		rightIntake.set(ControlMode.PercentOutput, -0.7);
 	}
 	
 	private void weakReverseRollers(){
+		setRampRate(0.0);
 		leftIntake.set(ControlMode.PercentOutput, -0.4);
 		rightIntake.set(ControlMode.PercentOutput, -0.4);
 	}
 	
 	private void strongReverseRollers(){
+		setRampRate(0.0);
 		leftIntake.set(ControlMode.PercentOutput, -1.0);
 		rightIntake.set(ControlMode.PercentOutput, -1.0);
 	}
@@ -126,6 +138,7 @@ public class Intake extends Subsystem{
 	}
 	
 	private void holdRollers(){
+		setRampRate(0.0);
 		leftIntake.set(ControlMode.PercentOutput, 2.0/12.0);
 		rightIntake.set(ControlMode.PercentOutput, 2.0/12.0);
 	}
@@ -191,19 +204,28 @@ public class Intake extends Subsystem{
 				
 				break;
 			case EJECTING:
+				setRampRate(0.0);
 				hasCube = false;
-				if(timestamp - stateEnteredTimestamp > 1.0)
+				if(timestamp - stateEnteredTimestamp > 1.0){
 					stop();
+					setRampRate(0.5);
+				}
 				break;
 			case WEAK_EJECT:
+				setRampRate(0.0);
 				hasCube = false;
-				if(timestamp - stateEnteredTimestamp > 1.0)
+				if(timestamp - stateEnteredTimestamp > 1.0){
 					stop();
+					setRampRate(0.5);
+				}
 				break;
 			case STRONG_EJECT:
+				setRampRate(0.0);
 				hasCube = false;
-				if(timestamp - stateEnteredTimestamp > 1.0)
+				if(timestamp - stateEnteredTimestamp > 1.0){
 					stop();
+					setRampRate(0.5);
+				}
 				break;
 			default:
 				break;
@@ -219,6 +241,7 @@ public class Intake extends Subsystem{
 	};
 	
 	public void intake(){
+		hasCube = false;
 		setState(State.INTAKING);
 		forwardRollers();
 		firePinchers(true);
@@ -226,6 +249,7 @@ public class Intake extends Subsystem{
 	}
 	
 	public void nonchalantIntake(){
+		hasCube = false;
 		setState(State.NONCHALANT_INTAKING);
 		forwardRollers();
 		firePinchers(true);
@@ -233,6 +257,7 @@ public class Intake extends Subsystem{
 	}
 	
 	public void intakeWide(){
+		hasCube = false;
 		setState(State.INTAKING_WIDE);
 		firePinchers(false);
 		fireClampers(false);
@@ -260,7 +285,7 @@ public class Intake extends Subsystem{
 	
 	public void eject(){
 		setState(State.EJECTING);
-		reverseRollers();
+		strongReverseRollers();
 		firePinchers(true);
 		fireClampers(false);
 		hasCube = false;

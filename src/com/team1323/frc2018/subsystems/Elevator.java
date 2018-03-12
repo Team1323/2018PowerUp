@@ -21,7 +21,7 @@ public class Elevator extends Subsystem{
 			instance = new Elevator();
 		return instance;
 	}
-	
+	//0.977 8.75
 	TalonSRX master, motor2, motor3, motor4;
 	Solenoid shifter, latch, gasStruts;
 	private double targetHeight = 0.0;
@@ -64,10 +64,24 @@ public class Elevator extends Subsystem{
 		master.configForwardSoftLimitThreshold(Constants.ELEVATOR_ENCODER_STARTING_POSITION + feetToEncUnits(Constants.ELEVATOR_MAX_HEIGHT), 10);
 		master.configForwardSoftLimitEnable(true, 10);
 		master.configReverseSoftLimitEnable(true, 10);
-		master.configContinuousCurrentLimit(30, 10);
-		master.configPeakCurrentLimit(40, 10);
-		master.configPeakCurrentDuration(100, 10);
+		
+		master.configContinuousCurrentLimit(20, 10);
+		master.configPeakCurrentLimit(20, 10);
+		master.configPeakCurrentDuration(10, 10);
 		master.enableCurrentLimit(true);
+		motor2.configContinuousCurrentLimit(20, 10);
+		motor2.configPeakCurrentLimit(20, 10);
+		motor2.configPeakCurrentDuration(10, 10);
+		motor2.enableCurrentLimit(true);
+		motor3.configContinuousCurrentLimit(20, 10);
+		motor3.configPeakCurrentLimit(20, 10);
+		motor3.configPeakCurrentDuration(10, 10);
+		motor3.enableCurrentLimit(true);
+		motor4.configContinuousCurrentLimit(20, 10);
+		motor4.configPeakCurrentLimit(20, 10);
+		motor4.configPeakCurrentDuration(10, 10);
+		motor4.enableCurrentLimit(true);
+		
 		//resetToAbsolutePosition();
 		master.setNeutralMode(NeutralMode.Brake);
 		motor2.setNeutralMode(NeutralMode.Brake);

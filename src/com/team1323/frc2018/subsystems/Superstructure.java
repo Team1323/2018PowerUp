@@ -49,14 +49,14 @@ public class Superstructure extends Subsystem{
 	}
 	
 	public enum WantedState{
-		IDLE, INTAKING, STOWED, RAISED, READY_FOR_HANG, HUNG
+		IDLE, INTAKING, STOWED, RAISED, READY_FOR_HANG, HUNG, EXCHANGE
 	}
 	private WantedState wantedState = WantedState.IDLE;
 	private WantedState previousWantedState = WantedState.IDLE;
 	public WantedState getWantedState(){
 		return wantedState;
 	}
-	private void setWantedState(WantedState newState){
+	public void setWantedState(WantedState newState){
 		previousWantedState = wantedState;
 		wantedState = newState;
 	}
@@ -69,12 +69,22 @@ public class Superstructure extends Subsystem{
 	double desiredElevatorHeight = 0.0;
 	double desiredWristAngle = 0.0;
 	double desiredStowAngle = Constants.WRIST_PRIMARY_STOW_ANGLE;
+	boolean shouldStow = false;
+	
+	boolean driverAlert = false;
+	public boolean hasDriverAlert(){
+		if(driverAlert){
+			driverAlert = false;
+			return true;
+		}
+		return false;
+	}
 	
 	private final Loop loop = new Loop(){
 
 		@Override
 		public void onStart(double timestamp) {
-			
+			driverAlert = false;
 		}
 
 		@Override
@@ -105,7 +115,15 @@ public class Superstructure extends Subsystem{
 					break;
 				case INTAKING:
 					if(intake.getState() == Intake.State.CLAMPING){
-						requestPrimaryWristStow();
+						switch(wantedState){
+						case EXCHANGE:
+							requestExchangeConfig();
+							break;
+						default:
+							if(shouldStow)
+								requestPrimaryWristStow();
+							break;
+						}
 					}
 					break;
 				case WAITING_FOR_ELEVATOR:
@@ -196,6 +214,7 @@ public class Superstructure extends Subsystem{
 		switch(wantedState){
 		case INTAKING:
 			requestIntakeOn();
+			driverAlert = true;
 			setState(State.INTAKING);
 			break;
 		case READY_FOR_HANG:
@@ -225,11 +244,13 @@ public class Superstructure extends Subsystem{
 		intake.stop();
 		requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_INTAKING_HEIGHT);
 		setWantedState(WantedState.INTAKING);
+		shouldStow = true;
 	}
 	
 	public synchronized void requestNonchalantIntakeConfig(){
 		requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_INTAKING_HEIGHT);
-		intake.nonchalantIntake();
+		setWantedState(WantedState.INTAKING);
+		shouldStow = false;
 	}
 	
 	public synchronized void requestOpenIntakingConfig(){
@@ -240,18 +261,19 @@ public class Superstructure extends Subsystem{
 	public synchronized void requestHighIntakingConfig(){
 		intake.stop();
 		requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_SECOND_CUBE_HEIGHT);
-		intake.nonchalantIntake();
+		setWantedState(WantedState.INTAKING);
+		shouldStow = false;
 	}
 	
 	public synchronized void requestHumanLoadingConfig(){
 		intake.stop();
 		requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_HUMAN_LOAD_HEIGHT);
-		intake.nonchalantIntake();
+		intake.open();
 	}
 	
 	public synchronized void requestSwitchConfig(){
-		requestIntakeHold();
 		requestConfig(20.0, Constants.ELEVATOR_SWITCH_HEIGHT);
+		requestIntakeHold();
 	}
 	
 	public synchronized void requestBalancedScaleConfig(){
@@ -294,7 +316,7 @@ public class Superstructure extends Subsystem{
 		if(getState() == State.READY_FOR_HANG){
 			elevator.configForHanging();
 			wrist.setAngle(Constants.WRIST_PRIMARY_STOW_ANGLE);
-			elevator.setHanigngTargetHeight(Constants.ELEVATOR_MINIMUM_HANGING_HEIGHT);
+			elevator.setHanigngTargetHeight(Constants.ELEVATOR_MINIMUM_HANGING_HEIGHT + 0.5);
 			setState(State.ASSUMING_CONFIG);
 			setWantedState(WantedState.HUNG);
 		}
@@ -340,11 +362,17 @@ public class Superstructure extends Subsystem{
 	
 	public synchronized void requestGroundStowedConfig(){
 		intake.stop();
+		setWantedState(WantedState.IDLE);
 		requestConfig(Constants.WRIST_PRIMARY_STOW_ANGLE, Constants.ELEVATOR_INTAKING_HEIGHT);
 	}
 	
 	public synchronized void requestExchangeConfig(){
-		requestConfig(Constants.WRIST_INTAKING_ANGLE + 8.0, Constants.ELEVATOR_INTAKING_HEIGHT);
+		if(currentState != State.INTAKING || intake.hasCube()){
+			setWantedState(WantedState.IDLE);
+			requestConfig(Constants.WRIST_INTAKING_ANGLE + 8.0, Constants.ELEVATOR_INTAKING_HEIGHT);
+		}else{
+			setWantedState(WantedState.EXCHANGE);
+		}
 	}
 	
 	public synchronized void requestTippingCubeConfig(){
@@ -354,7 +382,7 @@ public class Superstructure extends Subsystem{
 	}
 	
 	public synchronized void requestIntakeOn(){
-		intake.intake();
+		intake.nonchalantIntake();
 	}
 	
 	public synchronized void requestNonchalantIntake(){
@@ -385,7 +413,7 @@ public class Superstructure extends Subsystem{
 		if(input != 0 && getState() != State.WRIST_MANUAL){
 			setWantedState(WantedState.IDLE);
 			setState(State.ELEVATOR_MANUAL);
-			elevator.setOpenLoop(input * 0.5);
+			elevator.setOpenLoop(input * 1.0);
 		}else if(getState() == State.ELEVATOR_MANUAL){
 			elevator.setOpenLoop(0);
 			if(elevator.getVelocityFeetPerSecond() <= 1.0){
@@ -403,7 +431,7 @@ public class Superstructure extends Subsystem{
 		if(input != 0 && getState() != State.ELEVATOR_MANUAL){
 			setWantedState(WantedState.IDLE);
 			setState(State.WRIST_MANUAL);
-			wrist.setOpenLoop(input * 0.5);
+			wrist.setOpenLoop(input * 1.0);
 		}else if(getState() == State.WRIST_MANUAL){
 			wrist.setOpenLoop(0);
 			//setWantedState(previousWantedState);

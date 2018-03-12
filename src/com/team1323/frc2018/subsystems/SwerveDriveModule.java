@@ -61,6 +61,11 @@ public class SwerveDriveModule extends Subsystem{
 		rotationMotor.setSensorPhase(reverse);
 	}
 	
+	public synchronized void setNominalDriveOutput(double voltage){
+		driveMotor.configNominalOutputForward(voltage / 12.0, 10);
+		driveMotor.configNominalOutputReverse(-voltage / 12.0, 10);
+	}
+	
 	private void configureMotors(){
     	rotationMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10);
     	//resetRotationToAbsolute();
@@ -86,8 +91,8 @@ public class SwerveDriveModule extends Subsystem{
     	driveMotor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 10, 10);
     	driveMotor.configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms, 10);
     	driveMotor.configVelocityMeasurementWindow(32, 10);
-    	driveMotor.configNominalOutputForward(2.0/12.0, 10);
-    	driveMotor.configNominalOutputReverse(-2.0/12.0, 10);
+    	driveMotor.configNominalOutputForward(1.5/12.0, 10);
+    	driveMotor.configNominalOutputReverse(-1.5/12.0, 10);
     	driveMotor.configPeakOutputForward(1.0, 10);
     	driveMotor.configPeakOutputReverse(-1.0, 10);
     	driveMotor.configVoltageCompSaturation(12.0, 10);

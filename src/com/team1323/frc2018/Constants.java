@@ -1,7 +1,12 @@
 package com.team1323.frc2018;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.team1323.lib.util.InterpolatingDouble;
 import com.team1323.lib.util.InterpolatingTreeMap;
+import com.team254.lib.util.math.RigidTransform2d;
+import com.team254.lib.util.math.Rotation2d;
 import com.team254.lib.util.math.Translation2d;
 
 public class Constants {
@@ -36,6 +41,8 @@ public class Constants {
 	public static final Translation2d kRightSwitchTarget = new Translation2d(140.0 / 12.0, 13.5 + (51.875 / 12.0));
 	public static final double kTargetHeight = 18.75 / 2.0 / 12.0;
 	
+	public static final RigidTransform2d kRobotStartingPose = new RigidTransform2d(new Translation2d(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH), Rotation2d.fromDegrees(0));
+	
 	//Swerve Calculations Constants
     public static final double WHEELBASE_LENGTH = 18.5 / 12.0; //feet
     public static final double WHEELBASE_WIDTH  = 23.5 / 12.0; //feet
@@ -46,10 +53,10 @@ public class Constants {
     public static final double kCameraXOffset = ROBOT_HALF_LENGTH - (12.303/12.0) + (0.75/12.0);
     public static final double kCameraZOffset = 16.0 / 12.0;
     public static final double kCameraYawAngleDegrees = 0.0;
-    public static final double kCameraPitchAngleDegrees = -11.375;
+    public static final double kCameraPitchAngleDegrees = -12.5;
     
  // Goal tracker constants
-    public static double kMaxGoalTrackAge = 0.25;
+    public static double kMaxGoalTrackAge = 0.1;
     public static double kMaxTrackerDistance = 18.0;
     public static double kCameraFrameRate = 90.0;
     public static double kTrackReportComparatorStablityWeight = 1.0;
@@ -60,20 +67,19 @@ public class Constants {
     public static final double SWERVE_DRIVE_MAX_SPEED = 5432.0;
     
     //Swerve Module Wheel Offsets
-	public static final int FRONT_RIGHT_ENCODER_STARTING_POS = -294;//done
-	public static final int FRONT_LEFT_ENCODER_STARTING_POS = -301;//done
-	public static final int REAR_LEFT_ENCODER_STARTING_POS = -2983;//done
-	public static final int REAR_RIGHT_ENCODER_STARTING_POS = -3480;//done
+	public static final int FRONT_RIGHT_ENCODER_STARTING_POS = -120;//done
+	public static final int FRONT_LEFT_ENCODER_STARTING_POS = -263;//done
+	public static final int REAR_LEFT_ENCODER_STARTING_POS = -3024;//done
+	public static final int REAR_RIGHT_ENCODER_STARTING_POS = -3452;//done
 	
 	//Swerve Module Positions
-	public static final Translation2d kVehicleToModuleOne = new Translation2d(WHEELBASE_LENGTH/2, WHEELBASE_WIDTH/2);
-	public static final Translation2d kVehicleToModuleTwo = new Translation2d(WHEELBASE_LENGTH/2, -WHEELBASE_WIDTH/2);
-	public static final Translation2d kVehicleToModuleThree = new Translation2d(-WHEELBASE_LENGTH/2, -WHEELBASE_WIDTH/2);
-	public static final Translation2d kVehicleToModuleFour = new Translation2d(-WHEELBASE_LENGTH/2, WHEELBASE_WIDTH/2);
-	/*public static final Translation2d kVehicleToModuleOne = new Translation2d(0.0, 0.0);
-	public static final Translation2d kVehicleToModuleTwo = new Translation2d(0.0, 0.0);
-	public static final Translation2d kVehicleToModuleThree = new Translation2d(0.0, 0.0);
-	public static final Translation2d kVehicleToModuleFour = new Translation2d(0.0, 0.0);*/
+	public static final Translation2d kVehicleToModuleZero = new Translation2d(WHEELBASE_LENGTH/2, WHEELBASE_WIDTH/2);
+	public static final Translation2d kVehicleToModuleOne = new Translation2d(WHEELBASE_LENGTH/2, -WHEELBASE_WIDTH/2);
+	public static final Translation2d kVehicleToModuleTwo = new Translation2d(-WHEELBASE_LENGTH/2, -WHEELBASE_WIDTH/2);
+	public static final Translation2d kVehicleToModuleThree = new Translation2d(-WHEELBASE_LENGTH/2, WHEELBASE_WIDTH/2);
+	
+	public static final List<Translation2d> kModulePositions = Arrays.asList(kVehicleToModuleZero,
+			kVehicleToModuleOne, kVehicleToModuleTwo, kVehicleToModuleThree);
 	
 	//Scrub Factors
 	public static final double[] kWheelScrubFactors = new double[]{1.0, 1.0, 1.0, /*5.0/5.15*/1.0};
@@ -98,8 +104,8 @@ public class Constants {
 	public static final double ELEVATOR_TICKS_PER_FOOT = 11983.0 / 2.5989583; //determined empirically
 	public static final double ELEVATOR_HEIGHT_TOLERANCE = 0.1; //feet
 	public static final double ELEVATOR_INTAKING_HEIGHT = 0.125; //feet
-	public static final double ELEVATOR_SECOND_CUBE_HEIGHT = 1.022;
-	public static final double ELEVATOR_HUMAN_LOAD_HEIGHT = 1.903;
+	public static final double ELEVATOR_SECOND_CUBE_HEIGHT = 0.97;
+	public static final double ELEVATOR_HUMAN_LOAD_HEIGHT = 1.836;
 	public static final double ELEVATOR_SWITCH_HEIGHT = 2.0; //feet
 	public static final double ELEVATOR_BALANCED_SCALE_HEIGHT = 5.05; //feet
 	public static final double ELEVATOR_HIGH_SCALE_HEIGHT = 5.3;
@@ -125,7 +131,7 @@ public class Constants {
 	}
 	
 	//Wrist Constants
-	public static final double WRIST_MAX_SPEED = 41.58 * 4096.0 / 600.0; //encoder units per 100 ms
+	public static final double WRIST_MAX_SPEED = /*41.58 * 4096.0 / 600.0*/300.0; //encoder units per 100 ms
 	public static final double WRIST_STARTING_ANGLE = 90.0;
 	/**
 	 * Pulse width position of the wrist encoder when the wrist is upright (at 90 degrees).
@@ -138,7 +144,7 @@ public class Constants {
 	public static final double WRIST_ANGLE_TOLERANCE = 10.0; //degrees
 	public static final double WRIST_MIN_ANGLE = -2.0; //degrees
 	public static final double WRIST_MAX_ANGLE = 92.0; //degrees
-	public static final double WRIST_INTAKING_ANGLE = 4.0;
+	public static final double WRIST_INTAKING_ANGLE = 5.7;
 	public static final double WRIST_PRIMARY_STOW_ANGLE = 85.0;
 	public static final double WRIST_SECONDARY_STOW_ANGLE = 60.0;
 	public static final double WRIST_MAX_STOW_HEIGHT = 3.5; //height of the elevator
