@@ -3,10 +3,8 @@ package com.team1323.frc2018.auto.modes;
 import com.team1323.frc2018.Constants;
 import com.team1323.frc2018.auto.AutoModeBase;
 import com.team1323.frc2018.auto.AutoModeEndedException;
-import com.team1323.frc2018.auto.actions.EjectCubeAction;
 import com.team1323.frc2018.auto.actions.FollowPathAction;
 import com.team1323.frc2018.auto.actions.ResetPoseAction;
-import com.team1323.frc2018.auto.actions.SetTargetHeadingAction;
 import com.team1323.frc2018.auto.actions.WaitAction;
 import com.team1323.frc2018.auto.actions.WaitForElevatorAction;
 import com.team1323.frc2018.auto.actions.WaitForHeadingAction;
@@ -35,14 +33,18 @@ public class RightSwitchLeftScaleMode extends AutoModeBase {
 		runAction(new WaitAction(0.5));
 		Swerve.getInstance().setAbsolutePathHeading(-90.0);
 		Superstructure.getInstance().requestSwitchConfig();
-		runAction(new WaitToPassXCoordinateAction(Constants.kRightSwitchCloseCorner.x() - 2.0));
+		runAction(new WaitToPassXCoordinateAction(Constants.kRightSwitchCloseCorner.x() - 1.0));
 		Superstructure.getInstance().requestIntakeScore();
 		runAction(new WaitToPassXCoordinateAction(Constants.kRightSwitchFarCorner.x()));
 		runAction(new WaitAction(0.25));
 		Superstructure.getInstance().requestNonchalantIntakeConfig();
 		runAction(new WaitToFinishPathAction());
-		runAction(new FollowPathAction(PathManager.mRightmostCubePickup, -135.0));
-		runAction(new WaitToIntakeCubeAction(2.5));
+		runAction(new WaitForElevatorAction());
+		runAction(new FollowPathAction(PathManager.mRightmostCubePickup, -170.0));
+		Intake.getInstance().intakeWide();
+		runAction(new WaitToFinishPathAction());
+		Intake.getInstance().intake();
+		runAction(new WaitToIntakeCubeAction(1.5));
 		System.out.println("Intaken at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new FollowPathAction(PathManager.mRightCubeToLeftScale, -180.0));
 		runAction(new WaitAction(0.25));
@@ -54,11 +56,15 @@ public class RightSwitchLeftScaleMode extends AutoModeBase {
 		runAction(new WaitToFinishPathAction());
 		//runAction(new WaitToPassXCoordinateAction(22.75));
 		runAction(new WaitForElevatorAction());
-		Intake.getInstance().strongEject();
+		Intake.getInstance().weakEject();
 		System.out.println("Second cube scored at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new WaitAction(0.25));
 		runAction(new FollowPathAction(PathManager.mLeftScaleToFirstCube, -225.0));
 		runAction(new WaitAction(0.25));
+		/*Superstructure.getInstance().requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_INTAKING_HEIGHT);
+		Intake.getInstance().open();
+		runAction(new WaitToFinishPathAction());
+		Intake.getInstance().intake();*/
 		Superstructure.getInstance().requestNonchalantIntakeConfig();
 		runAction(new WaitToIntakeCubeAction(3.0));
 		System.out.println("Third cube intaken at: " + (Timer.getFPGATimestamp() - startTime));
@@ -67,7 +73,7 @@ public class RightSwitchLeftScaleMode extends AutoModeBase {
 		runAction(new WaitToPassXCoordinateAction(22.75));
 		runAction(new WaitForElevatorAction());
 		runAction(new WaitForHeadingAction(-325.0 ,-305.0));
-		Superstructure.getInstance().requestIntakeScore();
+		Superstructure.getInstance().requestIntakeWeakScore();
 		System.out.println("Third cube scored at: " + (Timer.getFPGATimestamp() - startTime));
 	}
 

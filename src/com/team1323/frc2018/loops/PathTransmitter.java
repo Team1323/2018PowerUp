@@ -20,15 +20,21 @@ public class PathTransmitter implements Loop{
 	private List<PathfinderPath> remainingPaths = new ArrayList<>();
 	private PathfinderPath currentPath;
 	private int currentPointIndex = 0;
+	private List<PathfinderPath> cachedPaths = remainingPaths;
 	
 	public void addPaths(List<PathfinderPath> paths){
 		remainingPaths = new ArrayList<>(paths.size());
+		cachedPaths = remainingPaths;
 		
 		for(PathfinderPath path: paths){
 			remainingPaths.add(path);
 		}
 		
 		currentPath = null;
+	}
+	
+	public void transmitCachedPaths(){
+		addPaths(cachedPaths);
 	}
 
 	@Override

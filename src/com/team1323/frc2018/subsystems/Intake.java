@@ -29,16 +29,12 @@ public class Intake extends Subsystem{
 	private Solenoid pinchers, clampers;
 	private DigitalInput banner;
 	
-	public TalonSRX getPigeonTalon(){
-		return leftIntake;
-	}
-	
 	private Intake(){
 		leftIntake = new TalonSRX(Ports.INTAKE_LEFT);
 		rightIntake = new TalonSRX(Ports.INTAKE_RIGHT);
 		pinchers = new Solenoid(20, Ports.INTAKE_PINCHERS);
 		clampers = new Solenoid(20, Ports.INTAKE_CLAMPERS);
-		banner = new DigitalInput(Ports.INTAKE_LEFT_BANNER);
+		banner = new DigitalInput(Ports.INTAKE_BANNER);
 		
 		leftIntake.setInverted(false);
 		rightIntake.setInverted(true);
@@ -59,11 +55,11 @@ public class Intake extends Subsystem{
 		leftIntake.configContinuousCurrentLimit(20, 10);
 		leftIntake.configPeakCurrentLimit(30, 10);
 		leftIntake.configPeakCurrentDuration(10, 10);
-		leftIntake.enableCurrentLimit(true);
+		leftIntake.enableCurrentLimit(false);
 		rightIntake.configContinuousCurrentLimit(20, 10);
 		rightIntake.configPeakCurrentLimit(30, 10);
 		rightIntake.configPeakCurrentDuration(10, 10);
-		rightIntake.enableCurrentLimit(true);
+		rightIntake.enableCurrentLimit(false);
 		leftIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20, 10);
 		leftIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_2_Feedback0, 20, 10);
 		rightIntake.setStatusFramePeriod(StatusFrameEnhanced.Status_1_General, 20, 10);
@@ -77,7 +73,8 @@ public class Intake extends Subsystem{
 	}
 	
 	public enum State{
-		OFF, INTAKING, CLAMPING, EJECTING, SPINNING, OPEN, WEAK_EJECT, INTAKING_WIDE, NONCHALANT_INTAKING, GROUND_CLAMPING, STRONG_EJECT
+		OFF, INTAKING, CLAMPING, EJECTING, SPINNING, OPEN, WEAK_EJECT, INTAKING_WIDE, NONCHALANT_INTAKING, 
+		GROUND_CLAMPING, STRONG_EJECT, FORCED_INTAKE
 	}
 	private State currentState = State.OFF;
 	public State getState(){
@@ -98,6 +95,10 @@ public class Intake extends Subsystem{
 			return true;
 		}
 		return false;
+	}
+	
+	public double getAverageCurrent(){
+		return (leftIntake.getOutputCurrent() + rightIntake.getOutputCurrent()) / 2.0;
 	}
 	
 	public void firePinchers(boolean fire){
@@ -186,11 +187,23 @@ public class Intake extends Subsystem{
 				break;
 			case NONCHALANT_INTAKING:
 				if(banner.get()){
-					hasCube = true;
-					clamp();
+					if(bannerSensorBeganTimestamp == Double.POSITIVE_INFINITY){
+						bannerSensorBeganTimestamp = timestamp;
+					}else{
+						if(timestamp - bannerSensorBeganTimestamp > 0.25){
+							hasCube = true;
+							needsToNotifyDrivers = true;
+							groundClamp();
+						}
+					}
+				}else if(bannerSensorBeganTimestamp != Double.POSITIVE_INFINITY){
+					bannerSensorBeganTimestamp = Double.POSITIVE_INFINITY;
 				}
 				break;
 			case INTAKING_WIDE:
+				
+				break;
+			case FORCED_INTAKE:
 				
 				break;
 			case SPINNING:
@@ -206,7 +219,7 @@ public class Intake extends Subsystem{
 			case EJECTING:
 				setRampRate(0.0);
 				hasCube = false;
-				if(timestamp - stateEnteredTimestamp > 1.0){
+				if(timestamp - stateEnteredTimestamp > 2.0){
 					stop();
 					setRampRate(0.5);
 				}
@@ -214,7 +227,7 @@ public class Intake extends Subsystem{
 			case WEAK_EJECT:
 				setRampRate(0.0);
 				hasCube = false;
-				if(timestamp - stateEnteredTimestamp > 1.0){
+				if(timestamp - stateEnteredTimestamp > 2.0){
 					stop();
 					setRampRate(0.5);
 				}
@@ -222,7 +235,7 @@ public class Intake extends Subsystem{
 			case STRONG_EJECT:
 				setRampRate(0.0);
 				hasCube = false;
-				if(timestamp - stateEnteredTimestamp > 1.0){
+				if(timestamp - stateEnteredTimestamp > 2.0){
 					stop();
 					setRampRate(0.5);
 				}
@@ -264,6 +277,14 @@ public class Intake extends Subsystem{
 		forwardRollers();
 	}
 	
+	public void forceIntake(){
+		hasCube = false;
+		setState(State.FORCED_INTAKE);
+		forwardRollers();
+		firePinchers(true);
+		fireClampers(false);
+	}
+	
 	public void spin(){
 		setState(State.SPINNING);
 		spinRollers();
@@ -285,7 +306,7 @@ public class Intake extends Subsystem{
 	
 	public void eject(){
 		setState(State.EJECTING);
-		strongReverseRollers();
+		reverseRollers();
 		firePinchers(true);
 		fireClampers(false);
 		hasCube = false;
@@ -348,7 +369,7 @@ public class Intake extends Subsystem{
 		SmartDashboard.putNumber("Right Intake Current", rightIntake.getOutputCurrent());
 		SmartDashboard.putNumber("Left Intake Voltage", leftIntake.getMotorOutputVoltage());
 		SmartDashboard.putNumber("Right Intake Voltage", rightIntake.getMotorOutputVoltage());
-		SmartDashboard.putString("Intake State", currentState.toString());
+		//SmartDashboard.putString("Intake State", currentState.toString());
 		SmartDashboard.putBoolean("Intake Has Cube", hasCube);
 		SmartDashboard.putBoolean("Intake Banner", banner.get());
 	}

@@ -157,7 +157,7 @@ public class RobotState {
         if (!reports.isEmpty()) {
             TrackReport report = reports.get(0);
             Translation2d robotFrameToFieldFrame = report.field_to_goal.inverse().translateBy(cubePosition);
-            if(robotFrameToFieldFrame.norm() <= 2.5){
+            if(robotFrameToFieldFrame.norm() <= 2.0){
             	Swerve.getInstance().resetPosition(new RigidTransform2d(Swerve.getInstance().getPose().getTranslation().translateBy(robotFrameToFieldFrame), Swerve.getInstance().getPose().getRotation()));
             	System.out.println("Coordinates corrected by " + robotFrameToFieldFrame.norm() + " feet");
             }else{
@@ -191,23 +191,23 @@ public class RobotState {
     
     public void outputToSmartDashboard(){
     	RigidTransform2d odometry = getLatestFieldToVehicle().getValue();
-        SmartDashboard.putNumber("robot_pose_x", odometry.getTranslation().x());
-        SmartDashboard.putNumber("robot_pose_y", odometry.getTranslation().y());
-        SmartDashboard.putNumber("robot_pose_theta", odometry.getRotation().getDegrees());
+        //SmartDashboard.putNumber("robot_pose_x", odometry.getTranslation().x());
+        //SmartDashboard.putNumber("robot_pose_y", odometry.getTranslation().y());
+        //SmartDashboard.putNumber("robot_pose_theta", odometry.getRotation().getDegrees());
         List<RigidTransform2d> poses = getCaptureTimeFieldToGoal();
         for (RigidTransform2d pose : poses) {
             // Only output first goal
-            SmartDashboard.putNumber("goal_pose_x", pose.getTranslation().x());
-            SmartDashboard.putNumber("goal_pose_y", pose.getTranslation().y());
+            //SmartDashboard.putNumber("goal_pose_x", pose.getTranslation().x());
+            //SmartDashboard.putNumber("goal_pose_y", pose.getTranslation().y());
             break;
         }
         Optional<ShooterAimingParameters> aiming_params = getCachedAimingParameters();
         if (aiming_params.isPresent()) {
-            SmartDashboard.putNumber("goal_range", aiming_params.get().getRange());
-            SmartDashboard.putNumber("goal_theta", aiming_params.get().getRobotToGoal().getDegrees());
+            //SmartDashboard.putNumber("goal_range", aiming_params.get().getRange());
+            //SmartDashboard.putNumber("goal_theta", aiming_params.get().getRobotToGoal().getDegrees());
         } else {
-            SmartDashboard.putNumber("goal_range", 0.0);
-            SmartDashboard.putNumber("goal_theta", 0.0);
+            //SmartDashboard.putNumber("goal_range", 0.0);
+            //SmartDashboard.putNumber("goal_theta", 0.0);
         }
     }
 }

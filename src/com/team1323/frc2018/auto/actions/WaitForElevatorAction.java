@@ -11,7 +11,7 @@ public class WaitForElevatorAction implements Action{
 
 	@Override
 	public boolean isFinished() {
-		return superstructure.getState() == Superstructure.State.CONFIGURED;
+		return superstructure.isConfigured();
 	}
 
 	@Override

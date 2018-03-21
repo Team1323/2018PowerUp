@@ -163,14 +163,14 @@ public class Wrist extends Subsystem{
 	@Override
 	public void outputToSmartDashboard() {
 		SmartDashboard.putNumber("Wrist Current", wrist.getOutputCurrent());
-		SmartDashboard.putNumber("Wrist Voltage", wrist.getMotorOutputVoltage());
+		//SmartDashboard.putNumber("Wrist Voltage", wrist.getMotorOutputVoltage());
 		SmartDashboard.putNumber("Wrist Encoder", wrist.getSelectedSensorPosition(0));
 		SmartDashboard.putNumber("Wrist Pulse Width Position", wrist.getSensorCollection().getPulseWidthPosition());
 		SmartDashboard.putNumber("Wrist Angle", getAngle());
-		SmartDashboard.putNumber("Wrist Velocity", wrist.getSelectedSensorVelocity(0));
-		SmartDashboard.putNumber("Wrist Error", wrist.getClosedLoopError(0));
-		if(wrist.getControlMode() == ControlMode.MotionMagic)
-			SmartDashboard.putNumber("Wrist Setpoint", wrist.getClosedLoopTarget(0));
+		//SmartDashboard.putNumber("Wrist Velocity", wrist.getSelectedSensorVelocity(0));
+		//SmartDashboard.putNumber("Wrist Error", wrist.getClosedLoopError(0));
+		/*if(wrist.getControlMode() == ControlMode.MotionMagic)
+			SmartDashboard.putNumber("Wrist Setpoint", wrist.getClosedLoopTarget(0));*/
 	}
 	
 	public boolean checkSystem(){

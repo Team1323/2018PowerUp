@@ -32,6 +32,5 @@ public class Ports {
     public static final int GAS_STRUTS = 4;
     
     //Digital Inputs
-    public static final int INTAKE_LEFT_BANNER = 0;
-    public static final int INTAKE_RIGHT_BANNER = 2;
+    public static final int INTAKE_BANNER = 0;
 }

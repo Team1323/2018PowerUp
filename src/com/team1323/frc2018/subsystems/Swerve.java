@@ -135,7 +135,7 @@ public class Swerve extends Subsystem{
 		translationalInput = (inputMagnitude < deadband) ? new Translation2d() : translationalInput;
 		rotate = (Math.abs(rotate) < deadband) ? 0 : rotate;
 		
-		translationalInput.scale(maxSpeedFactor);
+		translationalInput = translationalInput.scale(maxSpeedFactor);
 		rotate *= maxSpeedFactor;
 				
 		translationalVector = translationalInput;
@@ -239,7 +239,7 @@ public class Swerve extends Subsystem{
 		double averageDistance = 0.0;
 		double[] distances = new double[4];
 		for(SwerveDriveModule m : modules){
-			if(m.moduleID != 2){
+			if(m.moduleID != 5){
 				m.updatePose(heading);
 				double distance = m.getEstimatedRobotPose().getTranslation().translateBy(pose.getTranslation().inverse()).norm();
 				distances[m.moduleID] = distance;
@@ -248,13 +248,13 @@ public class Swerve extends Subsystem{
 				distances[m.moduleID] = 0.0;
 			}
 		}
-		averageDistance /= 3.0;
+		averageDistance /= 4.0;
 		
 		int minDevianceIndex = 0;
 		double minDeviance = 100.0;
 		List<SwerveDriveModule> modulesToUse = new ArrayList<>();
 		for(SwerveDriveModule m : modules){
-			if(m.moduleID != 2){
+			if(m.moduleID != 5){
 				double deviance = Math.abs(distances[m.moduleID] - averageDistance);
 				if(deviance < minDeviance){
 					minDeviance = deviance;
@@ -381,7 +381,7 @@ public class Swerve extends Subsystem{
 			}
 			if(!currentPath.rotationOverride())
 				rotationCorrection = rotationCorrection*pathMotorOutput*currentPath.rotationScalar();
-		    List<Translation2d> driveVectors = inverseKinematics.updateDriveVectors(angleToLookahead.toTranslation().scale(pathMotorOutput),
+		    List<Translation2d> driveVectors = inverseKinematics.updateDriveVectors(angleToLookahead.toTranslation().scale(((pathMotorOutput == 0) ? 1 : pathMotorOutput)),
 		    		rotationCorrection, pose);
 			for(int i=0; i<modules.size(); i++){
 	    		if(Util.shouldReverse(driveVectors.get(i).direction().getDegrees(), modules.get(i).getModuleAngle().getDegrees())){
@@ -392,9 +392,28 @@ public class Swerve extends Subsystem{
 	    			modules.get(i).setDriveOpenLoop(driveVectors.get(i).norm());
 	    		}
 	    	}
+			/*double x = angleToLookahead.sin();
+		    double y = angleToLookahead.cos();
+		    double tmp = (y * pose.getRotation().cos()) + (x * pose.getRotation().sin());
+			double xInput = (-y * pose.getRotation().sin()) + (x * pose.getRotation().cos());
+			double yInput = tmp;
+			if(!currentPath.rotationOverride())
+				rotationCorrection = rotationCorrection*pathMotorOutput*currentPath.rotationScalar();
+		    kinematics.calculate(xInput * pathMotorOutput, yInput * pathMotorOutput, rotationCorrection);
+		    for(int i=0; i<modules.size(); i++){
+	    		if(Util.shouldReverse(kinematics.wheelAngles[i], modules.get(i).getModuleAngle().getDegrees())){
+	    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i] + 180);
+	    			modules.get(i).setDriveOpenLoop(-kinematics.wheelSpeeds[i]);
+	    		}else{
+	    			modules.get(i).setModuleAngle(kinematics.wheelAngles[i]);
+	    			modules.get(i).setDriveOpenLoop(kinematics.wheelSpeeds[i]);
+	    		}
+	    	}*/
 			SmartDashboard.putNumber("Vector Direction", angleToLookahead.getDegrees());
 			SmartDashboard.putNumber("Vector Magnitude", 1.0);
 			lastSteeringDirection = angleToLookahead;
+			//System.out.println("Steering direction: " + angleToLookahead.getDegrees());
+			//System.out.println("Module 0 direction: " + driveVectors.get(0).direction().getDegrees());
 			previousPathfinderVelocity = currentPathTrajectory.get(currentPathSegment).velocity;
 			currentPathSegment++;
 			break;
@@ -410,6 +429,7 @@ public class Swerve extends Subsystem{
 		public void onStart(double timestamp) {
 			synchronized(Swerve.this){
 				translationalVector = new Translation2d();
+				lastActiveVector = rotationalVector;
 				rotationalInput = 0;
 				headingController.temporarilyDisable();
 				stop();
@@ -476,11 +496,11 @@ public class Swerve extends Subsystem{
 		SmartDashboard.putNumber("Robot X", pose.getTranslation().x());
 		SmartDashboard.putNumber("Robot Y", pose.getTranslation().y());
 		SmartDashboard.putNumber("Robot Heading", pose.getRotation().getUnboundedDegrees());
-		SmartDashboard.putString("Heading Controller", headingController.getState().toString());
+		//SmartDashboard.putString("Heading Controller", headingController.getState().toString());
 		SmartDashboard.putNumber("Target Heading", headingController.getTargetHeading());
-		SmartDashboard.putNumber("Distance Traveled", distanceTraveled);
-		SmartDashboard.putNumber("Robot Velocity", currentVelocity);
+		//SmartDashboard.putNumber("Distance Traveled", distanceTraveled);
+		//SmartDashboard.putNumber("Robot Velocity", currentVelocity);
 		SmartDashboard.putString("Swerve State", currentState.toString());
-		SmartDashboard.putNumber("Swerve Ultrasonic", getUltrasonicReading());
+		//SmartDashboard.putNumber("Swerve Ultrasonic", getUltrasonicReading());
 	}
 }

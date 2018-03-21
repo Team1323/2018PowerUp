@@ -13,6 +13,7 @@ import com.team254.lib.util.math.RigidTransform2d;
 import com.team254.lib.util.math.Rotation2d;
 import com.team254.lib.util.math.Translation2d;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class SwerveDriveModule extends Subsystem{
@@ -252,15 +253,15 @@ public class SwerveDriveModule extends Subsystem{
 		updateRawAngle();
 		SmartDashboard.putNumber(name + "Angle", getModuleAngle().getDegrees());
 		SmartDashboard.putNumber(name + "Pulse Width", rotationMotor.getSelectedSensorPosition(0));
-		SmartDashboard.putNumber(name + "Drive Voltage", driveMotor.getMotorOutputVoltage());
+		//SmartDashboard.putNumber(name + "Drive Voltage", driveMotor.getMotorOutputVoltage());
 		SmartDashboard.putNumber(name + "Inches Driven", getDriveDistanceInches());
 		//SmartDashboard.putNumber(name + "Rotation Voltage", rotationMotor.getMotorOutputVoltage());
-		SmartDashboard.putNumber(name + "Velocity", encUnitsPer100msToFeetPerSecond(driveMotor.getSelectedSensorVelocity(0)));
-		if(rotationMotor.getControlMode() == ControlMode.MotionMagic)
-			SmartDashboard.putNumber(name + "Error", rotationMotor.getClosedLoopError(0));
-		SmartDashboard.putNumber(name + "X", position.x());
-		SmartDashboard.putNumber(name + "Y", position.y());
-		SmartDashboard.putNumber(name + "Drive Current", driveMotor.getOutputCurrent());
+		//SmartDashboard.putNumber(name + "Velocity", encUnitsPer100msToFeetPerSecond(driveMotor.getSelectedSensorVelocity(0)));
+		/*if(rotationMotor.getControlMode() == ControlMode.MotionMagic)
+			SmartDashboard.putNumber(name + "Error", rotationMotor.getClosedLoopError(0));*/
+		//SmartDashboard.putNumber(name + "X", position.x());
+		//SmartDashboard.putNumber(name + "Y", position.y());
+		//SmartDashboard.putNumber(name + "Drive Current", driveMotor.getOutputCurrent());
 	}
 	
 }

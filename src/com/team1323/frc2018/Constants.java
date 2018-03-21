@@ -67,10 +67,10 @@ public class Constants {
     public static final double SWERVE_DRIVE_MAX_SPEED = 5432.0;
     
     //Swerve Module Wheel Offsets
-	public static final int FRONT_RIGHT_ENCODER_STARTING_POS = -120;//done
-	public static final int FRONT_LEFT_ENCODER_STARTING_POS = -263;//done
-	public static final int REAR_LEFT_ENCODER_STARTING_POS = -3024;//done
-	public static final int REAR_RIGHT_ENCODER_STARTING_POS = -3452;//done
+	public static final int FRONT_RIGHT_ENCODER_STARTING_POS = -1739;// p 450 c -1739
+	public static final int FRONT_LEFT_ENCODER_STARTING_POS = -888;// p 854 c -888
+	public static final int REAR_LEFT_ENCODER_STARTING_POS = -40;// p -1477 c -40
+	public static final int REAR_RIGHT_ENCODER_STARTING_POS = -3503;// p -3216 c -3503
 	
 	//Swerve Module Positions
 	public static final Translation2d kVehicleToModuleZero = new Translation2d(WHEELBASE_LENGTH/2, WHEELBASE_WIDTH/2);
@@ -109,13 +109,14 @@ public class Constants {
 	public static final double ELEVATOR_SWITCH_HEIGHT = 2.0; //feet
 	public static final double ELEVATOR_BALANCED_SCALE_HEIGHT = 5.05; //feet
 	public static final double ELEVATOR_HIGH_SCALE_HEIGHT = 5.3;
-	public static final double ELEVATOR_LOW_SCALE_HEIGHT = 4.16;
-	public static final double ELEVATOR_HANGING_HEIGHT = 4.8;
+	public static final double ELEVATOR_LOW_SCALE_HEIGHT = 4.3;
+	public static final double ELEVATOR_HANGING_HEIGHT = 4.9;
 	public static final double ELEVATOR_MIN_HEIGHT = 0.0; //feet
 	public static final double ELEVATOR_MAX_HEIGHT = 5.4; //feet
 	public static final double ELEVATOR_MAX_CURRENT = 50.0;//amps
-	public static final double ELEVATOR_MINIMUM_HANGING_HEIGHT = 0.631;
-	public static final double ELEVATOR_MAXIMUM_HANGING_HEIGHT = 3.517;
+	public static final int ELEVATOR_CURRENT_LIMIT = 10;
+	public static final double ELEVATOR_MINIMUM_HANGING_HEIGHT = 0.78;
+	public static final double ELEVATOR_MAXIMUM_HANGING_HEIGHT = 3.5;
 	public static final double ELEVATOR_HANGING_RAMP_HEIGHT = 3.452;
 	public static final double ELEVATOR_TIPPING_CUBE_HEIGHT = 0.57;
 	//0.905
@@ -134,9 +135,9 @@ public class Constants {
 	public static final double WRIST_MAX_SPEED = /*41.58 * 4096.0 / 600.0*/300.0; //encoder units per 100 ms
 	public static final double WRIST_STARTING_ANGLE = 90.0;
 	/**
-	 * Pulse width position of the wrist encoder when the wrist is upright (at 90 degrees).
+	 * Pulse width position of the wrist encoder when the wrist is upright (at 90 degrees, parallel to the elevator).
 	 */
-	public static final int WRIST_STARTING_ENCODER_POSITION = 3639;
+	public static final int WRIST_STARTING_ENCODER_POSITION = 3620; //p 3639 c 3620
 	/**
 	 * The number of rotations the wrist encoder undergoes for every rotation of the wrist.
 	 */
@@ -144,7 +145,7 @@ public class Constants {
 	public static final double WRIST_ANGLE_TOLERANCE = 10.0; //degrees
 	public static final double WRIST_MIN_ANGLE = -2.0; //degrees
 	public static final double WRIST_MAX_ANGLE = 92.0; //degrees
-	public static final double WRIST_INTAKING_ANGLE = 5.7;
+	public static final double WRIST_INTAKING_ANGLE = 0.67;//p 5.7 c 0.67
 	public static final double WRIST_PRIMARY_STOW_ANGLE = 85.0;
 	public static final double WRIST_SECONDARY_STOW_ANGLE = 60.0;
 	public static final double WRIST_MAX_STOW_HEIGHT = 3.5; //height of the elevator

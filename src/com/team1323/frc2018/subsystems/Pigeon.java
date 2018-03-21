@@ -22,7 +22,7 @@ public class Pigeon {
     
 	private Pigeon(){
 		try{
-			pigeon = new PigeonIMU(new TalonSRX(Ports.PIGEON_TALON));
+			pigeon = new PigeonIMU(/*new TalonSRX(Ports.PIGEON_TALON)*/Elevator.getInstance().getPigeonTalon());
 		}catch(Exception e){
 			System.out.println(e);
 		}

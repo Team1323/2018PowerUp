@@ -1,11 +1,14 @@
 package com.team1323.frc2018.auto;
 
 import com.team1323.frc2018.auto.modes.LeftFrontSwitchMode;
+import com.team1323.frc2018.auto.modes.LeftScaleMode;
 import com.team1323.frc2018.auto.modes.LeftSwitchLeftScaleMode;
 import com.team1323.frc2018.auto.modes.LeftSwitchRightScaleMode;
+import com.team1323.frc2018.auto.modes.RightFrontSwitchMode;
 import com.team1323.frc2018.auto.modes.RightSwitchLeftScaleMode;
 import com.team1323.frc2018.auto.modes.RightSwitchRightScaleMode;
 import com.team1323.frc2018.auto.modes.StandStillMode;
+import com.team1323.frc2018.auto.modes.TestMode;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -22,6 +25,7 @@ public class SmartDashboardInteractions {
     	modeChooser = new SendableChooser();
     	modeChooser.addDefault("Switch and Scale", DEFAULT_MODE);
     	modeChooser.addObject("Switch Only", AutoOption.SWITCH_ONLY);
+    	modeChooser.addObject("Scale Only", AutoOption.SCALE_ONLY);
     	
     	SmartDashboard.putData("Mode Chooser", modeChooser);
     	SmartDashboard.putString(SELECTED_AUTO_MODE, DEFAULT_MODE.name);
@@ -40,7 +44,8 @@ public class SmartDashboardInteractions {
     
     enum AutoOption{
     	SWITCH_AND_SCALE("Switch and Scale"),
-    	SWITCH_ONLY("Switch Only");
+    	SWITCH_ONLY("Switch Only"),
+    	SCALE_ONLY("Scale Only");
     	
     	public final String name;
     	
@@ -61,6 +66,8 @@ public class SmartDashboardInteractions {
     				return new LeftSwitchRightScaleMode();
     			case "LL":
     				return new LeftSwitchLeftScaleMode();
+    			case "TT":
+    				return new TestMode();
     			default:
     				System.out.println("ERROR: unexpected auto mode: " + option);
                     return new StandStillMode();
@@ -68,10 +75,23 @@ public class SmartDashboardInteractions {
     		case SWITCH_ONLY:
     			switch(gameData){
     			case "LL":
+    				//fall-through intended
+    			case "LR":
     				return new LeftFrontSwitchMode();
+    			case "RR":
+    				//fall-through intended
+    			case "RL":
+    				return new RightFrontSwitchMode();
     			default:
     				System.out.println("ERROR: unexpected auto mode: " + option);
                     return new StandStillMode();
+    			}
+    		case SCALE_ONLY:
+    			switch(gameData){
+    			case "LL":
+    				//fall-through intended
+    			case "RL":
+    				return new LeftScaleMode();
     			}
             default:
                 System.out.println("ERROR: unexpected auto mode: " + option);

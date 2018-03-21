@@ -29,6 +29,14 @@ public class Elevator extends Subsystem{
 	public boolean isHighGear(){
 		return isHighGear;
 	}
+	private boolean limitsEnabled = false;
+	public boolean limitsEnabled(){
+		return limitsEnabled;
+	}
+	
+	public TalonSRX getPigeonTalon(){
+		return motor2;
+	}
 	
 	public enum ControlState{
 		Neutral, Position, OpenLoop, Locked
@@ -64,23 +72,14 @@ public class Elevator extends Subsystem{
 		master.configForwardSoftLimitThreshold(Constants.ELEVATOR_ENCODER_STARTING_POSITION + feetToEncUnits(Constants.ELEVATOR_MAX_HEIGHT), 10);
 		master.configForwardSoftLimitEnable(true, 10);
 		master.configReverseSoftLimitEnable(true, 10);
+		enableLimits(true);
 		
-		master.configContinuousCurrentLimit(20, 10);
-		master.configPeakCurrentLimit(20, 10);
-		master.configPeakCurrentDuration(10, 10);
-		master.enableCurrentLimit(true);
-		motor2.configContinuousCurrentLimit(20, 10);
-		motor2.configPeakCurrentLimit(20, 10);
-		motor2.configPeakCurrentDuration(10, 10);
-		motor2.enableCurrentLimit(true);
-		motor3.configContinuousCurrentLimit(20, 10);
-		motor3.configPeakCurrentLimit(20, 10);
-		motor3.configPeakCurrentDuration(10, 10);
-		motor3.enableCurrentLimit(true);
-		motor4.configContinuousCurrentLimit(20, 10);
-		motor4.configPeakCurrentLimit(20, 10);
-		motor4.configPeakCurrentDuration(10, 10);
-		motor4.enableCurrentLimit(true);
+		setCurrentLimit(Constants.ELEVATOR_CURRENT_LIMIT);
+		
+		master.configClosedloopRamp(0.0, 10);
+		motor2.configClosedloopRamp(0.0, 10);
+		motor3.configClosedloopRamp(0.0, 10);
+		motor4.configClosedloopRamp(0.0, 10);
 		
 		//resetToAbsolutePosition();
 		master.setNeutralMode(NeutralMode.Brake);
@@ -126,26 +125,37 @@ public class Elevator extends Subsystem{
 		master.config_kD(1, 160.0, 10);
 		master.config_kF(1, 1023.0/Constants.ELEVATOR_MAX_SPEED_LOW_GEAR, 10);
 		master.configMotionCruiseVelocity((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR*0.9), 10);
-		master.configMotionAcceleration((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR*0.5), 10);
+		master.configMotionAcceleration((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR*1.0), 10);
 	}
 	
 	public void setHangingLimits(){
 		master.configReverseSoftLimitThreshold(feetToEncUnits(Constants.ELEVATOR_MINIMUM_HANGING_HEIGHT), 10);
 		master.configForwardSoftLimitThreshold(feetToEncUnits(Constants.ELEVATOR_MAXIMUM_HANGING_HEIGHT), 10);
+		System.out.println("Hanging limits set for the elevator");
 	}
 	
-	public void setLowCurrentLimit(){
-		master.configContinuousCurrentLimit(15, 10);
-		master.configPeakCurrentLimit(20, 10);
-		master.configPeakCurrentDuration(100, 10);
-		master.enableCurrentLimit(true);
+	public void enableLimits(boolean enable){
+		master.overrideSoftLimitsEnable(enable);
+		limitsEnabled = enable;
 	}
 	
-	public void setHighCurrentLimit(){
-		master.configContinuousCurrentLimit(30, 10);
-		master.configPeakCurrentLimit(40, 10);
-		master.configPeakCurrentDuration(100, 10);
+	public void setCurrentLimit(int amps){
+		master.configContinuousCurrentLimit(amps, 10);
+		master.configPeakCurrentLimit(amps, 10);
+		master.configPeakCurrentDuration(10, 10);
 		master.enableCurrentLimit(true);
+		motor2.configContinuousCurrentLimit(amps, 10);
+		motor2.configPeakCurrentLimit(amps, 10);
+		motor2.configPeakCurrentDuration(10, 10);
+		motor2.enableCurrentLimit(true);
+		motor3.configContinuousCurrentLimit(amps, 10);
+		motor3.configPeakCurrentLimit(amps, 10);
+		motor3.configPeakCurrentDuration(10, 10);
+		motor3.enableCurrentLimit(true);
+		motor4.configContinuousCurrentLimit(amps, 10);
+		motor4.configPeakCurrentLimit(amps, 10);
+		motor4.configPeakCurrentDuration(10, 10);
+		motor4.enableCurrentLimit(true);
 	}
 	
 	public void fireGasStruts(boolean fire){
@@ -319,15 +329,15 @@ public class Elevator extends Subsystem{
 		SmartDashboard.putNumber("Elevator 2 Current", motor2.getOutputCurrent());
 		SmartDashboard.putNumber("Elevator 3 Current", motor3.getOutputCurrent());
 		SmartDashboard.putNumber("Elevator 4 Current", motor4.getOutputCurrent());
-		SmartDashboard.putNumber("Elevator Voltage", master.getMotorOutputVoltage());
-		SmartDashboard.putNumber("Elevator Height", Math.round(getHeight()*1000.0)/1000.0);
-		SmartDashboard.putNumber("Elevator Height Graph", getHeight());
-		SmartDashboard.putNumber("Elevator Pulse Width Position", master.getSensorCollection().getPulseWidthPosition());
+		//SmartDashboard.putNumber("Elevator Voltage", master.getMotorOutputVoltage());
+		SmartDashboard.putNumber("Elevator Height", /*Math.round(getHeight()*1000.0)/1000.0*/getHeight());
+		//SmartDashboard.putNumber("Elevator Height Graph", getHeight());
+		//SmartDashboard.putNumber("Elevator Pulse Width Position", master.getSensorCollection().getPulseWidthPosition());
 		SmartDashboard.putNumber("Elevator Encoder", master.getSelectedSensorPosition(0));
-		SmartDashboard.putNumber("Elevator Velocity", master.getSelectedSensorVelocity(0));
-		SmartDashboard.putNumber("Elevator Error", master.getClosedLoopError(0));
-		if(master.getControlMode() == ControlMode.MotionMagic)
-			SmartDashboard.putNumber("Elevator Setpoint", master.getClosedLoopTarget(0));
+		//SmartDashboard.putNumber("Elevator Velocity", master.getSelectedSensorVelocity(0));
+		//SmartDashboard.putNumber("Elevator Error", master.getClosedLoopError(0));
+		/*if(master.getControlMode() == ControlMode.MotionMagic)
+			SmartDashboard.putNumber("Elevator Setpoint", master.getClosedLoopTarget(0));*/
 	}
 	
 	public boolean checkSystem(){

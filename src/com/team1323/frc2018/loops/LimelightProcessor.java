@@ -39,7 +39,7 @@ public class LimelightProcessor implements Loop{
 		ty = table.getEntry("ty");
 		ta = table.getEntry("ta");
 		tv = table.getEntry("tv");
-		setPipeline(3);
+		setPipeline(0);
 	}
 	
 	@Override 
