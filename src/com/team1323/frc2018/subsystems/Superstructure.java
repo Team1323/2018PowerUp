@@ -112,7 +112,7 @@ public class Superstructure extends Subsystem{
 						intake.stop();
 						wrist.setAngle(92.0);
 					}
-					if(elevatorHeight < (Constants.ELEVATOR_MINIMUM_HANGING_HEIGHT + 0.5)){
+					if(elevatorHeight < (Constants.ELEVATOR_MINIMUM_HANGING_HEIGHT + 0.25)){
 						setManualElevatorSpeed(0.25);
 					}else{
 						setManualElevatorSpeed(1.0);
@@ -348,7 +348,7 @@ public class Superstructure extends Subsystem{
 		if(getState() == State.READY_FOR_HANG){
 			elevator.configForHanging();
 			wrist.setAngle(Constants.WRIST_PRIMARY_STOW_ANGLE);
-			elevator.setHanigngTargetHeight(Constants.ELEVATOR_MINIMUM_HANGING_HEIGHT + 0.1);
+			elevator.setHanigngTargetHeight(Constants.ELEVATOR_MINIMUM_HANGING_HEIGHT);
 			setState(State.ASSUMING_CONFIG);
 			setWantedState(WantedState.HUNG);
 		}
@@ -430,13 +430,13 @@ public class Superstructure extends Subsystem{
 	
 	public synchronized void requestIntakeScore(){
 		if(getWantedState() == WantedState.EXCHANGE)
-			intake.strongEject();
+			intake.eject(Constants.kIntakeStrongEjectOutput);
 		else
-			intake.eject();
+			intake.eject(Constants.kIntakeEjectOutput);
 	}
 	
 	public synchronized void requestIntakeWeakScore(){
-		intake.weakEject();
+		intake.eject(Constants.kIntakeWeakEjectOutput);
 	}
 	
 	public synchronized void requestIntakeIdle(){

@@ -13,7 +13,7 @@ public class LeftmostCubePickupPath extends PathfinderPath{
 				//new Waypoint(Constants.kLeftMostCube.x(), Constants.kLeftMostCube.y(), Pathfinder.d2r(150.0))
 				//new Waypoint(Constants.kLeftSwitchFarCorner.x() + Constants.ROBOT_INTAKE_EXTRUSION + Constants.ROBOT_HALF_LENGTH + 2.0, Constants.kLeftSwitchFarCorner.y() + (Constants.kCubeWidth/2.0) + 0.25, Pathfinder.d2r(180)),
 				//new Waypoint(Constants.kLeftSwitchFarCorner.x() + Constants.ROBOT_INTAKE_EXTRUSION + Constants.ROBOT_HALF_LENGTH + 1.0, Constants.kLeftSwitchFarCorner.y() + (Constants.kCubeWidth/2.0) + 0.25, Pathfinder.d2r(180))
-				new Waypoint(Constants.kLeftSwitchFarCorner.x() + 5.0, Constants.kLeftSwitchFarCorner.y() - Constants.ROBOT_HALF_LENGTH + 0.5, Pathfinder.d2r(135)),
+				new Waypoint(Constants.kLeftSwitchFarCorner.x() + 5.0, Constants.kLeftSwitchFarCorner.y() - Constants.kRobotHalfLength + 0.5, Pathfinder.d2r(135)),
 				new Waypoint(Constants.kLeftSwitchFarCorner.x() + 3.5, Constants.kLeftSwitchFarCorner.y() + 0.4, Pathfinder.d2r(135))//3.7
 			};
 			super.defaultSpeed = 4.0;

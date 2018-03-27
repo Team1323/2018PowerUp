@@ -34,7 +34,7 @@ public class LeftScaleMode extends AutoModeBase{
 		Swerve.getInstance().setAbsolutePathHeading(45.0);
 		//runAction(new WaitToPassXCoordinateAction(22.5));
 		runAction(new WaitToFinishPathAction());
-		Intake.getInstance().strongEject();
+		Intake.getInstance().eject(Constants.kIntakeStrongEjectOutput);
 		System.out.println("First Cube Scored at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new WaitAction(0.5));
 		/*runAction(new FollowPathAction(PathManager.mLeftScaleToFirstCube, 135.0));
@@ -61,7 +61,7 @@ public class LeftScaleMode extends AutoModeBase{
 		runAction(new WaitToFinishPathAction());
 		runAction(new WaitForElevatorAction());
 		//runAction(new WaitForHeadingAction(35.0, 55.0));
-		Intake.getInstance().strongEject();
+		Intake.getInstance().eject(Constants.kIntakeStrongEjectOutput);
 		System.out.println("Second Cube scored at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new WaitAction(0.25));
 		runAction(new FollowPathAction(PathManager.mLeftScaleToSecondCube, 150.0));

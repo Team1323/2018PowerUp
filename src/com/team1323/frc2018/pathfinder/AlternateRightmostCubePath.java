@@ -9,8 +9,8 @@ public class AlternateRightmostCubePath extends PathfinderPath{
 
 	public AlternateRightmostCubePath(){
 		super.points = new Waypoint[]{
-			new Waypoint(Constants.kRightScaleCorner.x() - Constants.ROBOT_HALF_LENGTH - 0.75, Constants.kRightScaleCorner.y() + Constants.ROBOT_HALF_WIDTH + 3.0, Pathfinder.d2r(-135)),
-			new Waypoint(Constants.kRightScaleCorner.x() - Constants.ROBOT_HALF_LENGTH - 3.0, Constants.kRightScaleCorner.y() + Constants.ROBOT_HALF_WIDTH + 2.0, Pathfinder.d2r(-135))
+			new Waypoint(Constants.kRightScaleCorner.x() - Constants.kRobotHalfLength - 0.75, Constants.kRightScaleCorner.y() + Constants.kRobotHalfWidth + 3.0, Pathfinder.d2r(-135)),
+			new Waypoint(Constants.kRightScaleCorner.x() - Constants.kRobotHalfLength - 3.0, Constants.kRightScaleCorner.y() + Constants.kRobotHalfWidth + 2.0, Pathfinder.d2r(-135))
 		};
 		super.defaultSpeed = 4.0;
 		super.maxSpeed = 4.0;

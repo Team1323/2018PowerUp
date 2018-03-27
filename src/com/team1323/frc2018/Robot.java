@@ -210,12 +210,12 @@ public class Robot extends IterativeRobot {
 			swerveLooper.start();
 			enabledLooper.start();
 			superstructure.enableCompressor(true);
-			limelight.setDriverMode();
-			limelight.ledOn(false);
+			//limelight.setDriverMode();
+			//limelight.ledOn(false);
 			swerve.setNominalDriveOutput(0.0);
 			Elevator.getInstance().setCurrentLimit(30);
-			//limelight.setVisionMode();
-			//limelight.ledOn(false);
+			limelight.setVisionMode();
+			limelight.ledOn(true);
 			//SmartDashboard.putBoolean("Auto", false);
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
@@ -257,7 +257,7 @@ public class Robot extends IterativeRobot {
 				robotState.resetRobotPosition(Constants.kRightSwitchTarget);
 			}else if(driver.backButton.longPressed()){
 				swerve.temporarilyDisableHeadingController();
-				swerve.zeroSensors(new RigidTransform2d(new Translation2d(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH), Rotation2d.fromDegrees(0)));
+				swerve.zeroSensors(Constants.kRobotStartingPose);
 			}
 			
 			if(driver.startButton.isBeingPressed()){
@@ -298,6 +298,8 @@ public class Robot extends IterativeRobot {
 				superstructure.requestHumanLoadingConfig();
 			}else if(coDriver.aButton.longPressed()){
 				superstructure.requestExchangeConfig();
+			}else if(coDriver.POV90.wasPressed()){
+				superstructure.requestTippingCubeConfig();
 			}
 			
 			if(coDriver.startButton.longPressed()){
@@ -312,7 +314,7 @@ public class Robot extends IterativeRobot {
 			if(coDriver.leftBumper.isBeingPressed()){
 				limelight.blink();
 			}else{
-				limelight.ledOn(false);
+				//limelight.ledOn(false);
 			}
 			
 			if(superstructure.driveTrainFlipped() && coDriver.leftTrigger.isBeingPressed())

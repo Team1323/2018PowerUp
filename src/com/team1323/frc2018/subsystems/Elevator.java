@@ -21,8 +21,8 @@ public class Elevator extends Subsystem{
 			instance = new Elevator();
 		return instance;
 	}
-	//0.977 8.75
-	TalonSRX master, motor2, motor3, motor4;
+	
+	TalonSRX master, motor2, motor3;
 	Solenoid shifter, latch, gasStruts;
 	private double targetHeight = 0.0;
 	private boolean isHighGear = true;
@@ -53,18 +53,21 @@ public class Elevator extends Subsystem{
 		master = new TalonSRX(Ports.ELEVATOR_1);
 		motor2 = new TalonSRX(Ports.ELEVATOR_2);
 		motor3 = new TalonSRX(Ports.ELEVATOR_3);
-		motor4 = new TalonSRX(Ports.ELEVATOR_4);
 		
 		shifter = new Solenoid(20, Ports.ELEVATOR_SHIFTER);
 		latch = new Solenoid(20, Ports.ELEVATOR_RELEASE_PISTON);
 		gasStruts = new Solenoid(20, Ports.GAS_STRUTS);
 		
+		master.configVoltageCompSaturation(12.0, 10);
+		motor2.configVoltageCompSaturation(12.0, 10);
+		motor3.configVoltageCompSaturation(12.0, 10);
 		master.enableVoltageCompensation(true);
+		motor2.enableVoltageCompensation(true);
+		motor3.enableVoltageCompensation(true);
 		
 		master.setInverted(true);
 		motor2.setInverted(true);
 		motor3.setInverted(true);
-		motor4.setInverted(true);
 		
 		master.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
 		master.setSensorPhase(true);
@@ -79,18 +82,15 @@ public class Elevator extends Subsystem{
 		master.configClosedloopRamp(0.0, 10);
 		motor2.configClosedloopRamp(0.0, 10);
 		motor3.configClosedloopRamp(0.0, 10);
-		motor4.configClosedloopRamp(0.0, 10);
 		
 		//resetToAbsolutePosition();
 		master.setNeutralMode(NeutralMode.Brake);
 		motor2.setNeutralMode(NeutralMode.Brake);
 		motor3.setNeutralMode(NeutralMode.Brake);
-		motor4.setNeutralMode(NeutralMode.Brake);
 		configForLifting();
 		master.set(ControlMode.PercentOutput, 0.0);
 		motor2.set(ControlMode.Follower, Ports.ELEVATOR_1);
 		motor3.set(ControlMode.Follower, Ports.ELEVATOR_1);
-		motor4.set(ControlMode.Follower, Ports.ELEVATOR_1);
 	}
 	
 	private void setHighGear(boolean high){
@@ -102,18 +102,18 @@ public class Elevator extends Subsystem{
 		setHighGear(true);
 		
 		master.selectProfileSlot(0, 0);
-		master.config_kP(0, 3.0, 10);
+		master.config_kP(0, 4.0, 10);
 		master.config_kI(0, 0.0, 10);
 		master.config_kD(0, 160.0, 10);
-		master.config_kF(0, 1023.0/Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR, 10);
+		master.config_kF(0, 1023.0/Constants.kElevatorMaxSpeedHighGear, 10);
 		
 		master.config_kP(1, 1.5, 10);
 		master.config_kI(1, 0.0, 10);
 		master.config_kD(1, 70.0, 10);
-		master.config_kF(1, 1023.0/Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR, 10);
+		master.config_kF(1, 1023.0/Constants.kElevatorMaxSpeedHighGear, 10);
 		
-		master.configMotionCruiseVelocity((int)(Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR*0.9), 10);
-		master.configMotionAcceleration((int)(Constants.ELEVATOR_MAX_SPEED_HIGH_GEAR*3.0), 10);
+		master.configMotionCruiseVelocity((int)(Constants.kElevatorMaxSpeedHighGear*1.0), 10);//0.9
+		master.configMotionAcceleration((int)(Constants.kElevatorMaxSpeedHighGear*3.0), 10);//3.0
 	}
 	
 	public void configForHanging(){
@@ -123,9 +123,9 @@ public class Elevator extends Subsystem{
 		master.config_kP(1, 8.0, 10);
 		master.config_kI(1, 0.0, 10);
 		master.config_kD(1, 160.0, 10);
-		master.config_kF(1, 1023.0/Constants.ELEVATOR_MAX_SPEED_LOW_GEAR, 10);
-		master.configMotionCruiseVelocity((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR*0.9), 10);
-		master.configMotionAcceleration((int)(Constants.ELEVATOR_MAX_SPEED_LOW_GEAR*1.0), 10);
+		master.config_kF(1, 1023.0/Constants.kElevatorMaxSpeedLowGear, 10);
+		master.configMotionCruiseVelocity((int)(Constants.kElevatorMaxSpeedLowGear*0.9), 10);
+		master.configMotionAcceleration((int)(Constants.kElevatorMaxSpeedLowGear*1.0), 10);
 	}
 	
 	public void setHangingLimits(){
@@ -152,10 +152,6 @@ public class Elevator extends Subsystem{
 		motor3.configPeakCurrentLimit(amps, 10);
 		motor3.configPeakCurrentDuration(10, 10);
 		motor3.enableCurrentLimit(true);
-		motor4.configContinuousCurrentLimit(amps, 10);
-		motor4.configPeakCurrentLimit(amps, 10);
-		motor4.configPeakCurrentDuration(10, 10);
-		motor4.enableCurrentLimit(true);
 	}
 	
 	public void fireGasStruts(boolean fire){
@@ -271,8 +267,6 @@ public class Elevator extends Subsystem{
 			motors++;
 		if(motor3.getOutputCurrent() >= Constants.ELEVATOR_MAX_CURRENT)
 			motors++;
-		if(motor4.getOutputCurrent() >= Constants.ELEVATOR_MAX_CURRENT)
-			motors++;
 		return motors > 1;
 	}
 	
@@ -328,14 +322,13 @@ public class Elevator extends Subsystem{
 		SmartDashboard.putNumber("Elevator 1 Current", master.getOutputCurrent());
 		SmartDashboard.putNumber("Elevator 2 Current", motor2.getOutputCurrent());
 		SmartDashboard.putNumber("Elevator 3 Current", motor3.getOutputCurrent());
-		SmartDashboard.putNumber("Elevator 4 Current", motor4.getOutputCurrent());
 		//SmartDashboard.putNumber("Elevator Voltage", master.getMotorOutputVoltage());
 		SmartDashboard.putNumber("Elevator Height", /*Math.round(getHeight()*1000.0)/1000.0*/getHeight());
 		//SmartDashboard.putNumber("Elevator Height Graph", getHeight());
 		//SmartDashboard.putNumber("Elevator Pulse Width Position", master.getSensorCollection().getPulseWidthPosition());
 		SmartDashboard.putNumber("Elevator Encoder", master.getSelectedSensorPosition(0));
 		//SmartDashboard.putNumber("Elevator Velocity", master.getSelectedSensorVelocity(0));
-		//SmartDashboard.putNumber("Elevator Error", master.getClosedLoopError(0));
+		SmartDashboard.putNumber("Elevator Error", master.getClosedLoopError(0));
 		/*if(master.getControlMode() == ControlMode.MotionMagic)
 			SmartDashboard.putNumber("Elevator Setpoint", master.getClosedLoopTarget(0));*/
 	}
@@ -357,7 +350,6 @@ public class Elevator extends Subsystem{
 		
 		motor2.set(ControlMode.PercentOutput, 0.0);
 		motor3.set(ControlMode.PercentOutput, 0.0);
-		motor4.set(ControlMode.PercentOutput, 0.0);
 		
 		double startingEncPosition = master.getSelectedSensorPosition(0);
 		master.set(ControlMode.PercentOutput, 4.0/12.0);
@@ -414,25 +406,6 @@ public class Elevator extends Subsystem{
 			passed = false;
 		}else{
 			System.out.println("Elevator motor 3 current good: " + current);
-		}
-		
-		startingEncPosition = master.getSelectedSensorPosition(0);
-		motor4.set(ControlMode.PercentOutput, -4.0/12.0);
-		Timer.delay(timeInterval);
-		current = motor4.getOutputCurrent();
-		motor4.set(ControlMode.Follower, Ports.ELEVATOR_1);
-		if(Math.signum(master.getSelectedSensorPosition(0) - startingEncPosition) != -1.0){
-			System.out.println("Elevator motor 4 needs to be reversed");
-			passed = false;
-		}
-		if(current < currentMinimum){
-			System.out.println("Elevator motor 4 current too low: " + current);
-			passed = false;
-		}else if(current > currentMaximum){
-			System.out.println("Elevator motor 4 current too high: " + current);
-			passed = false;
-		}else{
-			System.out.println("Elevator motor 4 current good: " + current);
 		}
 		
 		master.configForwardSoftLimitEnable(true, 10);

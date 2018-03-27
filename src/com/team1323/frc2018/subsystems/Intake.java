@@ -73,8 +73,8 @@ public class Intake extends Subsystem{
 	}
 	
 	public enum State{
-		OFF, INTAKING, CLAMPING, EJECTING, SPINNING, OPEN, WEAK_EJECT, INTAKING_WIDE, NONCHALANT_INTAKING, 
-		GROUND_CLAMPING, STRONG_EJECT, FORCED_INTAKE
+		OFF, INTAKING, CLAMPING, EJECTING, SPINNING, OPEN, INTAKING_WIDE, NONCHALANT_INTAKING, 
+		GROUND_CLAMPING, FORCED_INTAKE
 	}
 	private State currentState = State.OFF;
 	public State getState(){
@@ -115,22 +115,10 @@ public class Intake extends Subsystem{
 		rightIntake.set(ControlMode.PercentOutput, 1.0);
 	}
 	
-	private void reverseRollers(){
+	private void reverseRollers(double output){
 		setRampRate(0.0);
-		leftIntake.set(ControlMode.PercentOutput, -0.7);
-		rightIntake.set(ControlMode.PercentOutput, -0.7);
-	}
-	
-	private void weakReverseRollers(){
-		setRampRate(0.0);
-		leftIntake.set(ControlMode.PercentOutput, -0.4);
-		rightIntake.set(ControlMode.PercentOutput, -0.4);
-	}
-	
-	private void strongReverseRollers(){
-		setRampRate(0.0);
-		leftIntake.set(ControlMode.PercentOutput, -1.0);
-		rightIntake.set(ControlMode.PercentOutput, -1.0);
+		leftIntake.set(ControlMode.PercentOutput, output);
+		rightIntake.set(ControlMode.PercentOutput, output);
 	}
 	
 	private void spinRollers(){
@@ -224,22 +212,6 @@ public class Intake extends Subsystem{
 					setRampRate(0.5);
 				}
 				break;
-			case WEAK_EJECT:
-				setRampRate(0.0);
-				hasCube = false;
-				if(timestamp - stateEnteredTimestamp > 2.0){
-					stop();
-					setRampRate(0.5);
-				}
-				break;
-			case STRONG_EJECT:
-				setRampRate(0.0);
-				hasCube = false;
-				if(timestamp - stateEnteredTimestamp > 2.0){
-					stop();
-					setRampRate(0.5);
-				}
-				break;
 			default:
 				break;
 			}
@@ -304,25 +276,9 @@ public class Intake extends Subsystem{
 		fireClampers(true);
 	}
 	
-	public void eject(){
+	public void eject(double output){
 		setState(State.EJECTING);
-		reverseRollers();
-		firePinchers(true);
-		fireClampers(false);
-		hasCube = false;
-	}
-	
-	public void weakEject(){
-		setState(State.WEAK_EJECT);
-		weakReverseRollers();
-		firePinchers(true);
-		fireClampers(false);
-		hasCube = false;
-	}
-	
-	public void strongEject(){
-		setState(State.STRONG_EJECT);
-		strongReverseRollers();
+		reverseRollers(output);
 		firePinchers(true);
 		fireClampers(false);
 		hasCube = false;

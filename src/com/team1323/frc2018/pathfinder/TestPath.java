@@ -9,11 +9,11 @@ public class TestPath extends PathfinderPath{
 	
 	public TestPath(){
 		super.points = new Waypoint[]{
-				new Waypoint(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH,Pathfinder.d2r(-50)),
-				new Waypoint(Constants.kLeftSwitchCloseCorner.x() - 1.0, Constants.kLeftSwitchCloseCorner.y() - Constants.ROBOT_HALF_LENGTH - 0.25, Pathfinder.d2r(5.0)),
-				new Waypoint(Constants.kLeftSwitchFarCorner.x(), Constants.kLeftSwitchFarCorner.y() - Constants.ROBOT_HALF_LENGTH + 0.5, 0),
-				new Waypoint(Constants.kLeftSwitchFarCorner.x() + Constants.ROBOT_INTAKE_EXTRUSION + Constants.ROBOT_HALF_LENGTH, Constants.kLeftSwitchFarCorner.y() - Constants.ROBOT_HALF_LENGTH - 0.5, 0),
-				new Waypoint(Constants.kLeftSwitchFarCorner.x() + Constants.ROBOT_INTAKE_EXTRUSION + Constants.ROBOT_HALF_LENGTH + 2.0, Constants.kLeftSwitchFarCorner.y() + (Constants.kCubeWidth/2.0) + 0.25, Pathfinder.d2r(90))
+				new Waypoint(Constants.kRobotHalfLength, Constants.kAutoStartingCorner.y() + Constants.kRobotHalfWidth,Pathfinder.d2r(-50)),
+				new Waypoint(Constants.kLeftSwitchCloseCorner.x() - 1.0, Constants.kLeftSwitchCloseCorner.y() - Constants.kRobotHalfLength - 0.25, Pathfinder.d2r(5.0)),
+				new Waypoint(Constants.kLeftSwitchFarCorner.x(), Constants.kLeftSwitchFarCorner.y() - Constants.kRobotHalfLength + 0.5, 0),
+				new Waypoint(Constants.kLeftSwitchFarCorner.x() + Constants.kRobotIntakeExtrusion + Constants.kRobotHalfLength, Constants.kLeftSwitchFarCorner.y() - Constants.kRobotHalfLength - 0.5, 0),
+				new Waypoint(Constants.kLeftSwitchFarCorner.x() + Constants.kRobotIntakeExtrusion + Constants.kRobotHalfLength + 2.0, Constants.kLeftSwitchFarCorner.y() + (Constants.kCubeWidth/2.0) + 0.25, Pathfinder.d2r(90))
 				
 			};
 			super.maxAccel = 2.0;

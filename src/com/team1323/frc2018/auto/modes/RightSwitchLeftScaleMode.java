@@ -27,7 +27,7 @@ public class RightSwitchLeftScaleMode extends AutoModeBase {
 	@Override
 	protected void routine() throws AutoModeEndedException {
 		double startTime = Timer.getFPGATimestamp();
-		runAction(new ResetPoseAction(new RigidTransform2d(new Translation2d(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH), Rotation2d.fromDegrees(0))));
+		runAction(new ResetPoseAction(Constants.kRobotStartingPose));
 		Superstructure.getInstance().requestIntakeHold();
 		runAction(new FollowPathAction(PathManager.mRightSwitchDropoff, 0.0));
 		runAction(new WaitAction(0.5));
@@ -56,7 +56,7 @@ public class RightSwitchLeftScaleMode extends AutoModeBase {
 		runAction(new WaitToFinishPathAction());
 		//runAction(new WaitToPassXCoordinateAction(22.75));
 		runAction(new WaitForElevatorAction());
-		Intake.getInstance().weakEject();
+		Intake.getInstance().eject(Constants.kIntakeWeakEjectOutput);
 		System.out.println("Second cube scored at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new WaitAction(0.25));
 		runAction(new FollowPathAction(PathManager.mLeftScaleToFirstCube, -225.0));

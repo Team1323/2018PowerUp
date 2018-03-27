@@ -22,15 +22,24 @@ public class SwerveInverseKinematics {
 	private List<Translation2d> updateRotationDirections(){
 		List<Translation2d> directions = new ArrayList<>(kNumberOfModules);
 		for(int i = 0; i < kNumberOfModules; i++){
-			directions.add(i, moduleRelativePositions.get(i).rotateBy(Rotation2d.fromDegrees(90)));
+			directions.add(moduleRelativePositions.get(i).rotateBy(Rotation2d.fromDegrees(90)));
 		}
 		return directions;
 	}
 	
 	public void setCenterOfRotation(Translation2d center){
 		List<Translation2d> positions = new ArrayList<>(kNumberOfModules);
+		double maxMagnitude = 0.0;
 		for(int i = 0; i < kNumberOfModules; i++){
-			positions.add(i, Constants.kModulePositions.get(i).translateBy(center.inverse()));
+			Translation2d position = Constants.kModulePositions.get(i).translateBy(center.inverse());
+			positions.add(position);
+			double magnitude = position.norm();
+			if(magnitude > maxMagnitude){
+				maxMagnitude = magnitude;
+			}
+		}
+		for(int i = 0; i < kNumberOfModules; i++){
+			positions.set(i, positions.get(i).scale(1.0/maxMagnitude));
 		}
 		moduleRelativePositions = positions;
 		moduleRotationDirections = updateRotationDirections();
@@ -38,23 +47,19 @@ public class SwerveInverseKinematics {
 	
 	public List<Translation2d> updateDriveVectors(Translation2d translationalVector, double rotationalMagnitude, RigidTransform2d robotPose){
 		translationalVector = translationalVector.rotateBy(robotPose.getRotation().inverse());
-		List<Translation2d> rotationalVectors = new ArrayList<>(kNumberOfModules);
+		List<Translation2d> driveVectors = new ArrayList<>(kNumberOfModules);
 		for(int i = 0; i < kNumberOfModules; i++){
-			rotationalVectors.add(i, moduleRotationDirections.get(i).scale(rotationalMagnitude));
+			driveVectors.add(translationalVector.translateBy(moduleRotationDirections.get(i).scale(rotationalMagnitude)));
 		}
-		List<Translation2d> driveVectors = new ArrayList<>(4);
-		for(int i = 0; i < kNumberOfModules; i++){
-			driveVectors.add(i, translationalVector.translateBy(rotationalVectors.get(i)));
-		}
-		double maxMagnitude = driveVectors.get(0).norm();
+		double maxMagnitude = 1.0;
 		for(Translation2d t : driveVectors){
 			double magnitude = t.norm();
 			if(magnitude > maxMagnitude){
 				maxMagnitude = magnitude;
 			}
 		}
-		for(Translation2d t : driveVectors){
-			t = t.scale(1.0/maxMagnitude);
+		for(int i = 0; i < kNumberOfModules; i++){
+			driveVectors.set(i, driveVectors.get(i).scale(1.0/maxMagnitude));
 		}
 		return driveVectors;
 	}

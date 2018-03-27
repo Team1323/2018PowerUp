@@ -10,8 +10,8 @@ public class OuterCubeToFrontRightSwitchPath extends PathfinderPath{
 
 	public OuterCubeToFrontRightSwitchPath(){
 		super.points = new Waypoint[]{
-			new Waypoint(Constants.kRightSwitchCloseCorner.x() - (3*Constants.kCubeWidth) - 2.25, Constants.kRightSwitchCloseCorner.y() - Constants.ROBOT_HALF_WIDTH - 4.5, Pathfinder.d2r(120)),
-			new Waypoint(Constants.kRightSwitchCloseCorner.x() - Constants.ROBOT_HALF_LENGTH - 1.25, Constants.kRightSwitchCloseCorner.y() - Constants.ROBOT_HALF_WIDTH - 0.5, Pathfinder.d2r(0))
+			new Waypoint(Constants.kRightSwitchCloseCorner.x() - (3*Constants.kCubeWidth) - 2.25, Constants.kRightSwitchCloseCorner.y() - Constants.kRobotHalfWidth - 4.5, Pathfinder.d2r(120)),
+			new Waypoint(Constants.kRightSwitchCloseCorner.x() - Constants.kRobotHalfLength - 1.25, Constants.kRightSwitchCloseCorner.y() - Constants.kRobotHalfWidth - 0.5, Pathfinder.d2r(0))
 		};
 		super.maxAccel = 8.0;
 		super.defaultSpeed = 5.0;

@@ -79,13 +79,13 @@ public class SwerveDriveModule extends Subsystem{
     	rotationMotor.configNominalOutputForward(0.0, 10);
     	rotationMotor.configNominalOutputReverse(0.0, 10);
     	rotationMotor.configAllowableClosedloopError(0, 0, 10);
-    	rotationMotor.configMotionAcceleration((int)(Constants.SWERVE_ROTATION_MAX_SPEED*10), 10);
-    	rotationMotor.configMotionCruiseVelocity((int)(Constants.SWERVE_ROTATION_MAX_SPEED*0.8), 10);//0.8
+    	rotationMotor.configMotionAcceleration((int)(Constants.kSwerveRotationMaxSpeed*10), 10);
+    	rotationMotor.configMotionCruiseVelocity((int)(Constants.kSwerveRotationMaxSpeed*0.8), 10);//0.8
     	rotationMotor.selectProfileSlot(0, 0);
     	rotationMotor.config_kP(0, 4.0, 10);//4
     	rotationMotor.config_kI(0, 0.0, 10);
     	rotationMotor.config_kD(0, 120.0, 10);//80
-    	rotationMotor.config_kF(0, 1023.0/Constants.SWERVE_ROTATION_MAX_SPEED, 10);
+    	rotationMotor.config_kF(0, 1023.0/Constants.kSwerveRotationMaxSpeed, 10);
     	rotationMotor.set(ControlMode.MotionMagic, rotationMotor.getSelectedSensorPosition(0));
     	driveMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
     	driveMotor.setSelectedSensorPosition(0, 0, 10);
@@ -107,9 +107,9 @@ public class SwerveDriveModule extends Subsystem{
     	driveMotor.config_kP(0, 0.2, 10);
     	driveMotor.config_kI(0, 0.0, 10);
     	driveMotor.config_kD(0, 24.0, 10);
-    	driveMotor.config_kF(0, 1023.0/Constants.SWERVE_DRIVE_MAX_SPEED, 10);
-    	driveMotor.configMotionCruiseVelocity((int)(Constants.SWERVE_DRIVE_MAX_SPEED*0.9), 10);
-    	driveMotor.configMotionAcceleration((int)(Constants.SWERVE_DRIVE_MAX_SPEED), 10);
+    	driveMotor.config_kF(0, 1023.0/Constants.kSwerveDriveMaxSpeed, 10);
+    	driveMotor.configMotionCruiseVelocity((int)(Constants.kSwerveDriveMaxSpeed*0.9), 10);
+    	driveMotor.configMotionAcceleration((int)(Constants.kSwerveDriveMaxSpeed), 10);
 	}
 	
 	private double updateRawAngle(){
@@ -163,11 +163,11 @@ public class SwerveDriveModule extends Subsystem{
 	}
 	
 	public double encUnitsToInches(int encUnits){
-		return encUnits/Constants.SWERVE_ENC_UNITS_PER_INCH;
+		return encUnits/Constants.kSwerveEncUnitsPerInch;
 	}
 	
 	public int inchesToEncUnits(double inches){
-		return (int) (inches*Constants.SWERVE_ENC_UNITS_PER_INCH);
+		return (int) (inches*Constants.kSwerveEncUnitsPerInch);
 	}
 	
 	public double encUnitsPer100msToFeetPerSecond(int encUnitsPer100ms){
@@ -175,11 +175,11 @@ public class SwerveDriveModule extends Subsystem{
 	}
 	
 	public int degreesToEncUnits(double degrees){
-		return (int) (degrees/360.0*Constants.DRIVE_ENCODER_RESOLUTION);
+		return (int) (degrees/360.0*Constants.kSwerveDriveEncoderResolution);
 	}
 	
 	public double encUnitsToDegrees(int encUnits){
-		return encUnits/Constants.DRIVE_ENCODER_RESOLUTION*360.0;
+		return encUnits/Constants.kSwerveDriveEncoderResolution*360.0;
 	}
 	
 	public Translation2d getPosition(){

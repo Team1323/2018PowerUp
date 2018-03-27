@@ -77,13 +77,13 @@ public class Swerve extends Subsystem{
 	
 	private Swerve(){
 		frontRight = new SwerveDriveModule(Ports.FRONT_RIGHT_ROTATION, Ports.FRONT_RIGHT_DRIVE,
-				0, Constants.FRONT_RIGHT_ENCODER_STARTING_POS, Constants.kVehicleToModuleZero);
+				0, Constants.kFrontRightEncoderStartingPos, Constants.kVehicleToModuleZero);
 		frontLeft = new SwerveDriveModule(Ports.FRONT_LEFT_ROTATION, Ports.FRONT_LEFT_DRIVE,
-				1, Constants.FRONT_LEFT_ENCODER_STARTING_POS, Constants.kVehicleToModuleOne);
+				1, Constants.kFrontLeftEncoderStartingPos, Constants.kVehicleToModuleOne);
 		rearLeft = new SwerveDriveModule(Ports.REAR_LEFT_ROTATION, Ports.REAR_LEFT_DRIVE,
-				2, Constants.REAR_LEFT_ENCODER_STARTING_POS, Constants.kVehicleToModuleTwo);
+				2, Constants.kRearLeftEncoderStartingPos, Constants.kVehicleToModuleTwo);
 		rearRight = new SwerveDriveModule(Ports.REAR_RIGHT_ROTATION, Ports.REAR_RIGHT_DRIVE,
-				3, Constants.REAR_RIGHT_ENCODER_STARTING_POS, Constants.kVehicleToModuleThree);
+				3, Constants.kRearRightEncoderStartingPos, Constants.kVehicleToModuleThree);
 		
 		modules = Arrays.asList(frontRight, frontLeft, rearLeft, rearRight);
 		positionModules = Arrays.asList(frontRight, frontLeft, rearRight);
@@ -238,23 +238,18 @@ public class Swerve extends Subsystem{
 		
 		double averageDistance = 0.0;
 		double[] distances = new double[4];
-		for(SwerveDriveModule m : modules){
-			if(m.moduleID != 5){
-				m.updatePose(heading);
-				double distance = m.getEstimatedRobotPose().getTranslation().translateBy(pose.getTranslation().inverse()).norm();
-				distances[m.moduleID] = distance;
-				averageDistance += distance;
-			}else{
-				distances[m.moduleID] = 0.0;
-			}
+		for(SwerveDriveModule m : positionModules){
+			m.updatePose(heading);
+			double distance = m.getEstimatedRobotPose().getTranslation().translateBy(pose.getTranslation().inverse()).norm();
+			distances[m.moduleID] = distance;
+			averageDistance += distance;
 		}
-		averageDistance /= 4.0;
+		averageDistance /= positionModules.size();
 		
 		int minDevianceIndex = 0;
 		double minDeviance = 100.0;
 		List<SwerveDriveModule> modulesToUse = new ArrayList<>();
-		for(SwerveDriveModule m : modules){
-			if(m.moduleID != 5){
+		for(SwerveDriveModule m : positionModules){
 				double deviance = Math.abs(distances[m.moduleID] - averageDistance);
 				if(deviance < minDeviance){
 					minDeviance = deviance;
@@ -264,7 +259,6 @@ public class Swerve extends Subsystem{
 					modulesToUse.add(m);
 				}
 			}
-		}
 		
 		if(modulesToUse.isEmpty()){
 			modulesToUse.add(modules.get(minDevianceIndex));

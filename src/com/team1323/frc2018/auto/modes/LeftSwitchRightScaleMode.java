@@ -30,7 +30,7 @@ public class LeftSwitchRightScaleMode extends AutoModeBase {
 	@Override
 	protected void routine() throws AutoModeEndedException {
 		double startTime = Timer.getFPGATimestamp();
-		runAction(new ResetPoseAction(new RigidTransform2d(new Translation2d(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH), Rotation2d.fromDegrees(0))));
+		runAction(new ResetPoseAction(Constants.kRobotStartingPose));
 		Superstructure.getInstance().requestIntakeHold();
 		runAction(new FollowPathAction(PathManager.mLeftSwitchDropoff, 0.0));
 		runAction(new WaitAction(0.5));
@@ -59,7 +59,7 @@ public class LeftSwitchRightScaleMode extends AutoModeBase {
 		Superstructure.getInstance().requestConfig(35.0, Constants.ELEVATOR_BALANCED_SCALE_HEIGHT);
 		runAction(new WaitToPassXCoordinateAction(22.75));
 		runAction(new WaitForElevatorAction());
-		Intake.getInstance().weakEject();
+		Intake.getInstance().eject(Constants.kIntakeWeakEjectOutput);
 		System.out.println("Second cube scored at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new WaitAction(0.25));
 		runAction(new FollowPathAction(PathManager.mRightScaleToFirstCube, 180.0));
@@ -70,13 +70,13 @@ public class LeftSwitchRightScaleMode extends AutoModeBase {
 		Intake.getInstance().intake();
 		runAction(new WaitToIntakeCubeAction(3.0));
 		System.out.println("Third cube intaken at: " + (Timer.getFPGATimestamp() - startTime));
-		runAction(new ResetPoseAction(new RigidTransform2d(new Translation2d(Constants.kRightSwitchFarCorner.x() + 3.5, Constants.kRightSwitchFarCorner.y() + Constants.ROBOT_HALF_LENGTH - 0.75), Rotation2d.fromDegrees(Swerve.getInstance().getPose().getRotation().getUnboundedDegrees()))));
+		runAction(new ResetPoseAction(new RigidTransform2d(new Translation2d(Constants.kRightSwitchFarCorner.x() + 3.5, Constants.kRightSwitchFarCorner.y() + Constants.kRobotHalfLength - 0.75), Rotation2d.fromDegrees(Swerve.getInstance().getPose().getRotation().getUnboundedDegrees()))));
 		runAction(new FollowPathAction(PathManager.mRightCubeToRightScale, 315.0));
 		Superstructure.getInstance().requestConfig(35.0, Constants.ELEVATOR_BALANCED_SCALE_HEIGHT);
 		runAction(new WaitToPassXCoordinateAction(22.75));
 		runAction(new WaitForElevatorAction());
 		runAction(new WaitForHeadingAction(305 ,325.0));
-		Intake.getInstance().weakEject();
+		Intake.getInstance().eject(Constants.kIntakeWeakEjectOutput);
 		System.out.println("Third cube scored at: " + (Timer.getFPGATimestamp() - startTime));
 	}
 

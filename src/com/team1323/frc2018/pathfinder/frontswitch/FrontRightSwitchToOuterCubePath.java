@@ -10,10 +10,10 @@ public class FrontRightSwitchToOuterCubePath extends PathfinderPath{
 
 	public FrontRightSwitchToOuterCubePath(){
 		super.points = new Waypoint[]{
-				new Waypoint(Constants.kRightSwitchCloseCorner.x() - Constants.ROBOT_HALF_LENGTH - 2.0, Constants.kRightSwitchCloseCorner.y() - Constants.ROBOT_HALF_WIDTH - 1.0, Pathfinder.d2r(180)),
-				new Waypoint(Constants.kRightSwitchCloseCorner.x() - Constants.ROBOT_HALF_LENGTH - 4.0, Constants.kRightSwitchCloseCorner.y() - Constants.ROBOT_HALF_WIDTH - 1.0, Pathfinder.d2r(180)),
-				new Waypoint(Constants.kRightSwitchCloseCorner.x() - (3*Constants.kCubeWidth) - 3.75, Constants.kRightSwitchCloseCorner.y() - Constants.ROBOT_HALF_WIDTH - 2.5, Pathfinder.d2r(-90)),
-				new Waypoint(Constants.kRightSwitchCloseCorner.x() - (3*Constants.kCubeWidth) - 2.25, Constants.kRightSwitchCloseCorner.y() - Constants.ROBOT_HALF_WIDTH - 4.5, Pathfinder.d2r(0))
+				new Waypoint(Constants.kRightSwitchCloseCorner.x() - Constants.kRobotHalfLength - 2.0, Constants.kRightSwitchCloseCorner.y() - Constants.kRobotHalfWidth - 1.0, Pathfinder.d2r(180)),
+				new Waypoint(Constants.kRightSwitchCloseCorner.x() - Constants.kRobotHalfLength - 4.0, Constants.kRightSwitchCloseCorner.y() - Constants.kRobotHalfWidth - 1.0, Pathfinder.d2r(180)),
+				new Waypoint(Constants.kRightSwitchCloseCorner.x() - (3*Constants.kCubeWidth) - 3.75, Constants.kRightSwitchCloseCorner.y() - Constants.kRobotHalfWidth - 2.5, Pathfinder.d2r(-90)),
+				new Waypoint(Constants.kRightSwitchCloseCorner.x() - (3*Constants.kCubeWidth) - 2.25, Constants.kRightSwitchCloseCorner.y() - Constants.kRobotHalfWidth - 4.5, Pathfinder.d2r(0))
 			};
 			super.maxAccel = 8.0;
 			super.defaultSpeed = 5.0;

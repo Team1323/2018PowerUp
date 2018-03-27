@@ -28,7 +28,7 @@ public class RightSwitchRightScaleMode extends AutoModeBase{
 	@Override
 	protected void routine() throws AutoModeEndedException {
 		double startTime = Timer.getFPGATimestamp();
-		runAction(new ResetPoseAction(new RigidTransform2d(new Translation2d(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH), Rotation2d.fromDegrees(0))));
+		runAction(new ResetPoseAction(Constants.kRobotStartingPose));
 		Superstructure.getInstance().requestIntakeHold();
 		runAction(new FollowPathAction(PathManager.mRightSwitchDropoff, 0.0));
 		runAction(new WaitAction(0.5));
@@ -53,7 +53,7 @@ public class RightSwitchRightScaleMode extends AutoModeBase{
 		runAction(new WaitToPassXCoordinateAction(23.5));
 		runAction(new WaitForElevatorAction());
 		runAction(new WaitForHeadingAction(-60.0, -40.0));
-		Intake.getInstance().weakEject();
+		Intake.getInstance().eject(Constants.kIntakeWeakEjectOutput);
 		System.out.println("Second Cube scored at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new WaitAction(0.25));
 		runAction(new FollowPathAction(PathManager.mRightScaleToSecondCube, -135.0));
@@ -67,7 +67,7 @@ public class RightSwitchRightScaleMode extends AutoModeBase{
 		runAction(new WaitToPassXCoordinateAction(23.0));
 		runAction(new WaitForHeadingAction(-60.0, -40.0));
 		runAction(new WaitForElevatorAction());
-		Intake.getInstance().weakEject();
+		Intake.getInstance().eject(Constants.kIntakeWeakEjectOutput);
 		System.out.println("Third Cube scored at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new WaitAction(0.5));
 	}

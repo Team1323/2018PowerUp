@@ -69,7 +69,6 @@ public class RobotState {
         goal_tracker_ = new GoalTracker();
         camera_pitch_correction_ = Rotation2d.fromDegrees(-Constants.kCameraPitchAngleDegrees);
         camera_yaw_correction_ = Rotation2d.fromDegrees(-Constants.kCameraYawAngleDegrees);
-        //differential_height_ = (5.5/12.0) - Constants.kCameraZOffset;
         differential_height_ = Constants.kTargetHeight - Constants.kCameraZOffset;
         distance_driven_ = 0.0;
     }
@@ -113,7 +112,6 @@ public class RobotState {
                 
                 // find intersection with the goal
                 //if (zr < 0) {
-                	differential_height_ = Constants.kTargetHeight - Constants.kCameraZOffset - Elevator.getInstance().getHeight();
                     double scaling = differential_height_ / zr;
                     double distance = Math.hypot(xr, yr) * scaling;
                     Rotation2d angle = new Rotation2d(xr, yr, true);
@@ -157,7 +155,7 @@ public class RobotState {
         if (!reports.isEmpty()) {
             TrackReport report = reports.get(0);
             Translation2d robotFrameToFieldFrame = report.field_to_goal.inverse().translateBy(cubePosition);
-            if(robotFrameToFieldFrame.norm() <= 2.0){
+            if(robotFrameToFieldFrame.norm() <= 5.0){
             	Swerve.getInstance().resetPosition(new RigidTransform2d(Swerve.getInstance().getPose().getTranslation().translateBy(robotFrameToFieldFrame), Swerve.getInstance().getPose().getRotation()));
             	System.out.println("Coordinates corrected by " + robotFrameToFieldFrame.norm() + " feet");
             }else{
@@ -197,8 +195,8 @@ public class RobotState {
         List<RigidTransform2d> poses = getCaptureTimeFieldToGoal();
         for (RigidTransform2d pose : poses) {
             // Only output first goal
-            //SmartDashboard.putNumber("goal_pose_x", pose.getTranslation().x());
-            //SmartDashboard.putNumber("goal_pose_y", pose.getTranslation().y());
+            SmartDashboard.putNumber("goal_pose_x", pose.getTranslation().x());
+            SmartDashboard.putNumber("goal_pose_y", pose.getTranslation().y());
             break;
         }
         Optional<ShooterAimingParameters> aiming_params = getCachedAimingParameters();

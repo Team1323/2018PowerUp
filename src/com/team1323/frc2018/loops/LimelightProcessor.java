@@ -3,6 +3,7 @@ package com.team1323.frc2018.loops;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.team1323.frc2018.Constants;
 import com.team1323.frc2018.RobotState;
 import com.team1323.frc2018.vision.TargetInfo;
 
@@ -52,9 +53,13 @@ public class LimelightProcessor implements Loop{
 		if(targetInSight){
 			targets.add(new TargetInfo(Math.tan(Math.toRadians(targetOffsetAngle_Horizontal)), Math.tan(Math.toRadians(targetOffsetAngle_Vertical))));
 		}
+		//System.out.println(Math.tan(Math.toRadians(targetOffsetAngle_Horizontal)) + ", " + Math.tan(Math.toRadians(targetOffsetAngle_Vertical)));
 		robotState.addVisionUpdate(timestamp, targets);
 		robotState.setAngleToCube(targetOffsetAngle_Horizontal);
 		SmartDashboard.putNumber("Limelight Angle", targetOffsetAngle_Horizontal);
+		
+		double distance = (Constants.kTargetHeight - Constants.kCameraZOffset) / Math.tan(Math.toRadians(targetOffsetAngle_Vertical));
+		//System.out.println(distance);
 	}
 	
 	@Override
