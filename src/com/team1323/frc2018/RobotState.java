@@ -176,11 +176,6 @@ public class RobotState {
     
     public synchronized void addFieldToVehicleObservation(double timestamp, RigidTransform2d observation) {
         field_to_vehicle_.put(new InterpolatingDouble(timestamp), observation);
-        updateOdometer(observation);
-    }
-    
-    public synchronized void updateOdometer(RigidTransform2d current_pose){
-    	
     }
     
     public synchronized double getDistanceDriven() {

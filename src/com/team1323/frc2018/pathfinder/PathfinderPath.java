@@ -21,6 +21,7 @@ public class PathfinderPath {
 	protected double v = 1.0/12.5;
 	protected double a = 0.0;
 	protected int lookaheadPoints = 20;
+	protected int stopSteeringPoints = -1;
 	private Segment lastSegment;
 	private Translation2d desiredFinalPosition;
 	protected double defaultSpeed = 7.5;
@@ -46,6 +47,10 @@ public class PathfinderPath {
 	
 	public void setLookaheadDistance(double feet){
 		lookaheadPoints = (int) (feet / (maxSpeed*dt));
+	}
+	
+	public int getStopSteeringPoints(){
+		return stopSteeringPoints;
 	}
 	
 	public Trajectory getTrajectory(){
@@ -100,5 +105,9 @@ public class PathfinderPath {
 	
 	public Translation2d segmentToTranslation(Segment seg){
 		return new Translation2d(seg.x, seg.y);
+	}
+	
+	public boolean hasCrossedHalfwayMark(int currentSegment){
+		return currentSegment > (trajectory.length() / 2);
 	}
 }

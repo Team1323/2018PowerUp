@@ -9,9 +9,8 @@ public class StartToLeftScalePath extends PathfinderPath{
 
 	public StartToLeftScalePath(){
 		super.points = new Waypoint[]{
-			new Waypoint(Constants.kRobotHalfLength, Constants.kAutoStartingCorner.y() + Constants.kRobotHalfWidth,Pathfinder.d2r(-50)),
-			new Waypoint(Constants.kLeftSwitchCloseCorner.x() - 1.0, Constants.kLeftSwitchCloseCorner.y() - Constants.kRobotHalfLength - 1.0, Pathfinder.d2r(0.0)),
-			new Waypoint(22.75, Constants.kLeftSwitchCloseCorner.y() - Constants.kRobotHalfLength - 1.5, Pathfinder.d2r(0))
+			new Waypoint(Constants.kRobotLeftStartingPose.getTranslation().x(), Constants.kRobotLeftStartingPose.getTranslation().y(), Pathfinder.d2r(0)),
+			new Waypoint(22.75, Constants.kLeftSwitchCloseCorner.y() - Constants.kRobotHalfLength - 1.0, Pathfinder.d2r(0))
 		};
 		super.maxAccel = 2.0;
 		super.maxSpeed = 8.0;

@@ -15,7 +15,7 @@ public class FrontRightSwitchPath extends PathfinderPath{
 			};
 		super.maxAccel = 6.0;
 		super.defaultSpeed = 6.3;
-		super.usePID = true;
+		super.usePID = false;
 		super.lookaheadPoints = 20;
 	}
 	

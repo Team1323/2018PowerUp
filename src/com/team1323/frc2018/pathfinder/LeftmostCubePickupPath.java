@@ -19,7 +19,7 @@ public class LeftmostCubePickupPath extends PathfinderPath{
 			super.defaultSpeed = 4.0;
 			super.maxSpeed = 4.0;
 			super.maxAccel = 10.0;
-			super.rotationScalar = 0.5;
+			super.rotationScalar = 1.0;
 			super.lookaheadPoints = 10;
 	}
 	

@@ -71,13 +71,13 @@ public class Elevator extends Subsystem{
 		
 		master.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
 		master.setSensorPhase(true);
-		master.configReverseSoftLimitThreshold(Constants.ELEVATOR_ENCODER_STARTING_POSITION, 10);
-		master.configForwardSoftLimitThreshold(Constants.ELEVATOR_ENCODER_STARTING_POSITION + feetToEncUnits(Constants.ELEVATOR_MAX_HEIGHT), 10);
+		master.configReverseSoftLimitThreshold(Constants.kElevatorEncoderStartingPosition, 10);
+		master.configForwardSoftLimitThreshold(Constants.kElevatorEncoderStartingPosition + feetToEncUnits(Constants.kElevatorMaxHeight), 10);
 		master.configForwardSoftLimitEnable(true, 10);
 		master.configReverseSoftLimitEnable(true, 10);
 		enableLimits(true);
 		
-		setCurrentLimit(Constants.ELEVATOR_CURRENT_LIMIT);
+		setCurrentLimit(Constants.kELevatorCurrentLimit);
 		
 		master.configClosedloopRamp(0.0, 10);
 		motor2.configClosedloopRamp(0.0, 10);
@@ -113,6 +113,16 @@ public class Elevator extends Subsystem{
 		master.config_kF(1, 1023.0/Constants.kElevatorMaxSpeedHighGear, 10);
 		
 		master.configMotionCruiseVelocity((int)(Constants.kElevatorMaxSpeedHighGear*1.0), 10);//0.9
+		master.configMotionAcceleration((int)(Constants.kElevatorMaxSpeedHighGear*5.0), 10);//3.0
+	}
+	
+	public void configForTeleopSpeed(){
+		master.configMotionCruiseVelocity((int)(Constants.kElevatorMaxSpeedHighGear*1.0), 10);//0.9
+		master.configMotionAcceleration((int)(Constants.kElevatorMaxSpeedHighGear*5.0), 10);//3.0
+	}
+	
+	public void configForAutoSpeed(){
+		master.configMotionCruiseVelocity((int)(Constants.kElevatorMaxSpeedHighGear*1.0), 10);//0.9
 		master.configMotionAcceleration((int)(Constants.kElevatorMaxSpeedHighGear*3.0), 10);//3.0
 	}
 	
@@ -129,8 +139,8 @@ public class Elevator extends Subsystem{
 	}
 	
 	public void setHangingLimits(){
-		master.configReverseSoftLimitThreshold(feetToEncUnits(Constants.ELEVATOR_MINIMUM_HANGING_HEIGHT), 10);
-		master.configForwardSoftLimitThreshold(feetToEncUnits(Constants.ELEVATOR_MAXIMUM_HANGING_HEIGHT), 10);
+		master.configReverseSoftLimitThreshold(feetToEncUnits(Constants.kElevatorMinimumHangingHeight), 10);
+		master.configForwardSoftLimitThreshold(feetToEncUnits(Constants.kElevatorMaximumHangingHeight), 10);
 		System.out.println("Hanging limits set for the elevator");
 	}
 	
@@ -177,7 +187,7 @@ public class Elevator extends Subsystem{
 			else
 				master.selectProfileSlot(1, 0);
 			targetHeight = heightFeet;
-			master.set(ControlMode.MotionMagic, Constants.ELEVATOR_ENCODER_STARTING_POSITION + feetToEncUnits(heightFeet));
+			master.set(ControlMode.MotionMagic, Constants.kElevatorEncoderStartingPosition + feetToEncUnits(heightFeet));
 		}else{
 			DriverStation.reportError("Elevator encoder not detected!", false);
 			stop();
@@ -191,7 +201,7 @@ public class Elevator extends Subsystem{
 		if(isSensorConnected()){
 			master.selectProfileSlot(1, 0);
 			targetHeight = heightFeet;
-			master.set(ControlMode.MotionMagic, Constants.ELEVATOR_ENCODER_STARTING_POSITION + feetToEncUnits(heightFeet));
+			master.set(ControlMode.MotionMagic, Constants.kElevatorEncoderStartingPosition + feetToEncUnits(heightFeet));
 		}else{
 			DriverStation.reportError("Elevator encoder not detected!", false);
 			stop();
@@ -224,7 +234,7 @@ public class Elevator extends Subsystem{
 	}
 	
 	public double getHeight(){
-		return encUnitsToFeet(master.getSelectedSensorPosition(0) - Constants.ELEVATOR_ENCODER_STARTING_POSITION);
+		return encUnitsToFeet(master.getSelectedSensorPosition(0) - Constants.kElevatorEncoderStartingPosition);
 	}
 	
 	public double getVelocityFeetPerSecond(){
@@ -233,39 +243,39 @@ public class Elevator extends Subsystem{
 	
 	public boolean hasReachedTargetHeight(){
 		if(master.getControlMode() == ControlMode.MotionMagic)
-			return (Math.abs(targetHeight - getHeight()) <= Constants.ELEVATOR_HEIGHT_TOLERANCE);
+			return (Math.abs(targetHeight - getHeight()) <= Constants.kElevatorHeightTolerance);
 		return false;
 	}
 	
 	public void goToIntakingHeight(){
-		setTargetHeight(Constants.ELEVATOR_INTAKING_HEIGHT);
+		setTargetHeight(Constants.kElevatorIntakingHeight);
 	}
 	
 	public void goToSwitchHeight(){
-		setTargetHeight(Constants.ELEVATOR_SWITCH_HEIGHT);
+		setTargetHeight(Constants.kElevatorSwitchHeight);
 	}
 	
 	public void goToScaleHeight(){
-		setTargetHeight(Constants.ELEVATOR_BALANCED_SCALE_HEIGHT);
+		setTargetHeight(Constants.kELevatorBalancedScaleHeight);
 	}
 	
 	public int feetToEncUnits(double feet){
 		//TODO
-		return (int) (feet * Constants.ELEVATOR_TICKS_PER_FOOT);
+		return (int) (feet * Constants.kElevatorTicksPerFoot);
 	}
 	
 	public double encUnitsToFeet(int encUnits){
 		//TODO
-		return encUnits / Constants.ELEVATOR_TICKS_PER_FOOT;
+		return encUnits / Constants.kElevatorTicksPerFoot;
 	}
 	
 	private boolean getMotorsWithHighCurrent(){
 		int motors = 0;
-		if(master.getOutputCurrent() >= Constants.ELEVATOR_MAX_CURRENT)
+		if(master.getOutputCurrent() >= Constants.kElevatorMaxCurrent)
 			motors++;
-		if(motor2.getOutputCurrent() >= Constants.ELEVATOR_MAX_CURRENT)
+		if(motor2.getOutputCurrent() >= Constants.kElevatorMaxCurrent)
 			motors++;
-		if(motor3.getOutputCurrent() >= Constants.ELEVATOR_MAX_CURRENT)
+		if(motor3.getOutputCurrent() >= Constants.kElevatorMaxCurrent)
 			motors++;
 		return motors > 1;
 	}
@@ -327,7 +337,7 @@ public class Elevator extends Subsystem{
 		//SmartDashboard.putNumber("Elevator Height Graph", getHeight());
 		//SmartDashboard.putNumber("Elevator Pulse Width Position", master.getSensorCollection().getPulseWidthPosition());
 		SmartDashboard.putNumber("Elevator Encoder", master.getSelectedSensorPosition(0));
-		//SmartDashboard.putNumber("Elevator Velocity", master.getSelectedSensorVelocity(0));
+		SmartDashboard.putNumber("Elevator Velocity", master.getSelectedSensorVelocity(0));
 		SmartDashboard.putNumber("Elevator Error", master.getClosedLoopError(0));
 		/*if(master.getControlMode() == ControlMode.MotionMagic)
 			SmartDashboard.putNumber("Elevator Setpoint", master.getClosedLoopTarget(0));*/

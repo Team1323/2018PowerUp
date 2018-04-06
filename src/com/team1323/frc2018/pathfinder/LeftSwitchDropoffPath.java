@@ -10,8 +10,8 @@ public class LeftSwitchDropoffPath extends PathfinderPath{
 	public LeftSwitchDropoffPath(){
 		super.points = new Waypoint[]{
 			new Waypoint(Constants.kRobotHalfLength, Constants.kAutoStartingCorner.y() + Constants.kRobotHalfWidth,Pathfinder.d2r(-50)),
-			new Waypoint(Constants.kLeftSwitchCloseCorner.x() - 1.0, Constants.kLeftSwitchCloseCorner.y() - Constants.kRobotHalfLength - 0.5, Pathfinder.d2r(5.0)),
-			new Waypoint(Constants.kLeftSwitchFarCorner.x(), Constants.kLeftSwitchFarCorner.y() - Constants.kRobotHalfLength + 0.25, 0),
+			new Waypoint(Constants.kLeftSwitchCloseCorner.x() - 1.0, Constants.kLeftSwitchCloseCorner.y() - Constants.kRobotHalfLength - 1.0/*0.5*/, Pathfinder.d2r(5.0)),
+			new Waypoint(Constants.kLeftSwitchFarCorner.x(), Constants.kLeftSwitchFarCorner.y() - Constants.kRobotHalfLength, 0),
 			
 			//new Waypoint(Constants.kLeftSwitchFarCorner.x() + Constants.ROBOT_INTAKE_EXTRUSION + Constants.ROBOT_HALF_LENGTH, Constants.kLeftSwitchFarCorner.y() - Constants.ROBOT_HALF_LENGTH - 0.5, 0),
 			//new Waypoint(Constants.kLeftSwitchFarCorner.x() + Constants.ROBOT_INTAKE_EXTRUSION + Constants.ROBOT_HALF_LENGTH + 2.0, Constants.kLeftSwitchFarCorner.y() + (Constants.kCubeWidth/2.0) + 0.25, Pathfinder.d2r(90))

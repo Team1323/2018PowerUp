@@ -7,6 +7,7 @@ import com.team1323.frc2018.auto.actions.DriveStraightAction;
 import com.team1323.frc2018.auto.actions.FollowPathAction;
 import com.team1323.frc2018.auto.actions.ResetPoseAction;
 import com.team1323.frc2018.auto.actions.WaitAction;
+import com.team1323.frc2018.auto.actions.WaitForElevatorAction;
 import com.team1323.frc2018.auto.actions.WaitToFinishPathAction;
 import com.team1323.frc2018.auto.actions.WaitToIntakeCubeAction;
 import com.team1323.frc2018.auto.actions.WaitToPassXCoordinateAction;
@@ -26,58 +27,61 @@ public class LeftFrontSwitchMode extends AutoModeBase{
 		Superstructure.getInstance().requestIntakeHold();
 		runAction(new FollowPathAction(PathManager.mFrontLeftSwitch, 0.0));
 		runAction(new WaitAction(0.5));
-		//Superstructure.getInstance().requestGroundStowedConfig();
-		Superstructure.getInstance().requestConfig(85.0, Constants.ELEVATOR_SECOND_CUBE_HEIGHT);
-		runAction(new WaitToPassXCoordinateAction(Constants.kLeftSwitchCloseCorner.x() - Constants.kRobotHalfLength - 1.75));
+		Superstructure.getInstance().requestConfig(85.0, Constants.kElevatorSecondCubeHeight);
+		runAction(new WaitToFinishPathAction());
 		Superstructure.getInstance().requestIntakeScore();
 		System.out.println("First Cube Scored at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new WaitAction(0.0));
 		runAction(new FollowPathAction(PathManager.mFrontLeftSwitchToOuterCube, 0.0));
 		runAction(new WaitAction(0.25));
-		//runAction(new WaitToPassXCoordinateAction(Constants.kLeftSwitchCloseCorner.x() - Constants.ROBOT_HALF_LENGTH - 1.0));
-		Superstructure.getInstance().requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_INTAKING_HEIGHT);
+		Superstructure.getInstance().requestConfig(Constants.kWristIntakingAngle, Constants.kElevatorIntakingHeight);
 		Intake.getInstance().intakeWide();
 		runAction(new WaitToFinishPathAction(3.5));
 		Intake.getInstance().intake();
 		runAction(new WaitToIntakeCubeAction(1.0));
 		if(!Intake.getInstance().hasCube()){
 			Intake.getInstance().intake();
-			runAction(new DriveStraightAction(Rotation2d.fromDegrees(0).toTranslation().scale(0.2)));
+			runAction(new DriveStraightAction(Rotation2d.fromDegrees(0).toTranslation().scale(0.3)));
 			runAction(new WaitToIntakeCubeAction(1.0));
 		}
 		System.out.println("Second Cube Intaken at: " + (Timer.getFPGATimestamp() - startTime));
-		//RobotState.getInstance().resetRobotPosition(Constants.kRightSwitchTarget);
 		runAction(new FollowPathAction(PathManager.mOuterCubeToFrontLeftSwitch, 0.0));
 		runAction(new WaitAction(0.5));
-		//Superstructure.getInstance().requestPrimaryWristStow();
-		Superstructure.getInstance().requestConfig(85.0, Constants.ELEVATOR_SECOND_CUBE_HEIGHT);
+		Superstructure.getInstance().requestConfig(85.0, Constants.kElevatorSecondCubeHeight);
 		runAction(new WaitToPassXCoordinateAction(Constants.kLeftSwitchCloseCorner.x() - Constants.kRobotHalfLength - 1.0));
 		Superstructure.getInstance().requestIntakeScore();
 		System.out.println("Second Cube Scored at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new WaitAction(0.25));
 		runAction(new FollowPathAction(PathManager.mFrontLeftSwitchToMiddleCube, 0.0));//35
-		//runAction(new WaitToPassXCoordinateAction(Constants.kLeftSwitchCloseCorner.x() - Constants.ROBOT_HALF_LENGTH - 0.75));
 		runAction(new WaitAction(0.25));
-		//Superstructure.getInstance().requestHighIntakingConfig();
-		Superstructure.getInstance().requestConfig(Constants.WRIST_INTAKING_ANGLE, Constants.ELEVATOR_SECOND_CUBE_HEIGHT);
-		Intake.getInstance().open();
+		Superstructure.getInstance().requestConfig(Constants.kWristIntakingAngle, Constants.kElevatorSecondCubeHeight);
+		Intake.getInstance().intakeWide();
 		runAction(new WaitToFinishPathAction(3.5));
 		Intake.getInstance().intake();
 		runAction(new WaitToIntakeCubeAction(1.0));
 		if(!Intake.getInstance().hasCube()){
 			Intake.getInstance().intake();
-			runAction(new DriveStraightAction(Rotation2d.fromDegrees(0).toTranslation().scale(0.2)));
+			runAction(new DriveStraightAction(Rotation2d.fromDegrees(0).toTranslation().scale(0.3)));
 			runAction(new WaitToIntakeCubeAction(1.0));
 		}
 		System.out.println("Third Cube Intaken at: " + (Timer.getFPGATimestamp() - startTime));
-		//RobotState.getInstance().resetRobotPosition(Constants.kRightSwitchTarget);
 		runAction(new FollowPathAction(PathManager.mMiddleCubeToFrontLeftSwitch, 0.0));
 		Superstructure.getInstance().requestSwitchConfig();
-		runAction(new WaitToPassXCoordinateAction(Constants.kLeftSwitchCloseCorner.x() - Constants.kRobotHalfLength - 1.0));
+		runAction(new WaitToFinishPathAction());
+		//runAction(new WaitToPassXCoordinateAction(Constants.kLeftSwitchCloseCorner.x()));
 		Superstructure.getInstance().requestIntakeWeakScore();
 		System.out.println("Third Cube Scored at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new WaitAction(0.5));
-		runAction(new FollowPathAction(PathManager.mFrontLeftSwitchToBottomMiddle, 30.0));
+		runAction(new FollowPathAction(PathManager.mFrontLeftSwitchToDropoff, 0.0));
+		Superstructure.getInstance().requestConfig(Constants.kWristPrimaryStowAngle);
+		runAction(new WaitForElevatorAction());
+		Superstructure.getInstance().requestGroundStowedConfig();
+		runAction(new WaitToFinishPathAction());
+		
+		
+		
+		
+		/*runAction(new FollowPathAction(PathManager.mFrontLeftSwitchToBottomMiddle, 30.0));
 		//runAction(new WaitToPassXCoordinateAction(Constants.kLeftSwitchCloseCorner.x() - Constants.ROBOT_HALF_LENGTH - 0.5));
 		runAction(new WaitAction(0.5));
 		Superstructure.getInstance().requestNonchalantIntakeConfig();
@@ -88,7 +92,7 @@ public class LeftFrontSwitchMode extends AutoModeBase{
 		Superstructure.getInstance().requestGroundStowedConfig();
 		runAction(new WaitToPassXCoordinateAction(Constants.kLeftSwitchCloseCorner.x() - Constants.kRobotHalfLength - 1.25));
 		Superstructure.getInstance().requestIntakeScore();
-		System.out.println("Fourth Cube Scored at: " + (Timer.getFPGATimestamp() - startTime));
+		System.out.println("Fourth Cube Scored at: " + (Timer.getFPGATimestamp() - startTime));*/
 	}
 	
 }

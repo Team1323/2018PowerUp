@@ -39,7 +39,8 @@ public class SwerveInverseKinematics {
 			}
 		}
 		for(int i = 0; i < kNumberOfModules; i++){
-			positions.set(i, positions.get(i).scale(1.0/maxMagnitude));
+			Translation2d position = positions.get(i);
+			positions.set(i, position.scale(1.0/maxMagnitude));
 		}
 		moduleRelativePositions = positions;
 		moduleRotationDirections = updateRotationDirections();
@@ -59,7 +60,8 @@ public class SwerveInverseKinematics {
 			}
 		}
 		for(int i = 0; i < kNumberOfModules; i++){
-			driveVectors.set(i, driveVectors.get(i).scale(1.0/maxMagnitude));
+			Translation2d driveVector = driveVectors.get(i);
+			driveVectors.set(i, driveVector.scale(1.0/maxMagnitude));
 		}
 		return driveVectors;
 	}

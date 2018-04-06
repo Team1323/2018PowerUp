@@ -20,7 +20,7 @@ public class SwerveDriveModule extends Subsystem{
 	TalonSRX rotationMotor, driveMotor;
 	int moduleID;
 	String name = "Module ";
-	double rotationSetpoint = 0;
+	int rotationSetpoint = 0;
 	double driveSetpoint = 0;
 	double currentAngle = 0;
 	int encoderOffset;
@@ -82,9 +82,9 @@ public class SwerveDriveModule extends Subsystem{
     	rotationMotor.configMotionAcceleration((int)(Constants.kSwerveRotationMaxSpeed*10), 10);
     	rotationMotor.configMotionCruiseVelocity((int)(Constants.kSwerveRotationMaxSpeed*0.8), 10);//0.8
     	rotationMotor.selectProfileSlot(0, 0);
-    	rotationMotor.config_kP(0, 4.0, 10);//4
+    	rotationMotor.config_kP(0, 6.0, 10);//4 8?
     	rotationMotor.config_kI(0, 0.0, 10);
-    	rotationMotor.config_kD(0, 120.0, 10);//80
+    	rotationMotor.config_kD(0, 160.0, 10);//120 80?
     	rotationMotor.config_kF(0, 1023.0/Constants.kSwerveRotationMaxSpeed, 10);
     	rotationMotor.set(ControlMode.MotionMagic, rotationMotor.getSelectedSensorPosition(0));
     	driveMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
@@ -128,13 +128,19 @@ public class SwerveDriveModule extends Subsystem{
 	
 	public void setModuleAngle(double goalAngle){
 		double newAngle = Util.placeInAppropriate0To360Scope(currentAngle, goalAngle + encUnitsToDegrees(encoderOffset));
-		rotationMotor.set(ControlMode.MotionMagic, degreesToEncUnits(newAngle));
-		rotationSetpoint = degreesToEncUnits(newAngle);
+		int setpoint = degreesToEncUnits(newAngle);
+		rotationMotor.set(ControlMode.MotionMagic, setpoint);
+		rotationSetpoint = setpoint;
+	}
+	
+	public boolean angleOnTarget(){
+		double error = encUnitsToDegrees(Math.abs(rotationSetpoint - rotationMotor.getSelectedSensorPosition(0)));
+		//System.out.println(name + "error: " + error);
+		return error < 4.0;
 	}
 	
 	public void setRotationOpenLoop(double power){
 		rotationMotor.set(ControlMode.PercentOutput, power);
-		rotationSetpoint = power;
 	}
 	
 	public void setDriveOpenLoop(double power){
@@ -217,6 +223,10 @@ public class SwerveDriveModule extends Subsystem{
 		position = startingPosition;
 	}
 	
+	public synchronized void resetLastEncoderReading(){
+		previousEncDistance = getDriveDistanceFeet();
+	}
+	
 	@Override
 	public synchronized void stop(){
 		//setModuleAngle(getModuleAngle().getDegrees());
@@ -257,8 +267,8 @@ public class SwerveDriveModule extends Subsystem{
 		SmartDashboard.putNumber(name + "Inches Driven", getDriveDistanceInches());
 		//SmartDashboard.putNumber(name + "Rotation Voltage", rotationMotor.getMotorOutputVoltage());
 		//SmartDashboard.putNumber(name + "Velocity", encUnitsPer100msToFeetPerSecond(driveMotor.getSelectedSensorVelocity(0)));
-		/*if(rotationMotor.getControlMode() == ControlMode.MotionMagic)
-			SmartDashboard.putNumber(name + "Error", rotationMotor.getClosedLoopError(0));*/
+		if(rotationMotor.getControlMode() == ControlMode.MotionMagic)
+			SmartDashboard.putNumber(name + "Error", encUnitsToDegrees(rotationMotor.getClosedLoopError(0)));
 		//SmartDashboard.putNumber(name + "X", position.x());
 		//SmartDashboard.putNumber(name + "Y", position.y());
 		//SmartDashboard.putNumber(name + "Drive Current", driveMotor.getOutputCurrent());

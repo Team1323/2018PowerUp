@@ -5,6 +5,7 @@ import com.team1323.frc2018.auto.modes.LeftScaleMode;
 import com.team1323.frc2018.auto.modes.LeftSwitchLeftScaleMode;
 import com.team1323.frc2018.auto.modes.LeftSwitchRightScaleMode;
 import com.team1323.frc2018.auto.modes.RightFrontSwitchMode;
+import com.team1323.frc2018.auto.modes.RightScaleMode;
 import com.team1323.frc2018.auto.modes.RightSwitchLeftScaleMode;
 import com.team1323.frc2018.auto.modes.RightSwitchRightScaleMode;
 import com.team1323.frc2018.auto.modes.StandStillMode;
@@ -92,6 +93,13 @@ public class SmartDashboardInteractions {
     				//fall-through intended
     			case "RL":
     				return new LeftScaleMode();
+    			case "RR":
+    				//fall-through intended
+    			case "LR":
+    				return new RightScaleMode();
+    			default:
+    				System.out.println("ERROR: unexpected auto mode: " + option);
+                    return new StandStillMode();
     			}
             default:
                 System.out.println("ERROR: unexpected auto mode: " + option);
