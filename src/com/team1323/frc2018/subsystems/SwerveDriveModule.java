@@ -13,13 +13,14 @@ import com.team254.lib.util.math.RigidTransform2d;
 import com.team254.lib.util.math.Rotation2d;
 import com.team254.lib.util.math.Translation2d;
 
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class SwerveDriveModule extends Subsystem{
 	TalonSRX rotationMotor, driveMotor;
 	int moduleID;
 	String name = "Module ";
-	double rotationSetpoint = 0;
+	int rotationSetpoint = 0;
 	double driveSetpoint = 0;
 	double currentAngle = 0;
 	int encoderOffset;
@@ -61,6 +62,11 @@ public class SwerveDriveModule extends Subsystem{
 		rotationMotor.setSensorPhase(reverse);
 	}
 	
+	public synchronized void setNominalDriveOutput(double voltage){
+		driveMotor.configNominalOutputForward(voltage / 12.0, 10);
+		driveMotor.configNominalOutputReverse(-voltage / 12.0, 10);
+	}
+	
 	private void configureMotors(){
     	rotationMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 10);
     	//resetRotationToAbsolute();
@@ -73,21 +79,21 @@ public class SwerveDriveModule extends Subsystem{
     	rotationMotor.configNominalOutputForward(0.0, 10);
     	rotationMotor.configNominalOutputReverse(0.0, 10);
     	rotationMotor.configAllowableClosedloopError(0, 0, 10);
-    	rotationMotor.configMotionAcceleration((int)(Constants.SWERVE_ROTATION_MAX_SPEED*10), 10);
-    	rotationMotor.configMotionCruiseVelocity((int)(Constants.SWERVE_ROTATION_MAX_SPEED*0.8), 10);//0.8
+    	rotationMotor.configMotionAcceleration((int)(Constants.kSwerveRotationMaxSpeed*10), 10);
+    	rotationMotor.configMotionCruiseVelocity((int)(Constants.kSwerveRotationMaxSpeed*0.8), 10);//0.8
     	rotationMotor.selectProfileSlot(0, 0);
-    	rotationMotor.config_kP(0, 4.0, 10);//4
+    	rotationMotor.config_kP(0, 6.0, 10);//4 8?
     	rotationMotor.config_kI(0, 0.0, 10);
-    	rotationMotor.config_kD(0, 120.0, 10);//80
-    	rotationMotor.config_kF(0, 1023.0/Constants.SWERVE_ROTATION_MAX_SPEED, 10);
+    	rotationMotor.config_kD(0, 160.0, 10);//120 80?
+    	rotationMotor.config_kF(0, 1023.0/Constants.kSwerveRotationMaxSpeed, 10);
     	rotationMotor.set(ControlMode.MotionMagic, rotationMotor.getSelectedSensorPosition(0));
     	driveMotor.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
     	driveMotor.setSelectedSensorPosition(0, 0, 10);
     	driveMotor.setStatusFramePeriod(StatusFrame.Status_2_Feedback0, 10, 10);
     	driveMotor.configVelocityMeasurementPeriod(VelocityMeasPeriod.Period_10Ms, 10);
     	driveMotor.configVelocityMeasurementWindow(32, 10);
-    	driveMotor.configNominalOutputForward(2.0/12.0, 10);
-    	driveMotor.configNominalOutputReverse(-2.0/12.0, 10);
+    	driveMotor.configNominalOutputForward(1.5/12.0, 10);
+    	driveMotor.configNominalOutputReverse(-1.5/12.0, 10);
     	driveMotor.configPeakOutputForward(1.0, 10);
     	driveMotor.configPeakOutputReverse(-1.0, 10);
     	driveMotor.configVoltageCompSaturation(12.0, 10);
@@ -101,9 +107,9 @@ public class SwerveDriveModule extends Subsystem{
     	driveMotor.config_kP(0, 0.2, 10);
     	driveMotor.config_kI(0, 0.0, 10);
     	driveMotor.config_kD(0, 24.0, 10);
-    	driveMotor.config_kF(0, 1023.0/Constants.SWERVE_DRIVE_MAX_SPEED, 10);
-    	driveMotor.configMotionCruiseVelocity((int)(Constants.SWERVE_DRIVE_MAX_SPEED*0.9), 10);
-    	driveMotor.configMotionAcceleration((int)(Constants.SWERVE_DRIVE_MAX_SPEED), 10);
+    	driveMotor.config_kF(0, 1023.0/Constants.kSwerveDriveMaxSpeed, 10);
+    	driveMotor.configMotionCruiseVelocity((int)(Constants.kSwerveDriveMaxSpeed*0.9), 10);
+    	driveMotor.configMotionAcceleration((int)(Constants.kSwerveDriveMaxSpeed), 10);
 	}
 	
 	private double updateRawAngle(){
@@ -122,13 +128,19 @@ public class SwerveDriveModule extends Subsystem{
 	
 	public void setModuleAngle(double goalAngle){
 		double newAngle = Util.placeInAppropriate0To360Scope(currentAngle, goalAngle + encUnitsToDegrees(encoderOffset));
-		rotationMotor.set(ControlMode.MotionMagic, degreesToEncUnits(newAngle));
-		rotationSetpoint = degreesToEncUnits(newAngle);
+		int setpoint = degreesToEncUnits(newAngle);
+		rotationMotor.set(ControlMode.MotionMagic, setpoint);
+		rotationSetpoint = setpoint;
+	}
+	
+	public boolean angleOnTarget(){
+		double error = encUnitsToDegrees(Math.abs(rotationSetpoint - rotationMotor.getSelectedSensorPosition(0)));
+		//System.out.println(name + "error: " + error);
+		return error < 4.0;
 	}
 	
 	public void setRotationOpenLoop(double power){
 		rotationMotor.set(ControlMode.PercentOutput, power);
-		rotationSetpoint = power;
 	}
 	
 	public void setDriveOpenLoop(double power){
@@ -157,11 +169,11 @@ public class SwerveDriveModule extends Subsystem{
 	}
 	
 	public double encUnitsToInches(int encUnits){
-		return encUnits/Constants.SWERVE_ENC_UNITS_PER_INCH;
+		return encUnits/Constants.kSwerveEncUnitsPerInch;
 	}
 	
 	public int inchesToEncUnits(double inches){
-		return (int) (inches*Constants.SWERVE_ENC_UNITS_PER_INCH);
+		return (int) (inches*Constants.kSwerveEncUnitsPerInch);
 	}
 	
 	public double encUnitsPer100msToFeetPerSecond(int encUnitsPer100ms){
@@ -169,11 +181,11 @@ public class SwerveDriveModule extends Subsystem{
 	}
 	
 	public int degreesToEncUnits(double degrees){
-		return (int) (degrees/360.0*Constants.DRIVE_ENCODER_RESOLUTION);
+		return (int) (degrees/360.0*Constants.kSwerveDriveEncoderResolution);
 	}
 	
 	public double encUnitsToDegrees(int encUnits){
-		return encUnits/Constants.DRIVE_ENCODER_RESOLUTION*360.0;
+		return encUnits/Constants.kSwerveDriveEncoderResolution*360.0;
 	}
 	
 	public Translation2d getPosition(){
@@ -209,6 +221,10 @@ public class SwerveDriveModule extends Subsystem{
 	
 	public synchronized void resetPose(){
 		position = startingPosition;
+	}
+	
+	public synchronized void resetLastEncoderReading(){
+		previousEncDistance = getDriveDistanceFeet();
 	}
 	
 	@Override
@@ -247,15 +263,15 @@ public class SwerveDriveModule extends Subsystem{
 		updateRawAngle();
 		SmartDashboard.putNumber(name + "Angle", getModuleAngle().getDegrees());
 		SmartDashboard.putNumber(name + "Pulse Width", rotationMotor.getSelectedSensorPosition(0));
-		SmartDashboard.putNumber(name + "Drive Voltage", driveMotor.getMotorOutputVoltage());
+		//SmartDashboard.putNumber(name + "Drive Voltage", driveMotor.getMotorOutputVoltage());
 		SmartDashboard.putNumber(name + "Inches Driven", getDriveDistanceInches());
 		//SmartDashboard.putNumber(name + "Rotation Voltage", rotationMotor.getMotorOutputVoltage());
-		SmartDashboard.putNumber(name + "Velocity", encUnitsPer100msToFeetPerSecond(driveMotor.getSelectedSensorVelocity(0)));
+		//SmartDashboard.putNumber(name + "Velocity", encUnitsPer100msToFeetPerSecond(driveMotor.getSelectedSensorVelocity(0)));
 		if(rotationMotor.getControlMode() == ControlMode.MotionMagic)
-			SmartDashboard.putNumber(name + "Error", rotationMotor.getClosedLoopError(0));
-		SmartDashboard.putNumber(name + "X", position.x());
-		SmartDashboard.putNumber(name + "Y", position.y());
-		SmartDashboard.putNumber(name + "Drive Current", driveMotor.getOutputCurrent());
+			SmartDashboard.putNumber(name + "Error", encUnitsToDegrees(rotationMotor.getClosedLoopError(0)));
+		//SmartDashboard.putNumber(name + "X", position.x());
+		//SmartDashboard.putNumber(name + "Y", position.y());
+		//SmartDashboard.putNumber(name + "Drive Current", driveMotor.getOutputCurrent());
 	}
 	
 }

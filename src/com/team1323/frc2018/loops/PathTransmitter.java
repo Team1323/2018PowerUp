@@ -20,15 +20,21 @@ public class PathTransmitter implements Loop{
 	private List<PathfinderPath> remainingPaths = new ArrayList<>();
 	private PathfinderPath currentPath;
 	private int currentPointIndex = 0;
+	private List<PathfinderPath> cachedPaths = remainingPaths;
 	
 	public void addPaths(List<PathfinderPath> paths){
 		remainingPaths = new ArrayList<>(paths.size());
+		cachedPaths = remainingPaths;
 		
 		for(PathfinderPath path: paths){
 			remainingPaths.add(path);
 		}
 		
 		currentPath = null;
+	}
+	
+	public void transmitCachedPaths(){
+		addPaths(cachedPaths);
 	}
 
 	@Override
@@ -50,7 +56,7 @@ public class PathTransmitter implements Loop{
 		Trajectory.Segment seg = currentPath.getTrajectory().get(currentPointIndex);
 	    SmartDashboard.putNumber("Path X", seg.x);
 	    SmartDashboard.putNumber("Path Y", seg.y);
-	    currentPointIndex += 2;
+	    currentPointIndex += 1;
 	    
 	    if(currentPointIndex >= currentPath.getTrajectory().length()){
 	    	currentPath = null;

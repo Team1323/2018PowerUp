@@ -23,7 +23,7 @@ public class Wrist extends Subsystem{
 
 	TalonSRX wrist;
 	private double targetAngle = 0.0;
-	private double maxAllowableAngle = Constants.WRIST_MAX_ANGLE;
+	private double maxAllowableAngle = Constants.kWristMaxControlAngle;
 	public void setMaxAllowableAngle(double angle){
 		maxAllowableAngle = angle;
 		lockAngle();
@@ -34,6 +34,8 @@ public class Wrist extends Subsystem{
 		wrist.enableVoltageCompensation(true);
 		wrist.configNominalOutputForward(0.45/12.0, 10);
 		wrist.configNominalOutputForward(-0.45/12.0, 10);
+		wrist.configPeakOutputForward(1.0, 10);
+		wrist.configPeakOutputReverse(-1.0, 10);
 		wrist.configSelectedFeedbackSensor(FeedbackDevice.CTRE_MagEncoder_Relative, 0, 10);
 		wrist.setSensorPhase(false);
 		wrist.getSensorCollection().setPulseWidthPosition(0, 10);
@@ -42,15 +44,15 @@ public class Wrist extends Subsystem{
 		wrist.config_kP(0, 3.0, 10);
 		wrist.config_kI(0, 0.0, 10);
 		wrist.config_kD(0, 120.0, 10);
-		wrist.config_kF(0, 1023.0/Constants.WRIST_MAX_SPEED, 10);
+		wrist.config_kF(0, 1023.0/Constants.kWristMaxSpeed, 10);
 		wrist.config_kP(1, 3.0, 10);
 		wrist.config_kI(1, 0.0, 10);
 		wrist.config_kD(1, 240.0, 10);
-		wrist.config_kF(1, 1023.0/Constants.WRIST_MAX_SPEED, 10);
-		wrist.configMotionCruiseVelocity((int)(Constants.WRIST_MAX_SPEED*0.9), 10);
-		wrist.configMotionAcceleration((int)(Constants.WRIST_MAX_SPEED*3.0), 10);
-		wrist.configForwardSoftLimitThreshold(wristAngleToEncUnits(Constants.WRIST_MAX_ANGLE), 10);
-		wrist.configReverseSoftLimitThreshold(wristAngleToEncUnits(Constants.WRIST_MIN_ANGLE), 10);
+		wrist.config_kF(1, 1023.0/Constants.kWristMaxSpeed, 10);
+		wrist.configMotionCruiseVelocity((int)(Constants.kWristMaxSpeed*1.0), 10);
+		wrist.configMotionAcceleration((int)(Constants.kWristMaxSpeed*3.0), 10);
+		wrist.configForwardSoftLimitThreshold(wristAngleToEncUnits(Constants.kWristMaxControlAngle), 10);
+		wrist.configReverseSoftLimitThreshold(wristAngleToEncUnits(Constants.kWristMinControlAngle), 10);
 		wrist.configForwardSoftLimitEnable(true, 10);
 		wrist.configReverseSoftLimitEnable(true, 10);
 		wrist.configContinuousCurrentLimit(25, 10);
@@ -92,23 +94,23 @@ public class Wrist extends Subsystem{
 	}
 	
 	public boolean hasReachedTargetAngle(){
-		return Math.abs(targetAngle - getAngle()) <= Constants.WRIST_ANGLE_TOLERANCE;
+		return Math.abs(targetAngle - getAngle()) <= Constants.kWristAngleTolerance;
 	}
 	
 	public double encUnitsToDegrees(int encUnits){
-		return encUnits / 4096.0 / Constants.WRIST_ENCODER_TO_OUTPUT_RATIO * 360.0;
+		return encUnits / 4096.0 / Constants.kWristEncoderToOutputRatio * 360.0;
 	}
 	
 	public int degreesToEncUnits(double degrees){
-		return (int) (degrees / 360.0 * Constants.WRIST_ENCODER_TO_OUTPUT_RATIO * 4096.0);
+		return (int) (degrees / 360.0 * Constants.kWristEncoderToOutputRatio * 4096.0);
 	}
 	
 	public double encUnitsToWristAngle(int encUnits){
-		return Constants.WRIST_STARTING_ANGLE + encUnitsToDegrees(encUnits - Constants.WRIST_STARTING_ENCODER_POSITION);
+		return Constants.kWristStartingAngle + encUnitsToDegrees(encUnits - Constants.kWristStartingEncoderPosition);
 	}
 	
 	public int wristAngleToEncUnits(double wristAngle){
-		return Constants.WRIST_STARTING_ENCODER_POSITION + degreesToEncUnits(wristAngle - Constants.WRIST_STARTING_ANGLE);
+		return Constants.kWristStartingEncoderPosition + degreesToEncUnits(wristAngle - Constants.kWristStartingAngle);
 	}
 	
 	public boolean isSensorConnected(){
@@ -118,6 +120,13 @@ public class Wrist extends Subsystem{
 	
 	public void resetToAbsolutePosition(){
 		int absolutePosition = (int) Util.boundToScope(0, 4096, wrist.getSensorCollection().getPulseWidthPosition());
+		if(encUnitsToWristAngle(absolutePosition) > Constants.kWristMaxPhysicalAngle){
+			absolutePosition -= 4096;
+		}
+		double wristAngle = encUnitsToWristAngle(absolutePosition);
+		if(wristAngle > Constants.kWristMaxPhysicalAngle || wristAngle < Constants.kWristMinPhysicalAngle){
+			DriverStation.reportError("Wrist angle is out of bounds", false);
+		}
 		wrist.setSelectedSensorPosition(absolutePosition, 0, 10);
 	}
 	
@@ -130,7 +139,7 @@ public class Wrist extends Subsystem{
 
 		@Override
 		public void onLoop(double timestamp) {
-			if(wrist.getOutputCurrent() > Constants.WRIST_MAX_CURRENT){
+			if(wrist.getOutputCurrent() > Constants.kWristMaxCurrent){
 				//stop();
 				DriverStation.reportError("Wrist current high", false);
 			}
@@ -161,14 +170,14 @@ public class Wrist extends Subsystem{
 	@Override
 	public void outputToSmartDashboard() {
 		SmartDashboard.putNumber("Wrist Current", wrist.getOutputCurrent());
-		SmartDashboard.putNumber("Wrist Voltage", wrist.getMotorOutputVoltage());
+		//SmartDashboard.putNumber("Wrist Voltage", wrist.getMotorOutputVoltage());
 		SmartDashboard.putNumber("Wrist Encoder", wrist.getSelectedSensorPosition(0));
 		SmartDashboard.putNumber("Wrist Pulse Width Position", wrist.getSensorCollection().getPulseWidthPosition());
 		SmartDashboard.putNumber("Wrist Angle", getAngle());
-		SmartDashboard.putNumber("Wrist Velocity", wrist.getSelectedSensorVelocity(0));
-		SmartDashboard.putNumber("Wrist Error", wrist.getClosedLoopError(0));
-		if(wrist.getControlMode() == ControlMode.MotionMagic)
-			SmartDashboard.putNumber("Wrist Setpoint", wrist.getClosedLoopTarget(0));
+		//SmartDashboard.putNumber("Wrist Velocity", wrist.getSelectedSensorVelocity(0));
+		//SmartDashboard.putNumber("Wrist Error", wrist.getClosedLoopError(0));
+		/*if(wrist.getControlMode() == ControlMode.MotionMagic)
+			SmartDashboard.putNumber("Wrist Setpoint", wrist.getClosedLoopTarget(0));*/
 	}
 	
 	public boolean checkSystem(){

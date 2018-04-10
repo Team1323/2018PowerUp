@@ -13,8 +13,9 @@ public class Ports {
     
     public static final int ELEVATOR_1 = 1;
     public static final int ELEVATOR_2 = 2;
-    public static final int ELEVATOR_3 = 13;
-    public static final int ELEVATOR_4 = 14;
+    public static final int ELEVATOR_3 = 14;
+    
+    public static final int WINCH = 13;
     
     public static final int INTAKE_LEFT = 10;
     public static final int INTAKE_RIGHT = 9;
@@ -32,6 +33,5 @@ public class Ports {
     public static final int GAS_STRUTS = 4;
     
     //Digital Inputs
-    public static final int INTAKE_LEFT_BANNER = 0;
-    public static final int INTAKE_RIGHT_BANNER = 2;
+    public static final int INTAKE_BANNER = 0;
 }

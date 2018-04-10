@@ -69,7 +69,6 @@ public class RobotState {
         goal_tracker_ = new GoalTracker();
         camera_pitch_correction_ = Rotation2d.fromDegrees(-Constants.kCameraPitchAngleDegrees);
         camera_yaw_correction_ = Rotation2d.fromDegrees(-Constants.kCameraYawAngleDegrees);
-        //differential_height_ = (5.5/12.0) - Constants.kCameraZOffset;
         differential_height_ = Constants.kTargetHeight - Constants.kCameraZOffset;
         distance_driven_ = 0.0;
     }
@@ -113,7 +112,6 @@ public class RobotState {
                 
                 // find intersection with the goal
                 //if (zr < 0) {
-                	differential_height_ = Constants.kTargetHeight - Constants.kCameraZOffset - Elevator.getInstance().getHeight();
                     double scaling = differential_height_ / zr;
                     double distance = Math.hypot(xr, yr) * scaling;
                     Rotation2d angle = new Rotation2d(xr, yr, true);
@@ -157,7 +155,7 @@ public class RobotState {
         if (!reports.isEmpty()) {
             TrackReport report = reports.get(0);
             Translation2d robotFrameToFieldFrame = report.field_to_goal.inverse().translateBy(cubePosition);
-            if(robotFrameToFieldFrame.norm() <= 2.0){
+            if(robotFrameToFieldFrame.norm() <= 5.0){
             	Swerve.getInstance().resetPosition(new RigidTransform2d(Swerve.getInstance().getPose().getTranslation().translateBy(robotFrameToFieldFrame), Swerve.getInstance().getPose().getRotation()));
             	System.out.println("Coordinates corrected by " + robotFrameToFieldFrame.norm() + " feet");
             }else{
@@ -178,11 +176,6 @@ public class RobotState {
     
     public synchronized void addFieldToVehicleObservation(double timestamp, RigidTransform2d observation) {
         field_to_vehicle_.put(new InterpolatingDouble(timestamp), observation);
-        updateOdometer(observation);
-    }
-    
-    public synchronized void updateOdometer(RigidTransform2d current_pose){
-    	
     }
     
     public synchronized double getDistanceDriven() {
@@ -191,9 +184,9 @@ public class RobotState {
     
     public void outputToSmartDashboard(){
     	RigidTransform2d odometry = getLatestFieldToVehicle().getValue();
-        SmartDashboard.putNumber("robot_pose_x", odometry.getTranslation().x());
-        SmartDashboard.putNumber("robot_pose_y", odometry.getTranslation().y());
-        SmartDashboard.putNumber("robot_pose_theta", odometry.getRotation().getDegrees());
+        //SmartDashboard.putNumber("robot_pose_x", odometry.getTranslation().x());
+        //SmartDashboard.putNumber("robot_pose_y", odometry.getTranslation().y());
+        //SmartDashboard.putNumber("robot_pose_theta", odometry.getRotation().getDegrees());
         List<RigidTransform2d> poses = getCaptureTimeFieldToGoal();
         for (RigidTransform2d pose : poses) {
             // Only output first goal
@@ -203,11 +196,11 @@ public class RobotState {
         }
         Optional<ShooterAimingParameters> aiming_params = getCachedAimingParameters();
         if (aiming_params.isPresent()) {
-            SmartDashboard.putNumber("goal_range", aiming_params.get().getRange());
-            SmartDashboard.putNumber("goal_theta", aiming_params.get().getRobotToGoal().getDegrees());
+            //SmartDashboard.putNumber("goal_range", aiming_params.get().getRange());
+            //SmartDashboard.putNumber("goal_theta", aiming_params.get().getRobotToGoal().getDegrees());
         } else {
-            SmartDashboard.putNumber("goal_range", 0.0);
-            SmartDashboard.putNumber("goal_theta", 0.0);
+            //SmartDashboard.putNumber("goal_range", 0.0);
+            //SmartDashboard.putNumber("goal_theta", 0.0);
         }
     }
 }

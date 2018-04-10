@@ -11,10 +11,6 @@ import java.util.Arrays;
 
 import com.team1323.frc2018.auto.AutoModeExecuter;
 import com.team1323.frc2018.auto.SmartDashboardInteractions;
-import com.team1323.frc2018.auto.modes.LeftSwitchLeftScaleMode;
-import com.team1323.frc2018.auto.modes.LeftSwitchRightScaleMode;
-import com.team1323.frc2018.auto.modes.RightSwitchLeftScaleMode;
-import com.team1323.frc2018.auto.modes.RightSwitchRightScaleMode;
 import com.team1323.frc2018.loops.LimelightProcessor;
 import com.team1323.frc2018.loops.Looper;
 import com.team1323.frc2018.loops.PathTransmitter;
@@ -30,17 +26,14 @@ import com.team1323.frc2018.subsystems.Wrist;
 import com.team1323.io.Xbox;
 import com.team1323.lib.util.CrashTracker;
 import com.team1323.lib.util.Logger;
-import com.team254.lib.util.math.RigidTransform2d;
-import com.team254.lib.util.math.Rotation2d;
-import com.team254.lib.util.math.Translation2d;
 
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.cscore.MjpegServer;
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.cscore.VideoMode.PixelFormat;
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.GenericHID.Hand;
 import edu.wpi.first.wpilibj.IterativeRobot;
-import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import jaci.pathfinder.Trajectory;
@@ -56,7 +49,6 @@ public class Robot extends IterativeRobot {
 	private Swerve swerve;
 	private Superstructure superstructure;
 	private SubsystemManager subsystems;
-	private PowerDistributionPanel pdp = new PowerDistributionPanel(21);
 	
 	private AutoModeExecuter autoModeExecuter = null;
 	private PathTransmitter transmitter = PathTransmitter.getInstance();
@@ -67,6 +59,8 @@ public class Robot extends IterativeRobot {
 	private Looper disabledLooper = new Looper();
 	
 	private RobotState robotState = RobotState.getInstance();
+	private LimelightProcessor limelight = LimelightProcessor.getInstance();
+	private CameraServer cam;
 	
 	private Xbox driver, coDriver;
 	
@@ -94,7 +88,7 @@ public class Robot extends IterativeRobot {
 		subsystems.registerEnabledLoops(enabledLooper);
 		enabledLooper.register(LimelightProcessor.getInstance());
 		enabledLooper.register(RobotStateEstimator.getInstance());
-		//enabledLooper.register(PathTransmitter.getInstance());
+		enabledLooper.register(PathTransmitter.getInstance());
 		disabledLooper.register(LimelightProcessor.getInstance());
 		disabledLooper.register(RobotStateEstimator.getInstance());
 		disabledLooper.register(PathTransmitter.getInstance());
@@ -103,6 +97,7 @@ public class Robot extends IterativeRobot {
 		swerve.zeroSensors();
 		
 		smartDashboardInteractions.initWithDefaults();
+		initCamera();
 		
 		PathManager.buildAllPaths();
 		
@@ -114,11 +109,20 @@ public class Robot extends IterativeRobot {
 		/*transmitter.addPaths(Arrays.asList(PathManager.mRightSwitchDropoff, PathManager.mRightmostCubePickup,
 				PathManager.mRightCubeToLeftScale, PathManager.mLeftScaleToFirstCube));*/
 		/*transmitter.addPaths(Arrays.asList(PathManager.mLeftSwitchDropoff, PathManager.mLeftmostCubePickup,
-		PathManager.mLeftCubeToRightScale, PathManager.mRightScaleToFirstCube));*/
-		transmitter.addPaths(Arrays.asList(PathManager.mFrontLeftSwitchPath, PathManager.mFrontLeftSwitchToOuterCube, 
-				PathManager.mOuterCubeToFrontLeftSwitch, PathManager.mFrontLeftSwitchToMiddleCube, PathManager.mMiddleCubeToFrontLeftSwitch));
+				PathManager.mLeftCubeToRightScale, PathManager.mRightScaleToFirstCube));*/
+		/*transmitter.addPaths(Arrays.asList(PathManager.mFrontLeftSwitch, PathManager.mFrontLeftSwitchToOuterCube, 
+				PathManager.mOuterCubeToFrontLeftSwitch, PathManager.mFrontLeftSwitchToMiddleCube, PathManager.mMiddleCubeToFrontLeftSwitch,
+				PathManager.mFrontLeftSwitchToDropoff));*/
+		/*transmitter.addPaths(Arrays.asList(PathManager.mFrontRightSwitch, PathManager.mFrontRightSwitchToOuterCube, 
+				PathManager.mOuterCubeToFrontRightSwitch, PathManager.mFrontRightSwitchToMiddleCube, PathManager.mMiddleCubeToFrontRightSwitch,
+				PathManager.mFrontRightSwitchToDropoff));*/
+		/*transmitter.addPaths(Arrays.asList(PathManager.mStartToLeftScale, PathManager.mAlternateLeftmostCube,
+				PathManager.mDerpLeftCubeToLeftScale, PathManager.mAlternateLeftScaleToSecondCube,
+				PathManager.mAlternateSecondLeftCubeToScale));*/
+		transmitter.addPaths(Arrays.asList(PathManager.mStartToRightScale, PathManager.mRightScaleToFirstCube,
+				PathManager.mAlternateRightCubeToRightScale, PathManager.mAlternateRightScaleToSecondCube));
 		
-		PathfinderPath path = PathManager.mFrontLeftSwitchToOuterCube;
+		PathfinderPath path = PathManager.mStartToRightScale;
 		double maxSpeed = 0.0;
 		int points = 0;
 		
@@ -137,24 +141,20 @@ public class Robot extends IterativeRobot {
 	public void allPeriodic(){
 		subsystems.outputToSmartDashboard();
 		swerve.outputToSmartDashboard();
-		SmartDashboard.putNumber("PDP Current", pdp.getTotalCurrent());
 		robotState.outputToSmartDashboard();
 		//SmartDashboard.putNumber("Swerve dt", swerveLooper.dt_);
 		//enabledLooper.outputToSmartDashboard();
 		
 	}
-
-	/**
-	 * This autonomous (along with the chooser code above) shows how to select
-	 * between different autonomous modes using the dashboard. The sendable
-	 * chooser code works with the Java SmartDashboard. If you prefer the
-	 * LabVIEW Dashboard, remove all of the chooser code and uncomment the
-	 * getString line to get the auto name from the text box below the Gyro
-	 *
-	 * <p>You can add additional auto modes by adding additional comparisons to
-	 * the switch structure below with additional strings. If using the
-	 * SendableChooser make sure to add them to the chooser code above as well.
-	 */
+	
+	public void initCamera(){
+		cam = CameraServer.getInstance();
+    	UsbCamera usbCamera = new UsbCamera("USB Camera 0", 0);
+    	usbCamera.setVideoMode(PixelFormat.kMJPEG, 320, 240, 30);
+    	MjpegServer mjpegServer2 = new MjpegServer("serve_Blur", 1182);
+    	mjpegServer2.setSource(usbCamera);
+	}
+	
 	@Override
 	public void autonomousInit() {
 		try{
@@ -163,21 +163,30 @@ public class Robot extends IterativeRobot {
 			
 			subsystems.zeroSensors();
 			swerve.zeroSensors();
-			/*transmitter.addPaths(Arrays.asList(PathManager.mLeftSwitchDropoff, PathManager.mLeftmostCubePickup,
-					PathManager.mLeftCubeToLeftScale, PathManager.mLeftScaleToSecondCube));*/
+			swerve.setNominalDriveOutput(1.5);
+			swerve.requireModuleConfiguration();
+			transmitter.transmitCachedPaths();
 			
 			disabledLooper.stop();
 			swerveLooper.start();
 			enabledLooper.start();
 			
+			limelight.setVisionMode();
+			limelight.ledOn(true);
+			
+			superstructure.elevator.setCurrentLimit(20);
+			superstructure.elevator.configForAutoSpeed();
+			
 			superstructure.enableCompressor(false);
 			
-			SmartDashboard.putBoolean("Auto", true);
+			//SmartDashboard.putBoolean("Auto", true);
 			
-			String gameData = DriverStation.getInstance().getGameSpecificMessage().substring(0, 2);
+			String gameData = DriverStation.getInstance().getGameSpecificMessage();
 			autoModeExecuter = new AutoModeExecuter();
-			autoModeExecuter.setAutoMode(smartDashboardInteractions.getSelectedAutoMode(gameData));
+			autoModeExecuter.setAutoMode(smartDashboardInteractions.getSelectedAutoMode(gameData.substring(0, 2)));
 			autoModeExecuter.start();
+			SmartDashboard.putString("Game Data", gameData);
+			System.out.println(gameData);
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw t;
@@ -200,7 +209,15 @@ public class Robot extends IterativeRobot {
 			swerveLooper.start();
 			enabledLooper.start();
 			superstructure.enableCompressor(true);
-			SmartDashboard.putBoolean("Auto", false);
+			limelight.setDriverMode();
+			limelight.ledOn(false);
+			swerve.setNominalDriveOutput(0.0);
+			superstructure.elevator.setCurrentLimit(30);
+			superstructure.elevator.configForTeleopSpeed();
+			superstructure.setManualElevatorSpeed(Constants.kElevatorTeleopManualSpeed);
+			//limelight.setVisionMode();
+			//limelight.ledOn(true);
+			//SmartDashboard.putBoolean("Auto", false);
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw t;
@@ -220,72 +237,95 @@ public class Robot extends IterativeRobot {
 				superstructure.requestIntakeIdle();
 			}
 			
-			double swerveYInput = (superstructure.getState() == Superstructure.State.HANGING) ? 0.0 : -driver.getY(Hand.kLeft);
-			double swerveXInput = (superstructure.getState() == Superstructure.State.HANGING) ? 0.0 : driver.getX(Hand.kLeft);
+			double swerveYInput = (superstructure.getState() == Superstructure.State.HANGING) ? 0.0 : driver.getX(Hand.kLeft);
+			double swerveXInput = (superstructure.getState() == Superstructure.State.HANGING) ? 0.0 : -driver.getY(Hand.kLeft);
 			double swerveRotationInput = (driver.rightCenterClick.isBeingPressed()) ? 0.0 : driver.getX(Hand.kRight);
 			
 			swerve.sendInput(swerveXInput, swerveYInput, swerveRotationInput, false, driver.leftTrigger.isBeingPressed());
-			if(driver.yButton.wasPressed())
+			if(driver.yButton.isBeingPressed())
 				swerve.rotate(0);
-			else if(driver.bButton.wasPressed())
+			else if(driver.bButton.isBeingPressed())
 				swerve.rotate(90);
-			else if(driver.aButton.wasPressed())
+			else if(driver.aButton.isBeingPressed())
 				swerve.rotate(180);
-			else if(driver.xButton.wasPressed())
+			else if(driver.xButton.isBeingPressed())
 				swerve.rotate(270);
 			else if(driver.leftCenterClick.isBeingPressed())
 				swerve.rotate(-135);
-			else if(driver.rightCenterClick.isBeingPressed())
-				swerve.rotate(135);
+			else if(driver.rightBumper.isBeingPressed())
+				swerve.rotate(25);
 			if(driver.backButton.wasPressed()){
-				robotState.resetRobotPosition(Constants.kRightSwitchTarget);
-				/*NetworkTable table = NetworkTableInstance.getDefault().getTable("limelight");
-				NetworkTableEntry ledMode = table.getEntry("ledMode");
-				if(ledMode.getDouble(0) == 0)
-					ledMode.setNumber(1);
-				else
-					ledMode.setNumber(0);*/
+				swerve.temporarilyDisableHeadingController();
+				swerve.zeroSensors(Constants.kRobotStartingPose);
+				//robotState.resetRobotPosition(Constants.kRightSwitchTarget);
 			}else if(driver.backButton.longPressed()){
 				swerve.temporarilyDisableHeadingController();
-				swerve.zeroSensors(new RigidTransform2d(new Translation2d(Constants.ROBOT_HALF_LENGTH, Constants.kAutoStartingCorner.y() + Constants.ROBOT_HALF_WIDTH), Rotation2d.fromDegrees(0)));
-			}
-			
-			if(driver.startButton.isBeingPressed()){
-				swerve.enableCubeTracking(true);
-			}else{
-				swerve.enableCubeTracking(false);
+				swerve.zeroSensors(Constants.kRobotStartingPose);
 			}
 			
 			if(coDriver.rightBumper.wasPressed()){
 				superstructure.requestIntakeOn();
-			}else if(coDriver.leftTrigger.wasPressed() || driver.rightBumper.wasPressed()){
+			}else if(coDriver.leftTrigger.wasPressed() || driver.leftBumper.wasPressed()){
 				superstructure.requestIntakeOpen();
 			}else if(coDriver.rightTrigger.wasPressed() || driver.rightTrigger.wasPressed()){
 				superstructure.requestIntakeScore();
+			}else if(coDriver.rightTrigger.longPressed() || driver.rightTrigger.longPressed()){
+				superstructure.requestIntakeWeakScore();
+			}else if(coDriver.leftBumper.wasPressed()){
+				superstructure.requestOpenIntakingConfig();
 			}
 			
-			if(coDriver.aButton.wasPressed()){
-				superstructure.requestIntakingConfig();
-			}else if(coDriver.xButton.wasPressed()){
-				superstructure.requestSwitchConfig();
-			}else if(coDriver.bButton.wasPressed()){
-				superstructure.requestPrimaryWristStow();
-			}else if(coDriver.yButton.wasPressed()){
-				superstructure.requestBalancedScaleConfig();
-			}else if(coDriver.POV0.wasPressed()){
-				superstructure.requestHighScaleConfig();
-			}else if(coDriver.POV180.wasPressed()){
-				superstructure.requestLowScaleConfig();
-			}else if(coDriver.bButton.longPressed()){
-				superstructure.requestGroundStowedConfig();
-			}else if(coDriver.rightCenterClick.wasPressed()){
-				superstructure.requestHighIntakingConfig();
-			}else if(coDriver.startButton.wasPressed()){
-				superstructure.requestHumanLoadingConfig();
-			}else if(coDriver.aButton.longPressed()){
-				superstructure.requestExchangeConfig();
-			}else if(coDriver.leftBumper.wasPressed()){
-				superstructure.requestTippingCubeConfig();
+			if(!superstructure.driveTrainFlipped()){
+				if(coDriver.aButton.wasPressed()){
+					superstructure.requestIntakingConfig();
+				}else if(coDriver.rightBumper.longPressed()){
+					superstructure.requestForceIntake();
+				}else if(coDriver.rightBumper.longReleased()){
+					superstructure.requestIntakeOn();
+				}else if(coDriver.xButton.wasPressed()){
+					superstructure.requestSwitchConfig();
+				}else if(coDriver.bButton.wasPressed()){
+					superstructure.requestPrimaryWristStow();
+				}else if(coDriver.yButton.wasPressed()){
+					superstructure.requestBalancedScaleConfig();
+				}else if(coDriver.POV0.wasPressed()){
+					superstructure.requestHighScaleConfig();
+				}else if(coDriver.POV180.wasPressed()){
+					superstructure.requestLowScaleConfig();
+				}else if(coDriver.bButton.longPressed()){
+					superstructure.requestGroundStowedConfig();
+				}else if(coDriver.rightCenterClick.wasPressed()){
+					superstructure.requestHighIntakingConfig();
+				}else if(coDriver.xButton.longPressed()){
+					superstructure.requestHumanLoadingConfig();
+				}else if(coDriver.aButton.longPressed()){
+					superstructure.requestExchangeConfig();
+				}else if(coDriver.POV90.wasPressed()){
+					superstructure.requestTippingCubeConfig();
+				}
+			}else{
+				if(coDriver.POV0.isBeingPressed()){
+					superstructure.requestWinchOpenLoop(0.75);
+				}else if(coDriver.POV180.isBeingPressed()){
+					superstructure.requestWinchOpenLoop(-0.75);
+				}else{
+					superstructure.requestWinchOpenLoop(0.0);
+				}
+			}
+			
+			if(coDriver.startButton.longPressed()){
+				superstructure.setManualElevatorSpeed(0.25);
+				superstructure.elevator.enableLimits(false);
+			}else if(!superstructure.elevator.limitsEnabled() && coDriver.getY(Hand.kLeft) == 0){
+				superstructure.elevator.zeroSensors();
+				superstructure.elevator.enableLimits(true);
+				superstructure.setManualElevatorSpeed(Constants.kElevatorTeleopManualSpeed);
+			}
+			
+			if(coDriver.leftBumper.isBeingPressed()){
+				limelight.blink();
+			}else{
+				limelight.ledOn(false);
 			}
 			
 			if(superstructure.driveTrainFlipped() && coDriver.leftTrigger.isBeingPressed())
@@ -298,15 +338,17 @@ public class Robot extends IterativeRobot {
 			if(Intake.getInstance().needsToNotifyDrivers()){
 				driver.rumble(1.0, 1.0);
 				coDriver.rumble(1.0, 1.0);
+			}else if(superstructure.hasDriverAlert()){
+				coDriver.rumble(1.0, 1.0);
 			}
 			
-			if(driver.leftBumper.wasPressed()){
+			if(driver.POV0.wasPressed()){
 				if(superstructure.getState() == Superstructure.State.HANGING)
 					superstructure.requestFinalHungConfig();
 				else
 					superstructure.requestHangingConfig();
 			}else if(driver.POV180.wasPressed()){
-				if(superstructure.getWantedState() == Superstructure.WantedState.READY_FOR_HANG)
+				if(!superstructure.elevator.isHighGear())
 					superstructure.requestHungConfig();
 			}else if(driver.POV90.wasPressed() && !Elevator.getInstance().isHighGear()){
 				superstructure.flipDriveTrain();
@@ -341,6 +383,7 @@ public class Robot extends IterativeRobot {
 	public void disabledPeriodic(){
 		try{
 			allPeriodic();
+			smartDashboardInteractions.output();
 		}catch(Throwable t){
 			CrashTracker.logThrowableCrash(t);
 			throw t;

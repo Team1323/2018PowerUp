@@ -135,6 +135,7 @@ public class Xbox extends XboxController{
     	boolean buttonActive = false;
     	boolean longPressActive = false;
     	boolean hasBeenPressed = false;
+    	boolean longReleased = false;
     	private double buttonStartTime = 0;
     	private int buttonNumber;
     	
@@ -184,6 +185,7 @@ public class Xbox extends XboxController{
     				if(longPressActive){
     					hasBeenPressed = false;
     					longPressActive = false;
+    					longReleased = true;
     				}else{
     					hasBeenPressed = true;
     				}
@@ -199,6 +201,13 @@ public class Xbox extends XboxController{
     	}
     	public boolean longPressed(){
     		return longPressActive;
+    	}
+    	public boolean longReleased(){
+    		if(longReleased){
+    			longReleased = false;
+    			return true;
+    		}
+    		return false;
     	}
     	public boolean isBeingPressed(){
     		return buttonActive;
