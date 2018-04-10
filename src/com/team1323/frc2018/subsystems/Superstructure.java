@@ -51,7 +51,7 @@ public class Superstructure extends Subsystem{
 	
 	public enum State{
 		IDLE, ASSUMING_CONFIG, CONFIGURED, ELEVATOR_MANUAL, WRIST_MANUAL, WAITING_FOR_WRIST, WAITING_FOR_ELEVATOR, INTAKING, STOWING,
-		HANGING, READY_FOR_HANG
+		HANGING, READY_FOR_HANG, WIDE_INTAKING
 	}
 	private State currentState = State.IDLE;
 	private State previousState = State.IDLE;
@@ -64,7 +64,7 @@ public class Superstructure extends Subsystem{
 	}
 	
 	public enum WantedState{
-		IDLE, INTAKING, STOWED, RAISED, READY_FOR_HANG, HUNG, EXCHANGE
+		IDLE, INTAKING, STOWED, RAISED, READY_FOR_HANG, HUNG, EXCHANGE, WIDE_INTAKING
 	}
 	private WantedState wantedState = WantedState.IDLE;
 	private WantedState previousWantedState = WantedState.IDLE;
@@ -255,6 +255,10 @@ public class Superstructure extends Subsystem{
 			driverAlert = true;
 			setState(State.INTAKING);
 			break;
+		case WIDE_INTAKING:
+			intake.intakeWide();
+			setState(State.IDLE);
+			break;
 		case READY_FOR_HANG:
 			elevator.configForHanging();
 			setState(State.READY_FOR_HANG);
@@ -294,8 +298,9 @@ public class Superstructure extends Subsystem{
 	}
 	
 	public synchronized void requestOpenIntakingConfig(){
+		intake.stop();
 		requestConfig(Constants.kWristIntakingAngle, Constants.kElevatorIntakingHeight);
-		intake.intakeWide();
+		setWantedState(WantedState.WIDE_INTAKING);
 	}
 	
 	public synchronized void requestForcedIntakeConfig(){
@@ -440,6 +445,10 @@ public class Superstructure extends Subsystem{
 	
 	public synchronized void requestNonchalantIntake(){
 		intake.nonchalantIntake();
+	}
+	
+	public synchronized void requestForceIntake(){
+		intake.forceIntake();
 	}
 	
 	public synchronized void requestIntakeHold(){

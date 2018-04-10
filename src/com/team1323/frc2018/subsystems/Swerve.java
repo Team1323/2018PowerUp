@@ -493,7 +493,7 @@ public class Swerve extends Subsystem{
 	
 	public synchronized void setXCoordinate(double x){
 		resetPosition(new RigidTransform2d(new Translation2d(x, pose.getTranslation().y()), pose.getRotation()));
-		System.out.println("X coordinate reset to: " + x);
+		System.out.println("X coordinate reset to: " + pose.getTranslation().x());
 	}
 	
 	public synchronized void setYCoordinate(double y){

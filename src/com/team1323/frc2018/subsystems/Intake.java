@@ -136,8 +136,8 @@ public class Intake extends Subsystem{
 	
 	private void holdRollers(){
 		setRampRate(0.0);
-		leftIntake.set(ControlMode.PercentOutput, 2.0/12.0);
-		rightIntake.set(ControlMode.PercentOutput, 2.0/12.0);
+		leftIntake.set(ControlMode.PercentOutput, 3.0/12.0);
+		rightIntake.set(ControlMode.PercentOutput, 3.0/12.0);
 	}
 	
 	private void stopRollers(){

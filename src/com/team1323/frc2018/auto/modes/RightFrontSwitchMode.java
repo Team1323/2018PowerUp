@@ -14,7 +14,9 @@ import com.team1323.frc2018.auto.actions.WaitToPassXCoordinateAction;
 import com.team1323.frc2018.pathfinder.PathManager;
 import com.team1323.frc2018.subsystems.Intake;
 import com.team1323.frc2018.subsystems.Superstructure;
+import com.team254.lib.util.math.RigidTransform2d;
 import com.team254.lib.util.math.Rotation2d;
+import com.team254.lib.util.math.Translation2d;
 
 import edu.wpi.first.wpilibj.Timer;
 
@@ -23,7 +25,7 @@ public class RightFrontSwitchMode extends AutoModeBase{
 	@Override
 	protected void routine() throws AutoModeEndedException {
 		double startTime = Timer.getFPGATimestamp();
-		runAction(new ResetPoseAction(Constants.kRobotStartingPose));
+		runAction(new ResetPoseAction(Constants.kRobotStartingPose.transformBy(RigidTransform2d.fromTranslation(new Translation2d(-0.25, 0.0)))));
 		Superstructure.getInstance().requestIntakeHold();
 		runAction(new FollowPathAction(PathManager.mFrontRightSwitch, 0.0));
 		runAction(new WaitAction(0.5));

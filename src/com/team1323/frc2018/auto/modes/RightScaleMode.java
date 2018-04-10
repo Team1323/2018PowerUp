@@ -52,8 +52,8 @@ public class RightScaleMode extends AutoModeBase{
 		if(!Intake.getInstance().hasCube()){
 			runAction(new DriveStraightAction(Rotation2d.fromDegrees(180).toTranslation().scale(0.35)));
 			runAction(new WaitToIntakeCubeAction(2.0));
-			if(Intake.getInstance().hasCube())
-				Swerve.getInstance().setXCoordinate(Constants.kRightSwitchFarCorner.x() + 3.5);
+			/*if(Intake.getInstance().hasCube())
+				Swerve.getInstance().setXCoordinate(Constants.kRightSwitchFarCorner.x() + 3.5);*/
 		}
 		System.out.println("Second cube intaken at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new FollowPathAction(PathManager.mAlternateRightCubeToRightScale, -55.0));//-45

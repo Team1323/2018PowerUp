@@ -141,7 +141,7 @@ public class Constants {
 	/**
 	 * Pulse width position of the wrist encoder when the wrist is upright (at 90 degrees, parallel to the elevator).
 	 */
-	public static final int kWristStartingEncoderPosition = kIsUsingCompBot ? 3620 : 2289; //p 3639 c 3620
+	public static final int kWristStartingEncoderPosition = kIsUsingCompBot ? 533 : 2289; //p 2289 c 515
 	/**
 	 * The number of rotations the wrist encoder undergoes for every rotation of the wrist.
 	 */
@@ -149,9 +149,9 @@ public class Constants {
 	public static final double kWristAngleTolerance = 10.0; //degrees
 	public static final double kWristMinControlAngle = -2.0; //degrees
 	public static final double kWristMaxControlAngle = 92.0; //degrees
-	public static final double kWristMinPhysicalAngle = -10.0;
-	public static final double kWristMaxPhysicalAngle = 96.0;//95.192
-	public static final double kWristIntakingAngle = kIsUsingCompBot ? 1.78 : 9.0;//p 5.7 c 1.78
+	public static final double kWristMinPhysicalAngle = -20.0;
+	public static final double kWristMaxPhysicalAngle = 110.0;//95.192
+	public static final double kWristIntakingAngle = kIsUsingCompBot ? 5.5 : 9.0;//p 5.7 c 1.78
 	public static final double kWristPrimaryStowAngle = 85.0;
 	public static final double kWristSecondaryStowAngle = 60.0;
 	public static final double kWristMaxStowHeight = 3.5; //height of the elevator

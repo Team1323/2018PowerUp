@@ -150,7 +150,7 @@ public class Robot extends IterativeRobot {
 	public void initCamera(){
 		cam = CameraServer.getInstance();
     	UsbCamera usbCamera = new UsbCamera("USB Camera 0", 0);
-    	usbCamera.setVideoMode(PixelFormat.kMJPEG, 640, 480, 30);
+    	usbCamera.setVideoMode(PixelFormat.kMJPEG, 320, 240, 30);
     	MjpegServer mjpegServer2 = new MjpegServer("serve_Blur", 1182);
     	mjpegServer2.setSource(usbCamera);
 	}
@@ -271,13 +271,17 @@ public class Robot extends IterativeRobot {
 				superstructure.requestIntakeScore();
 			}else if(coDriver.rightTrigger.longPressed() || driver.rightTrigger.longPressed()){
 				superstructure.requestIntakeWeakScore();
+			}else if(coDriver.leftBumper.wasPressed()){
+				superstructure.requestOpenIntakingConfig();
 			}
 			
 			if(!superstructure.driveTrainFlipped()){
 				if(coDriver.aButton.wasPressed()){
 					superstructure.requestIntakingConfig();
 				}else if(coDriver.rightBumper.longPressed()){
-					superstructure.requestForcedIntakeConfig();
+					superstructure.requestForceIntake();
+				}else if(coDriver.rightBumper.longReleased()){
+					superstructure.requestIntakeOn();
 				}else if(coDriver.xButton.wasPressed()){
 					superstructure.requestSwitchConfig();
 				}else if(coDriver.bButton.wasPressed()){

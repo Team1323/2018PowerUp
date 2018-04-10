@@ -28,7 +28,9 @@ public class LeftScaleMode extends AutoModeBase{
 		double startTime = Timer.getFPGATimestamp();
 		runAction(new ResetPoseAction(Constants.kRobotLeftStartingPose));
 		Superstructure.getInstance().requestIntakeHold();
-		runAction(new FollowPathAction(PathManager.mStartToLeftScale, 50.0));
+		runAction(new FollowPathAction(PathManager.mStartToLeftScale, -90.0));
+		runAction(new WaitToPassXCoordinateAction(Constants.kLeftSwitchCloseCorner.x() - 5.0));
+		Swerve.getInstance().setAbsolutePathHeading(50.0);
 		runAction(new WaitToPassXCoordinateAction(Constants.kLeftSwitchCloseCorner.x()));
 		Superstructure.getInstance().requestConfig(66.0, 3.75);//66 3.5
 		//Superstructure.getInstance().requestConfig(35.0, Constants.kELevatorBalancedScaleHeight);
@@ -66,7 +68,13 @@ public class LeftScaleMode extends AutoModeBase{
 		Intake.getInstance().intakeWide();
 		runAction(new WaitToFinishPathAction());
 		Intake.getInstance().intake();
-		runAction(new WaitToIntakeCubeAction(1.5));
+		runAction(new WaitToIntakeCubeAction(0.75));
+		if(!Intake.getInstance().hasCube()){
+			System.out.println("Drive straight action initiated");
+			Intake.getInstance().intake();
+			runAction(new DriveStraightAction(Rotation2d.fromDegrees(120.0).toTranslation().scale(0.25)));
+			runAction(new WaitToIntakeCubeAction(1.5));
+		}
 		System.out.println("Third Cube intaken at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new FollowPathAction(PathManager.mAlternateSecondLeftCubeToScale, 55.0));
 		Superstructure.getInstance().requestConfig(35.0, Constants.kELevatorBalancedScaleHeight);
