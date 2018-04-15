@@ -59,7 +59,8 @@ public class Superstructure extends Subsystem{
 		return currentState;
 	}
 	private void setState(State newState){
-		previousState = currentState;
+		if(currentState != newState)
+			previousState = currentState;
 		currentState = newState;
 	}
 	
@@ -393,6 +394,7 @@ public class Superstructure extends Subsystem{
 			elevator.fireGasStruts(true);
 			elevator.fireLatch(true);
 			elevator.setHangingLimits();
+			swerve.disable();
 			driveTrainFlipped = true;
 		}
 	}
@@ -482,8 +484,7 @@ public class Superstructure extends Subsystem{
 		}else if(getState() == State.ELEVATOR_MANUAL){
 			elevator.setOpenLoop(0);
 			if(elevator.getVelocityFeetPerSecond() <= 1.0){
-				//setWantedState(previousWantedState);
-				if(previousState == State.READY_FOR_HANG)
+				if(previousState == State.READY_FOR_HANG || previousState == State.INTAKING)
 					setState(previousState);
 				else
 					setState(State.IDLE);
@@ -499,8 +500,7 @@ public class Superstructure extends Subsystem{
 			wrist.setOpenLoop(input * 0.5);
 		}else if(getState() == State.WRIST_MANUAL){
 			wrist.setOpenLoop(0);
-			//setWantedState(previousWantedState);
-			if(previousState == State.READY_FOR_HANG)
+			if(previousState == State.READY_FOR_HANG || previousState == State.INTAKING)
 				setState(previousState);
 			else
 				setState(State.IDLE);

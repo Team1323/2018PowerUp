@@ -6,7 +6,6 @@ import java.util.List;
 
 import com.team1323.frc2018.Constants;
 import com.team1323.frc2018.Ports;
-import com.team1323.frc2018.RobotState;
 import com.team1323.frc2018.loops.Loop;
 import com.team1323.frc2018.loops.Looper;
 import com.team1323.frc2018.pathfinder.PathfinderPath;
@@ -18,7 +17,6 @@ import com.team254.lib.util.math.RigidTransform2d;
 import com.team254.lib.util.math.Rotation2d;
 import com.team254.lib.util.math.Translation2d;
 
-import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import jaci.pathfinder.Trajectory;
 import jaci.pathfinder.Trajectory.Segment;
@@ -55,6 +53,7 @@ public class Swerve extends Subsystem{
 	Trajectory currentPathTrajectory;
 	int currentPathSegment = 0;
 	double pathMotorOutput = 0;
+	double previousMotorOutput = 0;
 	boolean shouldUsePathfinder = false;
 	double previousPathfinderVelocity = 0.0;
 	Rotation2d lastSteeringDirection;
@@ -100,6 +99,7 @@ public class Swerve extends Subsystem{
 		maxSpeedFactor = max;
 	}
 	private boolean isInLowPower = false;
+	private boolean robotCentric = false;
 	
 	private SwerveKinematics kinematics = new SwerveKinematics();
 	private SwerveInverseKinematics inverseKinematics = new SwerveInverseKinematics();
@@ -108,7 +108,7 @@ public class Swerve extends Subsystem{
 	}
 	
 	public enum ControlState{
-		NEUTRAL, MANUAL, POSITION, PATH_FOLLOWING, ROTATION
+		NEUTRAL, MANUAL, POSITION, PATH_FOLLOWING, ROTATION, DISABLED
 	}
 	private ControlState currentState = ControlState.NEUTRAL;
 	public ControlState getState(){
@@ -155,8 +155,7 @@ public class Swerve extends Subsystem{
 			lastActiveVector = rotationalVector;
 		}
 		
-		SmartDashboard.putNumber("Vector Direction", translationalVector.direction().getDegrees());
-		SmartDashboard.putNumber("Vector Magnitude", translationalVector.norm());
+		this.robotCentric = robotCentric;
 	}
 	
 	public synchronized void rotate(double goalHeading){
@@ -293,7 +292,7 @@ public class Swerve extends Subsystem{
 					stop();
 				}else{
 					List<Translation2d> driveVectors = inverseKinematics.updateDriveVectors(lastActiveVector.toTranslation(),
-							rotationCorrection, pose);
+							rotationCorrection, pose, robotCentric);
 					for(int i=0; i<modules.size(); i++){
 			    		if(Util.shouldReverse(driveVectors.get(i).direction().getDegrees(), modules.get(i).getModuleAngle().getDegrees())){
 			    			modules.get(i).setModuleAngle(driveVectors.get(i).direction().getDegrees() + 180.0);
@@ -306,7 +305,7 @@ public class Swerve extends Subsystem{
 				}
 			}else{
 				List<Translation2d> driveVectors = inverseKinematics.updateDriveVectors(translationalVector,
-						rotationalInput + rotationCorrection, pose);
+						rotationalInput + rotationCorrection, pose, robotCentric);
 				for(int i=0; i<modules.size(); i++){
 		    		if(Util.shouldReverse(driveVectors.get(i).direction().getDegrees(), modules.get(i).getModuleAngle().getDegrees())){
 		    			modules.get(i).setModuleAngle(driveVectors.get(i).direction().getDegrees() + 180.0);
@@ -347,6 +346,8 @@ public class Swerve extends Subsystem{
 				Segment lookaheadPoint = currentPathTrajectory.get(lookaheadPointIndex);
 				Translation2d lookaheadPosition = new Translation2d(lookaheadPoint.x, lookaheadPoint.y);
 				angleToLookahead = lookaheadPosition.translateBy(pose.getTranslation().inverse()).direction();
+				SmartDashboard.putNumber("Approach X", lookaheadPosition.x());
+				SmartDashboard.putNumber("Approach Y", lookaheadPosition.y());
 			}
 			if(currentPathSegment >= (currentPathTrajectory.length() - 1)){
 				double error = currentPath.getFinalPosition().translateBy(pose.getTranslation().inverse()).norm();
@@ -368,8 +369,8 @@ public class Swerve extends Subsystem{
 			}
 			if(!currentPath.rotationOverride())
 				rotationCorrection = rotationCorrection*pathMotorOutput*currentPath.rotationScalar();
-		    List<Translation2d> driveVectors = inverseKinematics.updateDriveVectors(angleToLookahead.toTranslation().scale(((pathMotorOutput == 0) ? 1 : pathMotorOutput)),
-		    		rotationCorrection, pose);
+		    List<Translation2d> driveVectors = inverseKinematics.updateDriveVectors(angleToLookahead.toTranslation().scale(((pathMotorOutput == 0) ? previousMotorOutput : pathMotorOutput)),
+		    		rotationCorrection, pose, false);
 			for(int i=0; i<modules.size(); i++){
 	    		if(Util.shouldReverse(driveVectors.get(i).direction().getDegrees(), modules.get(i).getModuleAngle().getDegrees())){
 	    			modules.get(i).setModuleAngle(driveVectors.get(i).direction().getDegrees() + 180.0);
@@ -408,17 +409,20 @@ public class Swerve extends Subsystem{
 	    			modules.get(i).setDriveOpenLoop(kinematics.wheelSpeeds[i]);
 	    		}
 	    	}*/
-			SmartDashboard.putNumber("Vector Direction", angleToLookahead.getDegrees());
-			SmartDashboard.putNumber("Vector Magnitude", pathMotorOutput);
 			lastSteeringDirection = angleToLookahead;
-			//System.out.println("Steering direction: " + angleToLookahead.getDegrees());
-			//System.out.println("Module 0 direction: " + driveVectors.get(0).direction().getDegrees());
+			if(pathMotorOutput != 0)
+				previousMotorOutput = pathMotorOutput;
 			previousPathfinderVelocity = currentPathTrajectory.get(currentPathSegment).velocity;
 			if(modulesReady)
 				currentPathSegment++;
 			break;
 		case NEUTRAL:
 			stop();
+			break;
+		case DISABLED:
+			
+			break;
+		default:
 			break;
 		}
 	}
@@ -466,6 +470,11 @@ public class Swerve extends Subsystem{
 	public void registerEnabledLoops(Looper enabledLooper) {
 		enabledLooper.register(loop);
 	}
+	
+	public synchronized void disable(){
+		modules.forEach((m) -> m.disable());
+		setState(ControlState.DISABLED);
+	}
 
 	@Override
 	public synchronized void stop() {
@@ -492,12 +501,14 @@ public class Swerve extends Subsystem{
 	}
 	
 	public synchronized void setXCoordinate(double x){
-		resetPosition(new RigidTransform2d(new Translation2d(x, pose.getTranslation().y()), pose.getRotation()));
+		pose.getTranslation().setX(x);
+		modules.forEach((m) -> m.zeroSensors(pose));
 		System.out.println("X coordinate reset to: " + pose.getTranslation().x());
 	}
 	
 	public synchronized void setYCoordinate(double y){
-		resetPosition(new RigidTransform2d(new Translation2d(pose.getTranslation().x(), y), pose.getRotation()));
+		pose.getTranslation().setY(y);
+		modules.forEach((m) -> m.zeroSensors(pose));
 	}
 
 	@Override

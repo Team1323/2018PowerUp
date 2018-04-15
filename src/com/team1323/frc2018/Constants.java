@@ -141,7 +141,7 @@ public class Constants {
 	/**
 	 * Pulse width position of the wrist encoder when the wrist is upright (at 90 degrees, parallel to the elevator).
 	 */
-	public static final int kWristStartingEncoderPosition = kIsUsingCompBot ? 533 : 2289; //p 2289 c 515
+	public static final int kWristStartingEncoderPosition = kIsUsingCompBot ? 533 : 559;
 	/**
 	 * The number of rotations the wrist encoder undergoes for every rotation of the wrist.
 	 */
@@ -161,4 +161,9 @@ public class Constants {
 	public static final double kIntakeWeakEjectOutput = -0.4;
 	public static final double kIntakeEjectOutput = -0.55;
 	public static final double kIntakeStrongEjectOutput = -1.0;
+	public static final double kIntakingOutput = 1.0;
+	public static final double kIntakeWeakHoldingOutput = 2.0/12.0;
+	public static final double kIntakeStrongHoldingOutput = 4.0/12.0;
+	public static final double kIntakingResuckingOutput = 6.0/12.0;
+	public static final double kIntakeRampRate = 0.25;
 }

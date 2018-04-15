@@ -179,6 +179,10 @@ public class Elevator extends Subsystem{
 	
 	public synchronized void setTargetHeight(double heightFeet){
 		setState(ControlState.Position);
+		if(heightFeet > Constants.kElevatorMaxHeight)
+			heightFeet = Constants.kElevatorMaxHeight;
+		else if(heightFeet < Constants.kElevatorMinHeight)
+			heightFeet = Constants.kElevatorMinHeight;
 		if(!isHighGear)
 			configForLifting();
 		if(isSensorConnected()){
