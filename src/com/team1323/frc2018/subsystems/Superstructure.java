@@ -317,7 +317,7 @@ public class Superstructure extends Subsystem{
 	}
 	
 	public synchronized void requestHumanLoadingConfig(){
-		intake.stop();
+		//intake.stop();
 		requestConfig(Constants.kWristIntakingAngle, Constants.kElevatorHumanLoadHeight);
 		intake.open();
 	}
