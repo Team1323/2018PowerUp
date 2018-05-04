@@ -40,7 +40,7 @@ public class RightFrontSwitchMode extends AutoModeBase{
 		System.out.println("First Cube Scored at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new WaitAction(0.25));
 		runAction(new FollowPathAction(PathManager.mFrontRightSwitchToOuterCube, 0.0));
-		runAction(new WaitAction(0.25));
+		runAction(new WaitAction(0.35));
 		Superstructure.getInstance().requestConfig(Constants.kWristIntakingAngle, Constants.kElevatorIntakingHeight);
 		Intake.getInstance().intakeWide();
 		runAction(new WaitToFinishPathAction(3.5));
@@ -78,17 +78,17 @@ public class RightFrontSwitchMode extends AutoModeBase{
 		runAction(new WaitAction(0.25));
 		Superstructure.getInstance().requestSwitchConfig();
 		runAction(new WaitToFinishPathAction());
-		Superstructure.getInstance().requestIntakeScore();
+		Superstructure.getInstance().requestIntakeWeakScore();
 		System.out.println("Third Cube Scored at: " + (Timer.getFPGATimestamp() - startTime));
 		if(leak){
-			runAction(new WaitAction(0.25));
+			runAction(new WaitAction(0.75));
 			runAction(new FollowPathAction(PathManager.mFrontRightSwitchToDropoff, 0.0));
 			Superstructure.getInstance().requestConfig(Constants.kWristPrimaryStowAngle);
 			runAction(new WaitForElevatorAction());
 			Superstructure.getInstance().requestGroundStowedConfig();
 			runAction(new WaitToFinishPathAction());
 		}else{
-			runAction(new WaitAction(0.5));
+			runAction(new WaitAction(0.75));
 			runAction(new FollowPathAction(PathManager.mFrontRightSwitchToBottomMiddle, -30.0));
 			runAction(new WaitAction(0.75));
 			Superstructure.getInstance().requestNonchalantIntakeConfig();

@@ -37,7 +37,7 @@ public class LeftScaleMode extends AutoModeBase{
 		Intake.getInstance().eject(Constants.kIntakeStrongEjectOutput);
 		System.out.println("First Cube Scored at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new WaitAction(0.4));
-		runAction(new FollowPathAction(PathManager.mAlternateLeftmostCube, 170.0));
+		runAction(new FollowPathAction(PathManager.mAlternateLeftmostCube, 175.0));
 		runAction(new WaitForHeadingAction(80.0, 180.0));
 		Superstructure.getInstance().requestConfig(Constants.kWristIntakingAngle, Constants.kElevatorIntakingHeight);
 		Intake.getInstance().intakeWide();

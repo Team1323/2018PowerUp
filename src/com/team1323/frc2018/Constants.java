@@ -14,7 +14,7 @@ public class Constants {
 	
 	public static final double kEpsilon = 0.0001;
 	
-	public static final boolean kIsUsingCompBot = false;
+	public static final boolean kIsUsingCompBot = true;
 	
 	//Physical Robot Dimensions
 	public static final double kRobotWidth = 39.0 / 12.0;
