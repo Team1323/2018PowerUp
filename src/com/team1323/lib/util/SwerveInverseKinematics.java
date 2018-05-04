@@ -8,6 +8,8 @@ import com.team254.lib.util.math.RigidTransform2d;
 import com.team254.lib.util.math.Rotation2d;
 import com.team254.lib.util.math.Translation2d;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 public class SwerveInverseKinematics {
 	
 	public SwerveInverseKinematics(){
@@ -46,8 +48,13 @@ public class SwerveInverseKinematics {
 		moduleRotationDirections = updateRotationDirections();
 	}
 	
-	public List<Translation2d> updateDriveVectors(Translation2d translationalVector, double rotationalMagnitude, RigidTransform2d robotPose){
-		translationalVector = translationalVector.rotateBy(robotPose.getRotation().inverse());
+	public List<Translation2d> updateDriveVectors(Translation2d translationalVector, double rotationalMagnitude, 
+			RigidTransform2d robotPose, boolean robotCentric){
+		SmartDashboard.putNumber("Vector Direction", translationalVector.direction().getDegrees());
+		SmartDashboard.putNumber("Vector Magnitude", translationalVector.norm());
+		
+		if(!robotCentric)
+			translationalVector = translationalVector.rotateBy(robotPose.getRotation().inverse());
 		List<Translation2d> driveVectors = new ArrayList<>(kNumberOfModules);
 		for(int i = 0; i < kNumberOfModules; i++){
 			driveVectors.add(translationalVector.translateBy(moduleRotationDirections.get(i).scale(rotationalMagnitude)));

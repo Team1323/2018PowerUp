@@ -33,7 +33,7 @@ public class RightScaleMode extends AutoModeBase{
 		//runAction(new WaitToPassXCoordinateAction(Constants.kLeftSwitchFarCorner.x()));
 		runAction(new WaitToPassYCoordinateAction(15.0));
 		//Swerve.getInstance().setAbsolutePathHeading(-30.0);
-		Superstructure.getInstance().requestConfig(35.0, Constants.kELevatorBalancedScaleHeight);
+		Superstructure.getInstance().requestConfig(60.0, Constants.kELevatorBalancedScaleHeight);
 		runAction(new WaitToPassYCoordinateAction(17.0));
 		Swerve.getInstance().setAbsolutePathHeading(-40.0);
 		runAction(new WaitToFinishPathAction());
@@ -47,18 +47,20 @@ public class RightScaleMode extends AutoModeBase{
 		Superstructure.getInstance().requestConfig(Constants.kWristIntakingAngle, Constants.kElevatorIntakingHeight);
 		Intake.getInstance().intakeWide();
 		runAction(new WaitForWallAction(2.5));
+		System.out.println("Right Switch X: " + Swerve.getInstance().getPose().getTranslation().x());
 		Intake.getInstance().intake();
 		runAction(new WaitToIntakeCubeAction(0.75));
 		if(!Intake.getInstance().hasCube()){
 			runAction(new DriveStraightAction(Rotation2d.fromDegrees(180).toTranslation().scale(0.35)));
 			runAction(new WaitToIntakeCubeAction(2.0));
-			/*if(Intake.getInstance().hasCube())
-				Swerve.getInstance().setXCoordinate(Constants.kRightSwitchFarCorner.x() + 3.5);*/
+			if(Intake.getInstance().hasCube()){
+				Swerve.getInstance().setXCoordinate(19.0);
+			}
 		}
 		System.out.println("Second cube intaken at: " + (Timer.getFPGATimestamp() - startTime));
 		runAction(new FollowPathAction(PathManager.mAlternateRightCubeToRightScale, -55.0));//-45
 		runAction(new WaitAction(0.25));
-		Superstructure.getInstance().requestConfig(35.0, Constants.kELevatorBalancedScaleHeight);
+		Superstructure.getInstance().requestConfig(55.0, Constants.kELevatorBalancedScaleHeight);
 		runAction(new WaitToFinishPathAction());
 		runAction(new WaitForElevatorAction());
 		Intake.getInstance().eject(Constants.kIntakeEjectOutput);
@@ -74,6 +76,10 @@ public class RightScaleMode extends AutoModeBase{
 			runAction(new WaitToIntakeCubeAction(1.5));
 		}
 		System.out.println("Third Cube intaken at: " + (Timer.getFPGATimestamp() - startTime));
+		runAction(new FollowPathAction(PathManager.mAlternateRightCubeToRightScale, -55.0));
+		runAction(new WaitAction(0.25));
+		Superstructure.getInstance().requestPrimaryWristStow();
+		runAction(new WaitToFinishPathAction());
 	}
 
 }

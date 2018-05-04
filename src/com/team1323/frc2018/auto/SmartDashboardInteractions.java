@@ -76,13 +76,13 @@ public class SmartDashboardInteractions {
     		case SWITCH_ONLY:
     			switch(gameData){
     			case "LL":
-    				//fall-through intended
+    				return new LeftFrontSwitchMode(false);
     			case "LR":
-    				return new LeftFrontSwitchMode();
+    				return new LeftFrontSwitchMode(true);
     			case "RR":
-    				//fall-through intended
+    				return new RightFrontSwitchMode(false);
     			case "RL":
-    				return new RightFrontSwitchMode();
+    				return new RightFrontSwitchMode(true);
     			default:
     				System.out.println("ERROR: unexpected auto mode: " + option);
                     return new StandStillMode();

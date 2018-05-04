@@ -112,10 +112,10 @@ public class Robot extends IterativeRobot {
 				PathManager.mLeftCubeToRightScale, PathManager.mRightScaleToFirstCube));*/
 		/*transmitter.addPaths(Arrays.asList(PathManager.mFrontLeftSwitch, PathManager.mFrontLeftSwitchToOuterCube, 
 				PathManager.mOuterCubeToFrontLeftSwitch, PathManager.mFrontLeftSwitchToMiddleCube, PathManager.mMiddleCubeToFrontLeftSwitch,
-				PathManager.mFrontLeftSwitchToDropoff));*/
+				PathManager.mFrontLeftSwitchToBottomMiddle, PathManager.mFrontLeftSwitchToDropoff));*/
 		/*transmitter.addPaths(Arrays.asList(PathManager.mFrontRightSwitch, PathManager.mFrontRightSwitchToOuterCube, 
 				PathManager.mOuterCubeToFrontRightSwitch, PathManager.mFrontRightSwitchToMiddleCube, PathManager.mMiddleCubeToFrontRightSwitch,
-				PathManager.mFrontRightSwitchToDropoff));*/
+				PathManager.mFrontRightSwitchToBottomMiddle, PathManager.mFrontRightSwitchToDropoff));*/
 		/*transmitter.addPaths(Arrays.asList(PathManager.mStartToLeftScale, PathManager.mAlternateLeftmostCube,
 				PathManager.mDerpLeftCubeToLeftScale, PathManager.mAlternateLeftScaleToSecondCube,
 				PathManager.mAlternateSecondLeftCubeToScale));*/
@@ -177,6 +177,8 @@ public class Robot extends IterativeRobot {
 			superstructure.elevator.setCurrentLimit(20);
 			superstructure.elevator.configForAutoSpeed();
 			
+			superstructure.intake.setHoldingOutput(Constants.kIntakeWeakHoldingOutput);
+			
 			superstructure.enableCompressor(false);
 			
 			//SmartDashboard.putBoolean("Auto", true);
@@ -215,6 +217,7 @@ public class Robot extends IterativeRobot {
 			superstructure.elevator.setCurrentLimit(30);
 			superstructure.elevator.configForTeleopSpeed();
 			superstructure.setManualElevatorSpeed(Constants.kElevatorTeleopManualSpeed);
+			superstructure.intake.setHoldingOutput(Constants.kIntakeStrongHoldingOutput);
 			//limelight.setVisionMode();
 			//limelight.ledOn(true);
 			//SmartDashboard.putBoolean("Auto", false);
@@ -239,9 +242,9 @@ public class Robot extends IterativeRobot {
 			
 			double swerveYInput = (superstructure.getState() == Superstructure.State.HANGING) ? 0.0 : driver.getX(Hand.kLeft);
 			double swerveXInput = (superstructure.getState() == Superstructure.State.HANGING) ? 0.0 : -driver.getY(Hand.kLeft);
-			double swerveRotationInput = (driver.rightCenterClick.isBeingPressed()) ? 0.0 : driver.getX(Hand.kRight);
+			double swerveRotationInput = driver.getX(Hand.kRight);
 			
-			swerve.sendInput(swerveXInput, swerveYInput, swerveRotationInput, false, driver.leftTrigger.isBeingPressed());
+			swerve.sendInput(swerveXInput, swerveYInput, swerveRotationInput, driver.rightCenterClick.isBeingPressed(), driver.leftTrigger.isBeingPressed());
 			if(driver.yButton.isBeingPressed())
 				swerve.rotate(0);
 			else if(driver.bButton.isBeingPressed())
@@ -257,7 +260,6 @@ public class Robot extends IterativeRobot {
 			if(driver.backButton.wasPressed()){
 				swerve.temporarilyDisableHeadingController();
 				swerve.zeroSensors(Constants.kRobotStartingPose);
-				//robotState.resetRobotPosition(Constants.kRightSwitchTarget);
 			}else if(driver.backButton.longPressed()){
 				swerve.temporarilyDisableHeadingController();
 				swerve.zeroSensors(Constants.kRobotStartingPose);

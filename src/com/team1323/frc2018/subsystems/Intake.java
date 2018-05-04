@@ -1,8 +1,10 @@
 package com.team1323.frc2018.subsystems;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.StatusFrameEnhanced;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
+import com.team1323.frc2018.Constants;
 import com.team1323.frc2018.Ports;
 import com.team1323.frc2018.loops.Loop;
 import com.team1323.frc2018.loops.Looper;
@@ -38,6 +40,9 @@ public class Intake extends Subsystem{
 		
 		leftIntake.setInverted(false);
 		rightIntake.setInverted(true);
+		
+		leftIntake.setNeutralMode(NeutralMode.Brake);
+		rightIntake.setNeutralMode(NeutralMode.Brake);
 		
 		leftIntake.configPeakOutputForward(1.0, 10);
 		rightIntake.configPeakOutputForward(1.0, 10);
@@ -88,6 +93,13 @@ public class Intake extends Subsystem{
 	
 	private double bannerSensorBeganTimestamp = Double.POSITIVE_INFINITY;
 	
+	private boolean isResucking = false;
+	
+	private double holdingOutput = Constants.kIntakeWeakHoldingOutput;
+	public void setHoldingOutput(double output){
+		holdingOutput = output;
+	}
+	
 	private boolean needsToNotifyDrivers = false;
 	public boolean needsToNotifyDrivers(){
 		if(needsToNotifyDrivers){
@@ -118,12 +130,12 @@ public class Intake extends Subsystem{
 	}
 	
 	private void forwardRollers(){
-		setRampRate(0.5);
-		leftIntake.set(ControlMode.PercentOutput, 1.0);
-		rightIntake.set(ControlMode.PercentOutput, 1.0);
+		setRampRate(Constants.kIntakeRampRate);
+		leftIntake.set(ControlMode.PercentOutput, Constants.kIntakingOutput);
+		rightIntake.set(ControlMode.PercentOutput, Constants.kIntakingOutput);
 	}
 	
-	private void reverseRollers(double output){
+	private void setRollers(double output){
 		setRampRate(0.0);
 		leftIntake.set(ControlMode.PercentOutput, output);
 		rightIntake.set(ControlMode.PercentOutput, output);
@@ -135,9 +147,7 @@ public class Intake extends Subsystem{
 	}
 	
 	private void holdRollers(){
-		setRampRate(0.0);
-		leftIntake.set(ControlMode.PercentOutput, 3.0/12.0);
-		rightIntake.set(ControlMode.PercentOutput, 3.0/12.0);
+		setRollers(holdingOutput);
 	}
 	
 	private void stopRollers(){
@@ -162,11 +172,6 @@ public class Intake extends Subsystem{
 				
 				break;
 			case INTAKING:
-				/*if(banner.get()){
-					hasCube = true;
-					needsToNotifyDrivers = true;
-					clamp();
-				}*/
 				if(banner.get()){
 					if(bannerSensorBeganTimestamp == Double.POSITIVE_INFINITY){
 						bannerSensorBeganTimestamp = timestamp;
@@ -207,7 +212,17 @@ public class Intake extends Subsystem{
 					intake();
 				break;
 			case CLAMPING:
-				
+				if(banner.get()){
+					if(isResucking){
+						holdRollers();
+						isResucking = false;
+					}
+				}else{
+					if(!isResucking){
+						setRollers(Constants.kIntakingResuckingOutput);
+						isResucking = true;
+					}
+				}
 				break;
 			case GROUND_CLAMPING:
 				
@@ -217,7 +232,7 @@ public class Intake extends Subsystem{
 				hasCube = false;
 				if(timestamp - stateEnteredTimestamp > 2.0){
 					stop();
-					setRampRate(0.5);
+					setRampRate(Constants.kIntakeRampRate);
 				}
 				break;
 			default:
@@ -260,7 +275,8 @@ public class Intake extends Subsystem{
 	public void forceIntake(){
 		hasCube = false;
 		setState(State.FORCED_INTAKE);
-		forwardRollers();
+		if(banner.get()) holdRollers();
+		else forwardRollers();
 		firePinchers(true);
 		fireClampers(false);
 	}
@@ -286,7 +302,7 @@ public class Intake extends Subsystem{
 	
 	public void eject(double output){
 		setState(State.EJECTING);
-		reverseRollers(output);
+		setRollers(output);
 		firePinchers(true);
 		fireClampers(false);
 		hasCube = false;
@@ -315,6 +331,7 @@ public class Intake extends Subsystem{
 		rightIntake.set(ControlMode.PercentOutput, 0);
 		firePinchers(true);
 		fireClampers(false);
+		setRampRate(0.0);
 	}
 
 	@Override

@@ -136,7 +136,7 @@ public class SwerveDriveModule extends Subsystem{
 	public boolean angleOnTarget(){
 		double error = encUnitsToDegrees(Math.abs(rotationSetpoint - rotationMotor.getSelectedSensorPosition(0)));
 		//System.out.println(name + "error: " + error);
-		return error < 4.0;
+		return error < 7.5;
 	}
 	
 	public void setRotationOpenLoop(double power){
@@ -232,6 +232,11 @@ public class SwerveDriveModule extends Subsystem{
 		//setModuleAngle(getModuleAngle().getDegrees());
 		//setRotationOpenLoop(0.0);
 		setDriveOpenLoop(0.0);
+	}
+	
+	public synchronized void disable(){
+		setDriveOpenLoop(0.0);
+		setRotationOpenLoop(0.0);
 	}
 	
 	public synchronized void resetRotationToAbsolute(){
