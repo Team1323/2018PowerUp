@@ -105,10 +105,13 @@ public class IntakeV2 extends Subsystem{
 		return currentState;
 	}
 	private synchronized void setState(IntakeState newState){
+		if(newState != currentState)
+			stateChanged = true;
 		currentState = newState;
 		stateEnteredTimestamp = Timer.getFPGATimestamp();
 	}
 	private double stateEnteredTimestamp = 0;
+	private boolean stateChanged = false;
 	
 	private double bannerSensorBeganTimestamp = Double.POSITIVE_INFINITY;
 	
@@ -195,6 +198,8 @@ public class IntakeV2 extends Subsystem{
 				
 				break;
 			case INTAKING:
+				if(stateChanged)
+					hasCube = false;
 				if(banner.get()){
 					if(bannerSensorBeganTimestamp == Double.POSITIVE_INFINITY){
 						bannerSensorBeganTimestamp = timestamp;
@@ -210,6 +215,8 @@ public class IntakeV2 extends Subsystem{
 				}
 				break;
 			case NONCHALANT_INTAKING:
+				if(stateChanged)
+					hasCube = false;
 				if(banner.get()){
 					if(bannerSensorBeganTimestamp == Double.POSITIVE_INFINITY){
 						bannerSensorBeganTimestamp = timestamp;
@@ -247,8 +254,10 @@ public class IntakeV2 extends Subsystem{
 				
 				break;
 			case EJECTING:
-				setRampRate(0.0);
-				hasCube = false;
+				if(stateChanged){
+					setRampRate(0.0);
+					hasCube = false;
+				}
 				if(timestamp - stateEnteredTimestamp > 2.0){
 					stop();
 					setRampRate(Constants.kIntakeRampRate);
@@ -257,6 +266,9 @@ public class IntakeV2 extends Subsystem{
 			default:
 				break;
 			}
+			
+			if(stateChanged)
+				stateChanged = false;
 		}
 
 		@Override
