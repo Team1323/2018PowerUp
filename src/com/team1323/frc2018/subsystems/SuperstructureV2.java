@@ -20,6 +20,8 @@ public class SuperstructureV2 extends Subsystem{
 	private boolean activeRequestsCompleted = false;
 	private boolean allRequestsCompleted = false;
 	
+	public boolean requestsCompleted(){ return allRequestsCompleted; }
+	
 	private void setActiveRequests(RequestList requests){
 		activeRequests = requests;
 		newRequests = true;
@@ -84,7 +86,6 @@ public class SuperstructureV2 extends Subsystem{
 
 		@Override
 		public void onLoop(double timestamp) {
-			if(!allRequestsCompleted){
 				if(!activeRequestsCompleted){
 					if(newRequests){
 						if(activeRequests.isParallel()){
@@ -101,13 +102,15 @@ public class SuperstructureV2 extends Subsystem{
 						for(Request request : activeRequests.getRequests()){
 							done &= request.isFinished();
 						}
-						if(done) activeRequestsCompleted = true;
+						activeRequestsCompleted = done;
 					}else{
 						if(currentRequest.isFinished()){
-							if(activeRequests.isEmpty())
+							if(activeRequests.isEmpty()){
 								activeRequestsCompleted = true;
-							else
+							}else{
 								newRequests = true;
+								activeRequestsCompleted = false;
+							}
 						}
 					}
 				}else{
@@ -117,7 +120,6 @@ public class SuperstructureV2 extends Subsystem{
 						allRequestsCompleted = true;
 					}
 				}
-			}
 		}
 
 		@Override
