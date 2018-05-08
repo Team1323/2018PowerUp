@@ -4,21 +4,18 @@
 public class RadialVectorField implements VectorField {
 	// Default direction is toward point
 	public RadialVectorField(Translation2d where) {
-		x_ = where.x();
-		y_ = where.y();
+		there = where;
 	}
 	public RadialVectorField(Translation2d where, boolean away) {
-		x_ = where.x();
-		y_ = where.y();
+		there = where;
 		if(away) direction = -1;
 	}
 	
 	protected int direction = 1;
-	protected double x_;
-	protected double y_;
+	protected Translation2d there;
 	
-	public Translation2d getVector(double x, double y) {
-		Translation2d v = new Translation2d(x_-x,y_-y);
-		return v.scale(1/v.norm());
+	public Translation2d getVector(Translation2d here) {
+		Translation2d v = new Translation2d(here,there);
+		return v.scale(direction/v.norm());
 	}
 }
