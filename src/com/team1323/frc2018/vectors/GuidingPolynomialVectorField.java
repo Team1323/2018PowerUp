@@ -4,13 +4,12 @@
 public class GuidingPolynomialVectorField implements VectorField {
 
 	// Create a directed line that contains the point (x,y) and has a given heading
-	public GuidingPolynomialVectorField(double x, double y, double heading) {
-		// assume or ensure heading is bounded [0,2pi]
-		fc = new double[]{y - Math.tan(heading)*x,Math.tan(heading)};
+	public GuidingPolynomialVectorField(Translation2d where, Rotation2d heading) {
+		fc = new double[]{where.y() - heading.tan()*where.x(),heading.tan()};
 		setDfc(fc);
-		if(heading >= Math.PI) direction = -1;
+		if(heading.getRadians() >= Math.PI) direction = -1;
 	}
-	public GuidingPolynomialVectorField(double[] coeffs, bool isReversed) {
+	public GuidingPolynomialVectorField(double[] coeffs, boolean isReversed) {
 		fc = coeffs;
 		setDfc(fc);
 		if(isReversed) direction = -1;
@@ -38,38 +37,21 @@ public class GuidingPolynomialVectorField implements VectorField {
 		return val;
 	}
 
-	protected double phi(double x, double y) { return y - f(fc,x); }
-	protected double[] n(double x, double y) {
-		double[] nv = {-f(dfc,x),1};
-		return nv;
-	}
+	protected double phi(Translation2d here) { return here.y() - f(fc,here.x()); }
+	protected Translation2d n(Translation2d here) { return new Translation2d(-f(dfc,here.x()),1); }
 	protected double psi(double t) { return t; }
-	protected double e(double x, double y) { return psi(phi(x,y)); }
+	protected double e(Translation2d here) { return psi(phi(here)); }
 	protected double k() { return 1; } // FIXME: can add parameters somehow? pass this as param in constructor? idk man
-	protected double[] tau(double x, double y) {
-		double[] nv = n(x,y);
-		double[] tv = {nv[1]*direction,-nv[0]*direction};
-		return tv;
+	protected Translation2d tau(Translation2d here) {
+		Translation2d nv = n(here);
+		return new Translation2d(nv.y()*direction,-nv.x()*direction);
 	}
-	protected double[] v(double x, double y) {
-		double[] nv = n(x,y);
-		double[] tv = tau(x,y);
+	public Translation2d getVector(Translation2d here) {
+		Translation2d nv = n(here);
+		Translation2d tv = tau(here);
 		double kn = k();
-		double err = e(x,y);
-		double x = tv[0]-kn*e*nv[0];
-		double y = tv[1]*kn*e*nv[1];
-		double m = Math.sqrt(x*x+y*y);
-		x /= m;
-		y /= m;
-		double[] vv = {x,y};
-		return vv;
+		double err = e(here);
+		Translation2d vv = new Translation2d(nv.scale(kn*e),tv);
+		return vv.scale(1/vv.norm());
 	}
-	public double[] getVector(double x, double y) { return v(x,y); }
-	public double getX(double x, double y) { return v(x,y)[0]; }
-	public double getY(double x, double y) { return v(x,y)[1]; }
-/*	public Translation2d getTranslation2d(double x, double y) {
-		double[] vv = v(x,y);
-		return Translation2d(x,y);
-	}
-/**/
 }
