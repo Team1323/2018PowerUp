@@ -3,12 +3,12 @@
 
 public class GuidingVectorField implements VectorField {
 // FIXME: How do we specify a callable? Can I assign one to a member? How? reeeee
-	public GuidingVectorField(Callable<double(double,double)> surface, Callable<double(double,double)> dfdx, Callable<double(double,double)> dfdy) {
+	public GuidingVectorField(Callable<double(Translation2d)> surface, Callable<double(Translation2d)> dfdx, Callable<double(Translation2d)> dfdy) {
 		phi = surface;
 		dfdx_ = dfdx;
 		dfdy_ = dfdy;
 	}
-	public GuidingVectorField(Callable<double(double,double)> surface, Callable<double(double,double)> dfdx, Callable<double(double,double)> dfdy, bool isReversed) {
+	public GuidingVectorField(Callable<double(Translation2d)> surface, Callable<double(Translation2d)> dfdx, Callable<double(Translation2d)> dfdy, bool isReversed) {
 		phi = surface;
 		dfdx_ = dfdx;
 		dfdy_ = dfdy;
@@ -16,35 +16,25 @@ public class GuidingVectorField implements VectorField {
 	}
 	
 	protected int direction = 1;
-	protected double phi(double x, double y);
-	protected double[] n(double x, double y) {
-		return new double[]{dfdx_(x,y),dfdy_(x,y)};
+	protected double phi(Translation2d here);
+	protected Translation2d n(Translation2d here) {
+		return new Translation2d(dfdx_(here),dfdy_(here));
 	}
 	protected double psi(double t) { return t; }
-	protected double e(double x, double y) { return psi(phi(x,y)); }
+	protected double e(Translation2d here) { return psi(phi(here)); }
 	protected double k() { return 1; } // FIXME: can add parameters somehow? pass this as param in constructor? idk man
-	protected double[] tau(double x, double y) {
-		double[] nv = n(x,y);
-		return new double[]{nv[1]*direction,-nv[0]*direction};
+	protected Translation2d tau(Translation2d here) {
+		Translation2d nv = n(here);
+		return new Translation2d(nv.y()*direction,-nv.x()*direction);
 	}
-	protected double[] v(double x, double y) {
-		double[] nv = n(x,y);
-		double[] tv = tau(x,y);
+	public Translation2d getVector(Translation2d here) {
+		Translation2d nv = n(here);
+		Translation2d tv = tau(here);
 		double kn = k();
-		double err = e(x,y);
-		double x = tv[0]-kn*e*nv[0];
-		double y = tv[1]*kn*e*nv[1];
-		double m = Math.sqrt(x*x+y*y);
-		x /= m;
-		y /= m;
-		return new double[]{x,y};
+		double err = e(here);
+		double x = tv.x()-kn*e*nv.x();
+		double y = tv.y()-kn*e*nv.y();
+		Translation2d vv = new Translation2d(nv.scale(kn*e),tv);
+		return vv.scale(1/vv.norm());
 	}
-	public double[] getVector(double x, double y) { return v(x,y); }
-	public double getX(double x, double y) { return v(x,y)[0]; }
-	public double getY(double x, double y) { return v(x,y)[1]; }
-/*	public Translation2d getTranslation2d(double x, double y) {
-		double[] vv = v(x,y);
-		return Translation2d(x,y);
-	}
-/**/
 }
