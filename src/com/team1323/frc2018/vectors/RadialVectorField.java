@@ -1,7 +1,7 @@
 //package com.team1323.reee;
 //import com.team254.lib.util.math;
 
-public class RadialVectorField implements VectorField {
+public class RadialVectorField implements IVectorField {
 	// Default direction is toward point
 	public RadialVectorField(Translation2d where) {
 		there = where;
