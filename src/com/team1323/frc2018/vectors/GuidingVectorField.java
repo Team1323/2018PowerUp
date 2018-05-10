@@ -2,7 +2,7 @@
 //import com.team254.lib.util.math;
 import java.util.function;
 
-public class GuidingVectorField implements VectorField {
+public class GuidingVectorField implements IVectorField {
 	// Implement as e.g.
 	// GuidingVectorField(Translation2d here -> here.x()+here.y(), ... )
 	public GuidingVectorField(Function<Translation2d,double> surface,
