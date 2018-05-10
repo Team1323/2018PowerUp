@@ -1,7 +1,7 @@
 //package com.team1323.reee;
 //import com.team254.lib.util.math;
 
-public class GuidingPolynomialVectorField implements VectorField {
+public class GuidingPolynomialVectorField implements IVectorField {
 
 	// Create a directed line that contains the point (x,y) and has a given heading
 	public GuidingPolynomialVectorField(Translation2d where, Rotation2d heading) {
@@ -47,11 +47,7 @@ public class GuidingPolynomialVectorField implements VectorField {
 		return new Translation2d(nv.y()*direction,-nv.x()*direction);
 	}
 	public Translation2d getVector(Translation2d here) {
-		Translation2d nv = n(here);
-		Translation2d tv = tau(here);
-		double kn = k();
-		double err = e(here);
-		Translation2d vv = new Translation2d(nv.scale(kn*e),tv);
+		Translation2d vv = new Translation2d(nv(here).scale(k()*e(here)),tau(here));
 		return vv.scale(1/vv.norm());
 	}
 }
